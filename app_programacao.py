@@ -656,7 +656,7 @@ elif menu_selecionado == "Programação":
                 primeira_origem = lista_origens[0]
                 primeiro_destino = lista_destinos[0]
 
-                cursor.execute("""
+cursor.execute("""
     INSERT INTO cargas (
         numero_carga, cliente_origem, cliente_destino, nome_motorista, cpf_motorista,
         telefone_motorista, tipo_veiculo, placa_cavalo, placa_carreta, quantidade_eixos,
@@ -665,17 +665,16 @@ elif menu_selecionado == "Programação":
         data_carregamento, previsao_descarga, origens_json, destinos_json,
         tem_troca_nota, cidade_troca_nota, estado_troca_nota, data_troca_nota, status
     ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PROGRAMADA')
-""", (...)) 
-                  (
-                    numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
-                    nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
-                    placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
-                    medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
-                    primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
-                    data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
-                    json.dumps(lista_origens), json.dumps(lista_destinos),
-                    1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
-                ))
+""", (
+    numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
+    nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
+    placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
+    medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
+    primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
+    data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
+    json.dumps(lista_origens), json.dumps(lista_destinos),
+    1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
+))
                 conn.commit()
                 conn.close()
 
