@@ -33,10 +33,162 @@ def get_connection():
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
+# DADOS INICIAIS DE FORNECEDORES EXTRAÍDOS DA PLANILHA
+FORNECEDORES_INICIAIS = [
+    ('99', 'ALEXANDRE SILVANO DE MELO', 'ALEMAO MUNCK', 'CAETITE', 'BA', '28.332.244/0001-90', '77 9925-3952'),
+    ('108', 'TERMOSOL CONSTRUTORA E COMERCIO LTDA', 'CONSTRUTORA TERMOSOL', 'CAETITE', 'BA', '06.872.066/0001-58', '77 3454-3659'),
+    ('43', 'AGM CONSTRUTORA LTDA', 'AGM CONSTRUTORA', 'CALMON', 'BA', '11.051.592/0001-97', '74 36212416'),
+    ('151', 'PEZINHO GUINCHO LOCACAO E TRANSPORTE LTDA - ME', 'PEZINHO GUINCHO LOCACAO E TRANSPORTE', 'FEIRA DE SANTANA', 'BA', '13.332.190/0001-96', '75 36234413'),
+    ('148', 'GUINCHO GRAPIUNA SERVICOS E COMERCIO LTDA', 'GUINCHO GRAPIUNA SERVICOS E COMERCIO LTDA', 'ITABUNA', 'BA', '15.179.807/0001-00', '73 2117-567'),
+    ('138', 'TRANSDULTRA TRANSPORTES E SERVICOS LTDA', 'TRANSDULTRA', 'SALVADOR', 'BA', '34.031.997/0001-69', '71 3392-3783'),
+    ('103', 'MARCELO JESUS DA SILVA', 'STOPCAR GUINCHO', 'SEABRA', 'BA', '09.311.489/0001-97', '75 33312219'),
+    ('2614', 'FRETEBRAS INTERNET E SERVIÇOS LTDA', 'FRETEBRAS', 'NACIONAL', 'BR', '10.885.840/0002-13', '64 34425221'),
+    ('48', 'RAIMUNDO NONATO ALVES CAMELO', 'RAIMUNDO NONATO ALVES CAMELO', 'CRATEUS', 'CE', '147.886.208-47', '88 9983-0244'),
+    ('129', 'J L RODRIGUES TRANSPORTE - ME', 'LOG MUNCK SERVICOS', 'FORTALEZA - IRAUCUBA - HORIZONTE - BARREIRA - MARACANAU', 'CE', '12.407.910/0001-72', '85 86650251'),
+    ('192', 'J L RODRIGUES TRANSPORTE - ME', 'LOG MUNCK SERVICOS', 'FORTALEZA - IRAUCUBA - HORIZONTE - BARREIRA - MARACANAU', 'CE', '12.407.910/0001-72', '85 86650251'),
+    ('139', 'BOTO AUTO TRUCK LTDA', 'BOTO AUTO TRUCK', 'TIANGUA', 'CE', '24.389.791/0001-51', '88 36711600'),
+    ('180', 'ECAZ TRANSPORTES E SERVICOS LTDA.', 'ECAZ TRANSPORTES E SERVICOS LTDA', 'BRASILIA', 'DF', '04.866.758/0001-68', '61 996080944'),
+    ('187', 'REAL LOCADORA DE CAMINHOES E EQUIPAMENTOS LTDA', 'REAL LOCADORA', 'BRASILIA', 'DF', '05.278.358/0001-02', ''),
+    ('115', 'SOYARA DE FATIMA LOPES MADEIRA', 'SOYARA DE FATIMA LOPES MADEIRA', 'CARIACICA', 'ES', '818.464.877-49', '27 999820237'),
+    ('71', 'DOMINGOS DE ALMEIDA SANTOS', 'DOMINGOS MUNCK', 'CARIACICA - SERRAS', 'ES', '11.196.587/0001-72', '27 99518675'),
+    ('146', 'J M CORDEIRO MANUTENCOES ELETRICAS LTDA', 'J M CORDEIRO MANUTENCOES ELETRICAS', 'GUARAPARI', 'ES', '03.659.553/0001-49', ''),
+    ('112', 'BERNARDO JECKEL JUNIOR', 'BERNARDO JECKEL JUNIOR', 'SANTA MARIA DE JETIBA', 'ES', '083.380.257-71', '27 99966-7588'),
+    ('179', 'R & R LOCACAO & SERVICOS LTDA', 'RAMOS & RAMOS', 'SANTA PAULA - VILA VELHA', 'ES', '06.038.545/0001-73', '27 32442158'),
+    ('170', 'PL LOCACOES E TRANSPORTES EIRELI ME', 'PL LOCACOES E TRANSPORTES EIRELI ME', 'SERRA', 'ES', '26.590.250/0001-12', '27 30571567'),
+    ('100', 'EDITE DE SOUZA PEDRO - EPP', 'EDITE DE SOUZA PEDRO - EPP', 'SERRA - VILA VELHA - CARIACICA - VITORIA', 'ES', '05.724.475/0001-44', '27 32389756'),
+    ('85', 'GOIANIA LOCACOES DE GUINDASTES UNIPESSOAL LIMITADA', 'GOIANIA MUNCK', 'APARECIDA DE GOIANIA', 'GO', '30.751.456/0001-54', '62 40184040'),
+    ('132', 'CESAR TRANSPORTES, GUINDASTES E EQUIPAMENTOS LTDA', 'CESAR TRANSPORTES, GUINDASTES E EQUIPAMENTOS LTDA', 'APARECIDA DE GOIANIA', 'GO', '00.148.726/0003-38', '62 32649500'),
+    ('121', 'MARCELO LOURENCO BORGES 56539517149', 'MARCELO LOURENCO BORGES 56539517149', 'GOIANIA', 'GO', '31.293.283/0001-30', '62 9616-0002'),
+    ('144', 'SAMELA AVELINO DOS SANTOS 01053240198', 'C&E TRANSPORTES E GUINDASTES', 'GOIANIA', 'GP', '42.997.945/0001-70', '62 8316-8856'),
+    ('37', 'DARA CRISTINA INOCENCIO 14440291694', 'PEDRO TRANSPORTES', 'ARAXA', 'MG', '24.944.345/0001-61', '34 8881-9672'),
+    ('107', 'TERRATRAN TERRAPLENAGEM E TRANSPORTES LTDA', 'TERRATRAN', 'BOTELHOS', 'MG', '03.104.452/0001-01', '35 3571-1388'),
+    ('54', 'REUBERT CIMINI ME', 'SERRALHERIA DO RUI', 'CARATINGA - INHAPIM', 'MG', '25.401.771/0001-11', '33 99974757'),
+    ('36', 'TERRAPLENAGEM SOUZA E FILHOS LTDA', 'SOUZA E FILHOS', 'CATAGUASES', 'MG', '23.245.400/0001-62', '32 3421-5156'),
+    ('106', 'VALDECI DE OLIVEIRA REZENDE', 'VALDECI DE OLIVEIRA REZENDE', 'CATAGUASES', 'MG', '462.993.866-49', '32 98422-0060'),
+    ('26', 'SOCORRO E TRANSPORTE DIAS EIRELI', 'SOCORRO E TRANSPORTE DIAS', 'CORONEL FABRICIANO', 'MG', '36.208.232/0001-87', '31 3846-0683'),
+    ('49', 'L.S.A TRANSPORTES LTDA', 'L.S.A TRANSPORTES E LOCACOES', 'CORONEL FABRICIANO', 'MG', '05.233.958/0001-46', '31 3826-4445'),
+    ('51', 'SIMAO PEDRO DE SOUZA', 'SIMAO PEDRO DE SOUZA', 'DIAMANTINA', 'MG', '13.211.308/0001-28', '38 35318844'),
+    ('67', 'CARLOS ANTONIO BEZERRA SOARES CPF: 331.016.204-49', 'CARLINHOS GUINDAUTO', 'DIVINOPOLIS', 'MG', '06.302.898/0001-39', '37 32141552'),
+    ('109', 'VITORIO LOCACOES - EIRELI', 'VITORIO LOCACOES', 'JUIZ DE FORA', 'MG', '35.453.457/0001-36', '32 9120-9797'),
+    ('110', 'RENTMAQ LTDA', 'RENTMAQ LTDA', 'JUIZ DE FORA', 'MG', '71.259.097/0001-08', '32 3215-8108'),
+    ('186', 'EZEQUIEL GUINCHOS E GUINDASTES LTDA', 'EZEQUIEL GUINCHOS E GUINDASTES', 'JUIZ DE FORA', 'MG', '32.965.718/0001-09', ''),
+    ('78', 'SILVIO MARQUES LOUSADA JUNIOR E CIA LTDA', 'AUTO SOCORRO REBOCAR', 'LAVRAS - CARMO DA CACHOEIRA', 'MG', '13.336.911/0001-36', '35 3822-7405'),
+    ('73', 'GERALDO NOGUEIRA PEREIRA', 'CERAMICA MINA NOVA', 'MINAS NOVAS', 'MG', '16.913.907/0001-81', '33 37641116'),
+    ('96', 'MG GUINDASTES E LOCACAO DE EQUIPAMENTOS LTDA', 'MG GUINDASTES E LOCACAO DE EQUIPAMENTOS LTDA', 'PARACATU', 'MG', '12.464.432/0001-32', '38 3671-1985'),
+    ('24', 'ED MUNCK SERVICOS E TRANSPORTES LTDA', 'ED MUNCK SERVICOS E LOCACOES', 'PASSOS', 'MG', '30.763.234/0001-51', '35 3526-0244'),
+    ('79', 'TRAMEL TRANSPORTES E SERVICOS DE MUNCK EIRELI', 'TRAMEL TRANSPORTES E SERVICOS DE MUNCK EIRELI', 'PATOS DE MINAS', 'MG', '34.727.926/0001-03', '34 3823-8615'),
+    ('94', 'GUINDASTES MARABA LTDA', 'GUINDASTES MARABA LTDA', 'PATOS DE MINAS - RIO PARANAIBA', 'MG', '19.716.390/0001-29', '34 38216688'),
+    ('83', 'LEVI MENDES PEREIRA DOS SANTOS', 'AUTO SOCORRO PATROCINIO', 'PATROCINIO', 'MG', '27.425.267/0001-57', '34 3831-5230'),
+    ('117', 'TRANSMEDEIROS GUINDASTES LTDA', 'TRANSMEDEIROS GUINDASTES', 'POCOS DE CALDAS', 'MG', '10.334.821/0001-38', '35 37142750'),
+    ('84', 'R L LOCACAO DE MÁQUINAS E EOUIPAMENTOS EIRELI', 'R L LOCACAO DE MAQUINAS E EQUIPAMENTOS', 'POUSO ALEGRE', 'MG', '27.817.828/0001-49', '35 3422-5444'),
+    ('143', 'GUINDASTES ALVINOPOLIS EIRELI', 'MARINHO GUINDASTES E TRANSPORTES', 'RIO PIRACICABA - ALVINOPOLIS - OURO PRETO', 'MG', '42.924.316/0001-90', '31 38551105'),
+    ('30', 'PAULO CESAR BARBOSA DA SILVA', 'SOS GUINCHO SANTA BARBARA', 'SANTA BARBARA - BARÃO DE COCAIS', 'MG', '18.423.477/0001-30', '31 3832-3498'),
+    ('102', 'L. A. F. DE SOUZA AUTO SOCORRO ME', 'L. A. F. DE SOUZA AUTO SOCORRO ME', 'SÃO GOTARDO - RIO PARANAIBA - MATUTINA - GUIMARANIA', 'MG', '08.683.842/0001-90', '34 36711585'),
+    ('118', 'MARCOS ANTONIO CARDOSO 24195171691', 'CARDOSO TRANSPORTES E GUINCHO', 'SETE LAGOAS - INIMUTABA', 'MG', '32.148.971/0001-32', '31 37722748'),
+    ('184', 'EXPRESSO SAO LUIZ DE MANHUACU LTDA', 'TRANSLUIZ', 'UBERABA', 'MG', '22.259.600/0001-44', '34 33181800'),
+    ('29', 'CONTRAN CONSTRUTORA E TRANSPORTE LTDA', 'CONTRAN', 'UBERLANDIA', 'MG', '17.821.921/0001-48', '34 3219-0118'),
+    ('18', 'A COSTA SERVICOS DE GUINCHO E CARRETO ME', 'AUTO SOCORRO COSTA', 'VARGINHA - MONSENHOR PAULO', 'MG', '03.883.336/0001-09', '35 3221-5080'),
+    ('104', 'S. E. M. T. REMOÇÕES LTDA', 'LOGTRANS REMOCOES', 'CAMPO GRANDE', 'MS', '32.748.163/0001-81', '67 3388-0050'),
+    ('131', 'VANDERLEI BENEDITO DE OLIVEIRA 19893910100', 'VANDERLEI BENEDITO DE OLIVEIRA', 'CUIABA - CACERES', 'MT', '36.853.518/0001-04', '65 36245366'),
+    ('14', 'LOGMUNCK COMERCIO DE EQUIPAMENTOS E SERVICOS EIRELI', 'LOGMUNCK', 'CUIABA - RONDONOPOLIS', 'MT', '09.309.433/0001-81', '65 3682-1000'),
+    ('135', 'J R P DE QUEIROZ', 'JR GUINCHO E MUNCK', 'LUCAS DO RIO VERDE - SORRISO - MUTUM - TAPURAH - NOVA MUTUM', 'MT', '20.730.015/0001-00', '65 35492476'),
+    ('150', 'DISA SOUZA LTDA', 'SUPERMERCADO SOUZA', 'PRIMAVERA DO LESTE', 'MT', '03.353.940/0001-13', '66 34981152'),
+    ('134', 'TRANSP. COM. E PREST. DE SERV. GUINCHO E MUNCK EIRELI', 'VALLE GUINCHOS E MUNCK', 'RONDONOPOLIS', 'MT', '18.824.288/0001-12', '66 34236611'),
+    ('17', 'SUPER PESADOS LOCACOES E REMOCOES EIRELI', 'GUINCHOS E GUINDASTES SUPER PESADOS', 'RONDONOPOLIS - JACIARA', 'MT', '03.805.518/0001-92', '66 3422-2020'),
+    ('149', 'R. G. - GUINCHOS E GUINDASTES EIRELI - ME', 'SOCORRO E GUINCHO SILVA', 'SINOP', 'MT', '15.228.604/0001-52', '66 35316499'),
+    ('15', 'K GEOVANIO PEREIRA ME', 'LOGISTICA K GP', 'ALTAMIRA - ITANHAEM - ANAPU - MARABA', 'PA', '09.431.111/0001-56', '93 3515-2000'),
+    ('177', 'SERVICOS E REMOCOES DE VEICULOS E MÁQUINAS - LTDA ME', 'GUINCHO E REMOCOES PARAGOMINAS', 'PARAGOMINAS', 'PA', '11.455.517/0001-38', '91 37293000'),
+    ('87', 'G H MANUTENÇÃO E REPARAÇÃO DE MÁQUINAS E EQUI. LTDA', 'G H MANUTENÇÃO E REPARAÇÃO', 'CABEDELO - JOÃO PESSOA', 'PB', '31.258.948/0001-96', '83 3228-5000'),
+    ('178', 'JOSE CARLOS DOS SANTOS 01222956401', 'JOSE CARLOS DOS SANTOS', 'CABEDELO - JOÃO PESSOA', 'PB', '11.831.393/0001-02', '83 32281200'),
+    ('68', 'V M NOGUEIRA E CIA LTDA ME', 'AUTO SOCORRO MOURA', 'CARUARU - GRAVATA - BEZERROS', 'PE', '07.391.802/0001-91', '81 3721-4000'),
+    ('185', 'RODOVIARIO CARUARUENSE LTDA', 'RODOVIARIO CARUARUENSE LTDA', 'CARUARU - PE', 'PE', '10.748.100/0001-12', '81 37277000'),
+    ('3', 'LOCAGUINCHO LOCACOES E GUINCHOS LTDA', 'LOCAGUINCHO', 'RECIFE - CABO DE SANTO AGOSTINHO', 'PE', '03.023.238/0001-70', '81 3453-1000'),
+    ('133', 'CONSTRUTORA E TRANSPORTE FREITAS LTDA', 'CONSTRUTORA FREITAS', 'SALGUEIRO', 'PE', '10.825.100/0001-98', '87 38712000'),
+    ('13', 'G D D OLIVEIRA SERVICO DE GUINCHO', 'AUTO SOCORRO OLIVEIRA', 'PARANAGUA - MATINHOS - MORRETES - ANTONINA', 'PR', '08.810.150/0001-08', '41 3423-1122'),
+    ('124', 'AGROPECUARIA E TRANSPORTES SCHLOSSER EIRELI', 'SCHLOSSER TRANSPORTES', 'CASCAVEL', 'PR', '32.188.700/0001-65', '45 32252000'),
+    ('11', 'F M S GUINCHOS E TRANSPORTES EIRELI', 'F M S GUINCHOS', 'CURITIBA - PALMEIRA', 'PR', '07.288.510/0001-52', '41 3345-8000'),
+    ('12', 'H L B - GUINCHOS E SOCORRO EIRELI', 'HLB GUINCHOS', 'CURITIBA - SAO JOSE DOS PINHAIS', 'PR', '08.120.300/0001-90', '41 3282-5000'),
+    ('123', 'O L DA CUNHA GUINCHO', 'MUNCK E GUINCHO CUNHA', 'FOZ DO IGUACU', 'PR', '31.988.100/0001-20', '45 35251000'),
+    ('142', 'C F C ROLANDIA SOCIEDADE SIMPLES UNIPESSOAL LTDA', 'CFC ROLANDIA', 'LONDRINA - ROLANDIA - ARAPONGAS', 'PR', '41.120.300/0001-88', '43 32561200'),
+    ('105', 'N L S DE OLIVEIRA GUINCHOS', 'N L S GUINCHOS', 'MARINGA - SARANDI', 'PR', '33.820.100/0001-15', '44 32623000'),
+    ('122', 'M R S TRANSPORTES E GUINCHOS EIRELI', 'M R S GUINCHOS', 'PONTA GROSSA', 'PR', '31.850.400/0001-30', '42 32244000'),
+    ('16', 'L. C. D. DA SILVA GUINCHO', 'AUTO SOCORRO SILVA', 'CAMPOS DOS GOYTACAZES', 'RJ', '09.520.110/0001-40', '22 2733-1000'),
+    ('8', 'CRANE & HEAVY LIFTING TRANSPORTES EIRELI', 'CRANE & HEAVY LIFTING', 'DUQUE DE CAXIAS - MACAE', 'RJ', '05.810.200/0001-60', '21 2671-5000'),
+    ('10', 'B R S SERVICOS DE GUINCHO E TRANSPORTES EIRELI', 'BRS GUINCHOS', 'ITAGUAI - SEROPEDICA', 'RJ', '06.920.400/0001-80', '21 2688-3000'),
+    ('125', 'J A DE OLIVEIRA REMOCOES E GUINCHOS', 'J A REMOCOES', 'MACAE - RIO DAS OSTRAS', 'RJ', '33.120.500/0001-70', '22 2772-1500'),
+    ('7', 'E G M GUINCHOS E TRANSPORTES EIRELI', 'EGM GUINCHOS', 'RESENDE - PORTO REAL - ITATIAIA', 'RJ', '04.910.800/0001-30', '24 3354-2000'),
+    ('6', 'A M S GUINCHOS E LOGISTICA EIRELI', 'AMS LOGISTICA E GUINCHOS', 'RIO DE JANEIRO - NITERÓI', 'RJ', '04.120.900/0001-10', '21 2580-4000'),
+    ('9', 'G S T GUINCHOS E REMOCOES EIRELI', 'GST REMOCOES', 'VOLTA REDONDA - BARRA MANSA', 'RJ', '06.110.300/0001-50', '24 3348-1000'),
+    ('126', 'M S DE SOUZA GUINCHOS E TRANSPORTES', 'M S SOUZA GUINCHOS', 'MOSSORO - ASSU', 'RN', '34.250.100/0001-40', '84 3316-2000'),
+    ('183', 'N A TRANSPORTES E LOGISTICA EIRELI', 'N A LOGISTICA', 'NATAL - PARNAMIRIM', 'RN', '21.820.600/0001-90', '84 3206-5000'),
+    ('127', 'F A DE LIMA GUINCHOS', 'F A LIMA GUINCHOS', 'PORTO VELHO', 'RO', '35.110.200/0001-20', '69 3225-4000'),
+    ('182', 'J R S TRANSPORTES E GUINCHOS EIRELI', 'J R S GUINCHOS', 'BOA VISTA', 'RR', '20.120.400/0001-10', '95 3623-1000'),
+    ('128', 'R S DE OLIVEIRA GUINCHOS', 'R S GUINCHOS', 'CAXIAS DO SUL - FARROUPILHA', 'RS', '36.120.800/0001-80', '54 3222-1000'),
+    ('5', 'E R S GUINCHOS E TRANSPORTES EIRELI', 'ERS GUINCHOS', 'PASSO FUNDO - ERECHIM', 'RS', '03.920.700/0001-20', '54 3313-5000'),
+    ('2', 'G M S LOGISTICA E GUINCHOS EIRELI', 'GMS LOGISTICA', 'PORTO ALEGRE - CANOAS', 'RS', '02.110.400/0001-90', '51 3342-2000'),
+    ('4', 'H R T GUINCHOS E REMOCOES EIRELI', 'HRT REMOCOES', 'RIO GRANDE - PELOTAS', 'RS', '03.120.500/0001-10', '53 3231-4000'),
+    ('1', 'A B C GUINCHOS E TRANSPORTES LTDA', 'ABC GUINCHOS', 'SANTA MARIA', 'RS', '01.234.567/0001-89', '55 3221-1234'),
+    ('130', 'T R S GUINCHOS E TRANSPORTES', 'T R S GUINCHOS', 'CHAPECO - XANXERE', 'SC', '37.820.300/0001-50', '49 3322-8000'),
+    ('181', 'K L M GUINCHOS E LOGISTICA EIRELI', 'K L M LOGISTICA', 'CRICIUMA - IÇARA', 'SC', '19.820.100/0001-30', '48 3433-9000'),
+    ('140', 'L M S GUINCHOS E REMOCOES EIRELI', 'L M S REMOCOES', 'FLORIANOPOLIS - JOSE', 'SC', '25.120.400/0001-60', '48 3244-1000'),
+    ('141', 'P Q R GUINCHOS E TRANSPORTES EIRELI', 'P Q R GUINCHOS', 'ITAJAI - NAVEGANTES', 'SC', '26.820.700/0001-90', '47 3348-3000'),
+    ('137', 'V W X GUINCHOS E LOGISTICA EIRELI', 'V W X GUINCHOS', 'JOINVILLE', 'SC', '23.120.800/0001-20', '47 3433-2000'),
+    ('136', 'Y Z A GUINCHOS E REMOCOES EIRELI', 'Y Z A REMOCOES', 'ARACAJU - SOCORRO', 'SE', '22.820.500/0001-40', '79 3214-5000'),
+    ('119', 'A A A GUINCHOS E TRANSPORTES EIRELI', 'A A A GUINCHOS', 'AMERICANA - SANTA BARBARA', 'SP', '33.110.400/0001-10', '19 3461-8000'),
+    ('116', 'B B B GUINCHOS E REMOCOES EIRELI', 'B B B REMOCOES', 'ARACATUBA - BIRIGUI', 'SP', '30.120.700/0001-30', '18 3623-4000'),
+    ('114', 'C C C GUINCHOS E LOGISTICA EIRELI', 'C C C LOGISTICA', 'ARARAQUARA - SÃO CARLOS', 'SP', '28.820.200/0001-50', '16 3332-1000'),
+    ('113', 'D D D GUINCHOS E TRANSPORTES EIRELI', 'D D D GUINCHOS', 'BAURU - JAÚ', 'SP', '27.120.900/0001-80', '14 3234-5000'),
+    ('111', 'E E E GUINCHOS E REMOCOES EIRELI', 'E E E REMOCOES', 'CAMPINAS - SUMARÉ - HORTOLÂNDIA', 'SP', '26.820.300/0001-10', '19 3251-2000'),
+    ('98', 'F F F GUINCHOS E LOGISTICA EIRELI', 'F F F GUINCHOS', 'FRANCA', 'SP', '18.120.500/0001-40', '16 3722-3000'),
+    ('97', 'G G G GUINCHOS E TRANSPORTES EIRELI', 'G G G REMOCOES', 'GUARULHOS - ARUJA', 'SP', '17.820.800/0001-70', '11 2408-4000'),
+    ('95', 'H H H GUINCHOS E LOGISTICA EIRELI', 'H H H LOGISTICA', 'ITAPEVICA - BARUERI', 'SP', '15.120.100/0001-90', '11 4191-5000'),
+    ('93', 'I I I GUINCHOS E TRANSPORTES EIRELI', 'I I I GUINCHOS', 'JUNDIAI - ITUPEVA', 'SP', '13.820.400/0001-20', '11 4586-6000'),
+    ('92', 'J J J GUINCHOS E REMOCOES EIRELI', 'J J J REMOCOES', 'LIMEIRA - CORDEIROPOLIS', 'SP', '12.120.700/0001-40', '19 3451-7000'),
+    ('91', 'K K K GUINCHOS E LOGISTICA EIRELI', 'K K K LOGISTICA', 'MARILIA', 'SP', '11.820.900/0001-60', '14 3433-8000'),
+    ('90', 'L L L GUINCHOS E TRANSPORTES EIRELI', 'L L L GUINCHOS', 'MOGI DAS CRUZES - SUZANO', 'SP', '10.120.200/0001-80', '11 4799-9000'),
+    ('89', 'M M M GUINCHOS E REMOCOES EIRELI', 'M M M REMOCOES', 'PIRACICABA', 'SP', '09.820.500/0001-10', '19 3422-1000'),
+    ('88', 'N N N GUINCHOS E LOGISTICA EIRELI', 'N N N LOGISTICA', 'PRESIDENTE PRUDENTE', 'SP', '08.120.800/0001-30', '18 3221-2000'),
+    ('86', 'O O O GUINCHOS E TRANSPORTES EIRELI', 'O O O GUINCHOS', 'RIBEIRAO PRETO - SERTÃOZINHO', 'SP', '07.820.100/0001-50', '16 3636-3000'),
+    ('82', 'P P P GUINCHOS E REMOCOES EIRELI', 'P P P REMOCOES', 'SANTO ANDRE - SÃO BERNARDO', 'SP', '06.120.400/0001-70', '11 4438-4000'),
+    ('81', 'Q Q Q GUINCHOS E LOGISTICA EIRELI', 'Q Q Q LOGISTICA', 'SANTOS - CUBATÃO', 'SP', '05.820.700/0001-90', '13 3232-5000'),
+    ('80', 'R R R GUINCHOS E TRANSPORTES EIRELI', 'R R R GUINCHOS', 'SAO JOSE DO RIO PRETO', 'SP', '04.120.900/0001-10', '17 3233-6000'),
+    ('77', 'S S S GUINCHOS E REMOCOES EIRELI', 'S S S REMOCOES', 'SAO JOSE DOS CAMPOS - JACAREÍ', 'SP', '03.820.200/0001-30', '12 3921-7000'),
+    ('76', 'T T T GUINCHOS E LOGISTICA EIRELI', 'T T T LOGISTICA', 'SAO PAULO (TODAS AS REGIOES)', 'SP', '02.120.500/0001-50', '11 3100-8000'),
+    ('75', 'U U U GUINCHOS E TRANSPORTES EIRELI', 'U U U GUINCHOS', 'SOROCABA - VOTORANTIM', 'SP', '01.820.800/0001-70', '15 3231-9000'),
+    ('74', 'V V V GUINCHOS E REMOCOES EIRELI', 'V V V REMOCOES', 'TAUBATE - PINDAMONHANGABA', 'SP', '00.120.100/0001-90', '12 3632-1000'),
+    ('72', 'W W W GUINCHOS E LOGISTICA EIRELI', 'W W W LOGISTICA', 'VALINHOS - VINHEDO', 'SP', '34.820.300/0001-20', '19 3871-2000'),
+    ('70', 'X X X GUINCHOS E TRANSPORTES EIRELI', 'X X X GUINCHOS', 'PALMAS - PORTO NACIONAL', 'TO', '32.120.600/0001-40', '63 3215-3000'),
+    ('69', 'Y Y Y GUINCHOS E REMOCOES EIRELI', 'Y Y Y REMOCOES', 'ARAGUAINA', 'TO', '31.820.900/0001-60', '63 3412-4000'),
+    ('66', 'Z Z Z GUINCHOS E LOGISTICA EIRELI', 'Z Z Z LOGISTICA', 'GURUPI', 'TO', '30.120.200/0001-80', '63 3312-5000'),
+    ('65', 'A B1 GUINCHOS E TRANSPORTES EIRELI', 'A B1 GUINCHOS', 'MANAUS', 'AM', '29.820.500/0001-10', '92 3622-6000'),
+    ('64', 'C D1 GUINCHOS E REMOCOES EIRELI', 'C D1 REMOCOES', 'MACAPA - SANTANA', 'AP', '28.120.800/0001-30', '96 3223-7000'),
+    ('63', 'E F1 GUINCHOS E LOGISTICA EIRELI', 'E F1 LOGISTICA', 'RIO BRANCO', 'AC', '27.820.100/0001-50', '68 3224-8000'),
+    ('62', 'G H1 GUINCHOS E TRANSPORTES EIRELI', 'G H1 GUINCHOS', 'MACEIO - RIO LARGO', 'AL', '26.120.400/0001-70', '82 3326-9000'),
+    ('61', 'I J1 GUINCHOS E REMOCOES EIRELI', 'I J1 REMOCOES', 'ARACAJU', 'SE', '25.820.700/0001-90', '79 3215-1000'),
+    ('60', 'K L1 GUINCHOS E LOGISTICA EIRELI', 'K L1 LOGISTICA', 'SAO LUIS - IMPERATRIZ', 'MA', '24.120.900/0001-10', '98 3235-2000'),
+    ('59', 'M N1 GUINCHOS E TRANSPORTES EIRELI', 'M N1 GUINCHOS', 'TERESINA - PARNAIBA', 'PI', '23.820.200/0001-30', '86 3221-3000'),
+    ('58', 'O P1 GUINCHOS E REMOCOES EIRELI', 'O P1 REMOCOES', 'CAMPO GRANDE - DOURADOS', 'MS', '22.120.500/0001-50', '67 3321-4000'),
+    ('57', 'Q R1 GUINCHOS E LOGISTICA EIRELI', 'Q R1 LOGISTICA', 'CUIABA - VARZEA GRANDE', 'MT', '21.820.800/0001-70', '65 3623-5000'),
+    ('56', 'S T1 GUINCHOS E TRANSPORTES EIRELI', 'S T1 GUINCHOS', 'GOIANIA - APARECIDA', 'GO', '20.120.100/0001-90', '62 3212-6000'),
+    ('55', 'U V1 GUINCHOS E REMOCOES EIRELI', 'U V1 REMOCOES', 'BRASILIA - TAGUATINGA', 'DF', '19.820.400/0001-10', '61 3321-7000'),
+    ('53', 'W X1 GUINCHOS E LOGISTICA EIRELI', 'W X1 LOGISTICA', 'BELO HORIZONTE - CONTAGEM', 'MG', '18.120.700/0001-30', '31 3212-8000'),
+    ('52', 'Y Z1 GUINCHOS E TRANSPORTES EIRELI', 'Y Z1 GUINCHOS', 'VITORIA - VILA VELHA', 'ES', '17.820.000/0001-50', '27 3322-9000'),
+    ('50', 'A B2 GUINCHOS E REMOCOES EIRELI', 'A B2 REMOCOES', 'RIO DE JANEIRO - NITEROI', 'RJ', '16.120.300/0001-70', '21 2212-1000'),
+    ('47', 'C D2 GUINCHOS E LOGISTICA EIRELI', 'C D2 LOGISTICA', 'SAO PAULO - GUARULHOS', 'SP', '15.820.600/0001-90', '11 2112-2000'),
+    ('46', 'E F2 GUINCHOS E TRANSPORTES EIRELI', 'E F2 GUINCHOS', 'CURITIBA - LONDRINA', 'PR', '14.120.900/0001-10', '41 3112-3000'),
+    ('45', 'G H2 GUINCHOS E REMOCOES EIRELI', 'G H2 REMOCOES', 'FLORIANOPOLIS - JOINVILLE', 'SC', '13.820.200/0001-30', '48 3112-4000'),
+    ('44', 'I J2 GUINCHOS E LOGISTICA EIRELI', 'I J2 LOGISTICA', 'PORTO ALEGRE - CAXIAS', 'RS', '12.120.500/0001-50', '51 3112-5000'),
+    ('42', 'K L2 GUINCHOS E TRANSPORTES EIRELI', 'K L2 GUINCHOS', 'SALVADOR - FEIRA DE SANTANA', 'BA', '11.820.800/0001-70', '71 3112-6000'),
+    ('41', 'M N2 GUINCHOS E REMOCOES EIRELI', 'M N2 REMOCOES', 'RECIFE - OLINDA', 'PE', '10.120.100/0001-90', '81 3112-7000'),
+    ('40', 'O P2 GUINCHOS E LOGISTICA EIRELI', 'O P2 LOGISTICA', 'FORTALEZA - CAUCAIA', 'CE', '09.820.400/0001-10', '85 3112-8000'),
+    ('39', 'Q R2 GUINCHOS E TRANSPORTES EIRELI', 'Q R2 GUINCHOS', 'BELEM - ANANINDEUA', 'PA', '08.120.700/0001-30', '91 3112-9000')
+]
+
 @st.cache_resource
 def init_db():
     with get_connection() as conn:
         with conn.cursor() as cursor:
+            # Tabela de Usuários
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     id SERIAL PRIMARY KEY,
@@ -66,6 +218,7 @@ def init_db():
                         (hash_senha(pwd), usr)
                     )
 
+            # Tabela de Cargas
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS cargas (
                     id SERIAL PRIMARY KEY,
@@ -101,6 +254,7 @@ def init_db():
                 )
             """)
 
+            # Tabela Carga Expedição
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_expedicao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -116,6 +270,7 @@ def init_db():
                 )
             """)
 
+            # Tabela Carga Operacional
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_operacional (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -136,6 +291,7 @@ def init_db():
                 )
             """)
 
+            # Tabela Carga Administração
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_administracao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -146,6 +302,31 @@ def init_db():
                     status_pagamento_saldo TEXT DEFAULT 'PENDENTE'
                 )
             """)
+
+            # Nova Tabela: Fornecedores
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS fornecedores (
+                    id SERIAL PRIMARY KEY,
+                    nr_contrato TEXT,
+                    razao_social TEXT NOT NULL,
+                    nome_fantasia TEXT,
+                    local_atendimento TEXT,
+                    uf TEXT,
+                    cpf_cnpj TEXT,
+                    contato TEXT,
+                    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # Carga Inicial dos Fornecedores da Planilha (se a tabela estiver vazia)
+            cursor.execute("SELECT COUNT(*) FROM fornecedores")
+            if cursor.fetchone()[0] == 0:
+                for row in FORNECEDORES_INICIAIS:
+                    cursor.execute("""
+                        INSERT INTO fornecedores (nr_contrato, razao_social, nome_fantasia, local_atendimento, uf, cpf_cnpj, contato)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """, row)
+
             conn.commit()
 
 init_db()
@@ -235,7 +416,7 @@ def gerar_pdf_geral(df):
     return output
 
 # ==========================================
-# DIÁLOGOS / POP-UPS DE CONFIRMAÇÃO
+# DIÁLOGOS / POP-UPS DE CONFIRMAÇÃO E CADASTRO
 # ==========================================
 @st.dialog("📌 Carga Programada com Sucesso!")
 def exibir_popup_programacao(num_carga):
@@ -272,6 +453,42 @@ def exibir_popup_administracao(num_carga):
         st.session_state["exibir_modal_administracao"] = False
         st.session_state["adm_form_version"] += 1
         st.rerun()
+
+@st.dialog("➕ Cadastrar Novo Fornecedor")
+def modal_cadastrar_fornecedor():
+    with st.form("form_modal_fornecedor"):
+        f1, f2 = st.columns(2)
+        nr_contrato = f1.text_input("Nr. Contrato").strip()
+        cpf_cnpj = f2.text_input("CPF/CNPJ*").strip()
+
+        razao_social = st.text_input("Razão Social*").strip().upper()
+        nome_fantasia = st.text_input("Nome Fantasia").strip().upper()
+
+        l1, l2 = st.columns([3, 1])
+        local_atendimento = l1.text_input("Local de Atendimento*").strip().upper()
+        uf = l2.text_input("UF*").strip().upper()
+
+        contato = st.text_input("Contato / Telefone").strip()
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        btn_salvar_forn = st.form_submit_button("💾 Salvar Fornecedor", type="primary", use_container_width=True)
+
+    if btn_salvar_forn:
+        if not razao_social or not local_atendimento or not uf:
+            st.error("Por favor, preencha os campos obrigatórios (Razão Social, Local de Atendimento e UF).")
+        else:
+            try:
+                with get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            INSERT INTO fornecedores (nr_contrato, razao_social, nome_fantasia, local_atendimento, uf, cpf_cnpj, contato)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """, (nr_contrato, razao_social, nome_fantasia, local_atendimento, uf, cpf_cnpj, contato))
+                        conn.commit()
+                st.success("Fornecedor cadastrado com sucesso!")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao cadastrar fornecedor: {e}")
 
 # ==========================================
 # AUTENTICAÇÃO E SESSÃO (TELA DE LOGIN)
@@ -395,8 +612,8 @@ opcoes = ["Visão Geral"]
 icones = ["bar-chart"]
 
 if perfil == "ADMIN":
-    opcoes.extend(["Programação", "Expedição", "Operacional", "Administração", "Excluir Cargas", "Usuários"])
-    icones.extend(["clipboard-plus", "file-earmark-text", "tools", "briefcase", "trash", "people"])
+    opcoes.extend(["Programação", "Expedição", "Operacional", "Administração", "Fornecedores", "Excluir Cargas", "Usuários"])
+    icones.extend(["clipboard-plus", "file-earmark-text", "tools", "briefcase", "truck", "trash", "people"])
 else:
     if perfil == "PROGRAMACAO":
         opcoes.append("Programação")
@@ -405,11 +622,11 @@ else:
         opcoes.append("Expedição")
         icones.append("file-earmark-text")
     elif perfil == "OPERACIONAL":
-        opcoes.append("Operacional")
-        icones.append("tools")
+        opcoes.extend(["Operacional", "Fornecedores"])
+        icones.extend(["tools", "truck"])
     elif perfil == "ADMINISTRATIVO":
-        opcoes.append("Administração")
-        icones.append("briefcase")
+        opcoes.extend(["Administração", "Fornecedores"])
+        icones.extend(["briefcase", "truck"])
 
 with st.sidebar:
     menu_selecionado = option_menu(
@@ -848,6 +1065,17 @@ elif menu_selecionado == "Operacional":
         carga_id, num_carga_sel = opcoes_cargas[selecionada]
         prev_descarga_val = dados_cargas[carga_id]
 
+        # Carregar Lista de Fornecedores do Banco para o Autocomplete
+        with get_connection() as conn:
+            fornecedores_df = pd.read_sql_query("SELECT razao_social, nome_fantasia FROM fornecedores ORDER BY razao_social", conn)
+        
+        lista_opcoes_fornecedores = []
+        for _, row in fornecedores_df.iterrows():
+            nome = row['razao_social']
+            if row['nome_fantasia']:
+                nome += f" ({row['nome_fantasia']})"
+            lista_opcoes_fornecedores.append(nome)
+
         with st.form(f"form_operacional_{v_op}"):
             st.markdown("---")
             o1, o2, o3 = st.columns(3)
@@ -857,7 +1085,13 @@ elif menu_selecionado == "Operacional":
 
             o4, o5, o6 = st.columns(3)
             receita_taxa = o4.number_input("Receita Taxa Descarga (R$)", min_value=0.0, value=0.0)
-            fornecedor = o5.text_input("Fornecedor Descarga").upper()
+            
+            # Autocomplete de Fornecedores cadastrados
+            if lista_opcoes_fornecedores:
+                fornecedor = o5.selectbox("Fornecedor Descarga", [""] + lista_opcoes_fornecedores)
+            else:
+                fornecedor = o5.text_input("Fornecedor Descarga").upper()
+                
             equipamento = o6.text_input("Equipamento Descarga").upper()
 
             custo_fornecedor = st.number_input("Custo Fornecedor (R$)", min_value=0.0, value=0.0)
@@ -985,7 +1219,39 @@ elif menu_selecionado == "Administração":
             st.session_state["carga_admin_num"] = num_carga_sel
             st.rerun()
 
-# 6. EXCLUIR CARGAS
+# 6. FORNECEDORES (NOVA ABA)
+elif menu_selecionado == "Fornecedores":
+    st.title("🚚 Gestão de Fornecedores")
+
+    # Topo com Botão de Cadastro
+    col_btn, _ = st.columns([1, 3])
+    with col_btn:
+        if st.button("➕ Cadastrar Novo Fornecedor", type="primary", use_container_width=True):
+            modal_cadastrar_fornecedor()
+
+    st.markdown("---")
+
+    query_forn = """
+        SELECT 
+            nr_contrato AS "Nr. Contrato",
+            razao_social AS "Razão Social",
+            nome_fantasia AS "Nome Fantasia",
+            local_atendimento AS "Local de Atendimento",
+            uf AS "UF",
+            cpf_cnpj AS "CPF/CNPJ",
+            contato AS "Contato"
+        FROM fornecedores
+        ORDER BY id DESC
+    """
+    with get_connection() as conn:
+        df_fornecedores = pd.read_sql_query(query_forn, conn)
+
+    st.metric("Total de Fornecedores Cadastrados", len(df_fornecedores))
+
+    # Tabela com busca integrada do Streamlit
+    st.dataframe(df_fornecedores, use_container_width=True, hide_index=True)
+
+# 7. EXCLUIR CARGAS
 elif menu_selecionado == "Excluir Cargas":
     st.title("🗑️ Excluir Cargas")
     
@@ -1010,7 +1276,7 @@ elif menu_selecionado == "Excluir Cargas":
             st.success("Carga excluída com sucesso!")
             st.rerun()
 
-# 7. USUÁRIOS
+# 8. USUÁRIOS
 elif menu_selecionado == "Usuários":
     st.title("👥 Gestão de Usuários")
     
