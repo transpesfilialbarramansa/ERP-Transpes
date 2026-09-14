@@ -30,7 +30,8 @@ st.set_page_config(
 DB_URL = "postgresql://postgres:Transpes@26@db.ddfxntmohwaqfjfvvldd.supabase.co:5432/postgres"
 
 def get_connection():
-    return psycopg2.connect(DB_URL)
+    # Lê a URL guardada nos Secrets do Streamlit
+    return psycopg2.connect(st.secrets["DB_URL"])
 
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
