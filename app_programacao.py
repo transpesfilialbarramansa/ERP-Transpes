@@ -26,143 +26,137 @@ st.set_page_config(
 # ==========================================
 # CONEXÃO E BANCO DE DADOS (SUPABASE / POSTGRESQL)
 # ==========================================
-# Substitua SUA_SENHA_AQUI pela senha que você criou na conta do Supabase
-DB_URL = "postgresql://postgres:Transpes@26@db.ddfxntmohwaqfjfvvldd.supabase.co:5432/postgres"
 
-# O decorator garante que a conexão seja criada apenas uma vez e reutilizada
-@st.cache_resource
+# A conexão deve ser aberta por demanda para evitar conexões mortas no cache
 def get_connection():
     return psycopg2.connect(st.secrets["DB_URL"])
 
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
-def init_db():
-    conn = get_connection()
-    cursor = conn.cursor()
-
-    # Tabela de Usuários
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS usuarios (
-            id SERIAL PRIMARY KEY,
-            usuario TEXT UNIQUE NOT NULL,
-            senha TEXT NOT NULL,
-            nome TEXT NOT NULL,
-            perfil TEXT NOT NULL
-        )
-    """)
-
-    usuarios_iniciais = [
-        ("admin", "Transpes@1966", "Administrador do Sistema", "ADMIN"),
-        ("deyves.teixeira", "Transpes@26", "Deyves Teixeira", "ADMIN"),
-        ("felipe.cesario", "Transpes@26", "Felipe Cesario", "ADMIN")
-    ]
-
-    for usr, pwd, nome, perf in usuarios_iniciais:
-        cursor.execute("SELECT COUNT(*) FROM usuarios WHERE usuario = %s", (usr,))
-        if cursor.fetchone()[0] == 0:
-            cursor.execute(
-                "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
-                (usr, hash_senha(pwd), nome, perf)
-            )
-        else:
-            cursor.execute(
-                "UPDATE usuarios SET senha = %s WHERE usuario = %s",
-                (hash_senha(pwd), usr)
-            )
-
-    # 1. Programação
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS cargas (
-            id SERIAL PRIMARY KEY,
-            numero_carga TEXT UNIQUE NOT NULL,
-            cliente_origem TEXT DEFAULT '',
-            cliente_destino TEXT DEFAULT '',
-            nome_motorista TEXT NOT NULL,
-            cpf_motorista TEXT NOT NULL,
-            telefone_motorista TEXT,
-            tipo_veiculo TEXT,
-            placa_cavalo TEXT NOT NULL,
-            placa_carreta TEXT,
-            quantidade_eixos INTEGER NOT NULL,
-            peso_total REAL NOT NULL,
-            tipo_carga TEXT NOT NULL,
-            medida_dn TEXT,
-            valor_rpa REAL NOT NULL,
-            tipo_motorista TEXT NOT NULL,
-            cidade_origem TEXT NOT NULL,
-            estado_origem TEXT NOT NULL,
-            cidade_destino TEXT NOT NULL,
-            estado_destino TEXT NOT NULL,
-            data_carregamento TEXT NOT NULL,
-            previsao_descarga TEXT NOT NULL,
-            origens_json TEXT,
-            destinos_json TEXT,
-            tem_troca_nota INTEGER DEFAULT 0,
-            cidade_troca_nota TEXT,
-            estado_troca_nota TEXT,
-            data_troca_nota TEXT,
-            status TEXT DEFAULT 'PROGRAMADA',
-            data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    # 2. Expedição
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS carga_expedicao (
-            carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
-            numero_set TEXT,
-            numero_viagem TEXT,
-            numero_cte TEXT,
-            numero_mdfe TEXT,
-            numero_nota_fiscal TEXT,
-            valor_pedagio_pago REAL DEFAULT 0.00,
-            data_saida_filial TEXT NOT NULL,
-            observacoes_expedicao TEXT,
-            data_emissao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    # 3. Operacional
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS carga_operacional (
-            carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
-            data_descarga TEXT NOT NULL,
-            receita_frete REAL NOT NULL,
-            receita_pedagio REAL DEFAULT 0.00,
-            receita_taxa_descarga REAL DEFAULT 0.00,
-            fornecedor_descarga TEXT,
-            equipamento_descarga TEXT,
-            custo_fornecedor_descarga REAL DEFAULT 0.00,
-            peso_descarregado REAL,
-            observacoes_descarga TEXT,
-            receita_total REAL,
-            custo_total REAL,
-            margem_lucro_reais REAL,
-            margem_lucro_pct REAL,
-            data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
-
-    # 4. Administração
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS carga_administracao (
-            carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
-            valor_adiantamento REAL,
-            valor_saldo REAL,
-            comprovante_entregue INTEGER DEFAULT 0,
-            data_liberacao_saldo TEXT,
-            status_pagamento_saldo TEXT DEFAULT 'PENDENTE'
-        )
-    """)
-
-    conn.commit()
-    conn.close()
-
-# Em vez de chamar init_db() solto no script, use o cache
+# Executa o schema apenas UMA VEZ ao inicializar a aplicação no Streamlit
 @st.cache_resource
-def setup_database():
-    init_db()
+def init_db():
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            # Tabela de Usuários
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS usuarios (
+                    id SERIAL PRIMARY KEY,
+                    usuario TEXT UNIQUE NOT NULL,
+                    senha TEXT NOT NULL,
+                    nome TEXT NOT NULL,
+                    perfil TEXT NOT NULL
+                )
+            """)
+
+            usuarios_iniciais = [
+                ("admin", "Transpes@1966", "Administrador do Sistema", "ADMIN"),
+                ("deyves.teixeira", "Transpes@26", "Deyves Teixeira", "ADMIN"),
+                ("felipe.cesario", "Transpes@26", "Felipe Cesario", "ADMIN")
+            ]
+
+            for usr, pwd, nome, perf in usuarios_iniciais:
+                cursor.execute("SELECT COUNT(*) FROM usuarios WHERE usuario = %s", (usr,))
+                if cursor.fetchone()[0] == 0:
+                    cursor.execute(
+                        "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
+                        (usr, hash_senha(pwd), nome, perf)
+                    )
+                else:
+                    cursor.execute(
+                        "UPDATE usuarios SET senha = %s WHERE usuario = %s",
+                        (hash_senha(pwd), usr)
+                    )
+
+            # 1. Programação
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS cargas (
+                    id SERIAL PRIMARY KEY,
+                    numero_carga TEXT UNIQUE NOT NULL,
+                    cliente_origem TEXT DEFAULT '',
+                    cliente_destino TEXT DEFAULT '',
+                    nome_motorista TEXT NOT NULL,
+                    cpf_motorista TEXT NOT NULL,
+                    telefone_motorista TEXT,
+                    tipo_veiculo TEXT,
+                    placa_cavalo TEXT NOT NULL,
+                    placa_carreta TEXT,
+                    quantidade_eixos INTEGER NOT NULL,
+                    peso_total REAL NOT NULL,
+                    tipo_carga TEXT NOT NULL,
+                    medida_dn TEXT,
+                    valor_rpa REAL NOT NULL,
+                    tipo_motorista TEXT NOT NULL,
+                    cidade_origem TEXT NOT NULL,
+                    estado_origem TEXT NOT NULL,
+                    cidade_destino TEXT NOT NULL,
+                    estado_destino TEXT NOT NULL,
+                    data_carregamento TEXT NOT NULL,
+                    previsao_descarga TEXT NOT NULL,
+                    origens_json TEXT,
+                    destinos_json TEXT,
+                    tem_troca_nota INTEGER DEFAULT 0,
+                    cidade_troca_nota TEXT,
+                    estado_troca_nota TEXT,
+                    data_troca_nota TEXT,
+                    status TEXT DEFAULT 'PROGRAMADA',
+                    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # 2. Expedição
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS carga_expedicao (
+                    carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
+                    numero_set TEXT,
+                    numero_viagem TEXT,
+                    numero_cte TEXT,
+                    numero_mdfe TEXT,
+                    numero_nota_fiscal TEXT,
+                    valor_pedagio_pago REAL DEFAULT 0.00,
+                    data_saida_filial TEXT NOT NULL,
+                    observacoes_expedicao TEXT,
+                    data_emissao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # 3. Operacional
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS carga_operacional (
+                    carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
+                    data_descarga TEXT NOT NULL,
+                    receita_frete REAL NOT NULL,
+                    receita_pedagio REAL DEFAULT 0.00,
+                    receita_taxa_descarga REAL DEFAULT 0.00,
+                    fornecedor_descarga TEXT,
+                    equipamento_descarga TEXT,
+                    custo_fornecedor_descarga REAL DEFAULT 0.00,
+                    peso_descarregado REAL,
+                    observacoes_descarga TEXT,
+                    receita_total REAL,
+                    custo_total REAL,
+                    margem_lucro_reais REAL,
+                    margem_lucro_pct REAL,
+                    data_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            """)
+
+            # 4. Administração
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS carga_administracao (
+                    carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
+                    valor_adiantamento REAL,
+                    valor_saldo REAL,
+                    comprovante_entregue INTEGER DEFAULT 0,
+                    data_liberacao_saldo TEXT,
+                    status_pagamento_saldo TEXT DEFAULT 'PENDENTE'
+                )
+            """)
+            conn.commit()
+
+# Inicializa o banco de dados uma única vez
+init_db()
 
 # ==========================================
 # FUNÇÕES AUXILIARES DE EXPORTAÇÃO E IMAGEM
@@ -172,11 +166,10 @@ def get_base64_image(image_path):
         return base64.b64encode(img_file.read()).decode()
 
 def gerar_numero_carga_novo():
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM cargas")
-    qtd = cursor.fetchone()[0] + 1
-    conn.close()
+    with get_connection() as conn:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT COUNT(*) FROM cargas")
+            qtd = cursor.fetchone()[0] + 1
     ano = datetime.datetime.now().year
     return f"TRP-{ano}-{qtd:03d}"
 
@@ -374,14 +367,13 @@ if not st.session_state["logado"]:
         
         st.markdown("<br>", unsafe_allow_html=True)
         if st.button("Entrar", use_container_width=True, type="primary"):
-            conn = get_connection()
-            cursor = conn.cursor()
-            cursor.execute(
-                "SELECT usuario, nome, perfil FROM usuarios WHERE usuario = %s AND senha = %s",
-                (usuario_input.strip().lower(), hash_senha(senha_input))
-            )
-            usr = cursor.fetchone()
-            conn.close()
+            with get_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute(
+                        "SELECT usuario, nome, perfil FROM usuarios WHERE usuario = %s AND senha = %s",
+                        (usuario_input.strip().lower(), hash_senha(senha_input))
+                    )
+                    usr = cursor.fetchone()
             
             if usr:
                 st.session_state["logado"] = True
@@ -443,8 +435,6 @@ with st.sidebar:
 if menu_selecionado == "Visão Geral":
     st.title("📊 Visão Geral e Relatórios")
     
-    conn = get_connection()
-    
     query = """
         SELECT 
             c.numero_carga AS "Nº Carga",
@@ -472,8 +462,8 @@ if menu_selecionado == "Visão Geral":
         LEFT JOIN carga_administracao a ON c.id = a.carga_id
         ORDER BY c.id DESC
     """
-    df = pd.read_sql_query(query, conn)
-    conn.close()
+    with get_connection() as conn:
+        df = pd.read_sql_query(query, conn)
 
     if df.empty:
         st.info("Nenhuma carga cadastrada até o momento.")
@@ -650,33 +640,31 @@ elif menu_selecionado == "Programação":
             st.error("Adicione pelo menos uma origem e um destino.")
         else:
             try:
-                conn = get_connection()
-                cursor = conn.cursor()
-                
-                primeira_origem = lista_origens[0]
-                primeiro_destino = lista_destinos[0]
+                with get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        primeira_origem = lista_origens[0]
+                        primeiro_destino = lista_destinos[0]
 
-                cursor.execute("""
-                    INSERT INTO cargas (
-                        numero_carga, cliente_origem, cliente_destino, nome_motorista, cpf_motorista,
-                        telefone_motorista, tipo_veiculo, placa_cavalo, placa_carreta, quantidade_eixos,
-                        peso_total, tipo_carga, medida_dn, valor_rpa, tipo_motorista,
-                        cidade_origem, estado_origem, cidade_destino, estado_destino,
-                        data_carregamento, previsao_descarga, origens_json, destinos_json,
-                        tem_troca_nota, cidade_troca_nota, estado_troca_nota, data_troca_nota, status
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PROGRAMADA')
-                """, (
-                    numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
-                    nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
-                    placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
-                    medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
-                    primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
-                    data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
-                    json.dumps(lista_origens), json.dumps(lista_destinos),
-                    1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
-                ))
-                conn.commit()
-                conn.close()
+                        cursor.execute("""
+                            INSERT INTO cargas (
+                                numero_carga, cliente_origem, cliente_destino, nome_motorista, cpf_motorista,
+                                telefone_motorista, tipo_veiculo, placa_cavalo, placa_carreta, quantidade_eixos,
+                                peso_total, tipo_carga, medida_dn, valor_rpa, tipo_motorista,
+                                cidade_origem, estado_origem, cidade_destino, estado_destino,
+                                data_carregamento, previsao_descarga, origens_json, destinos_json,
+                                tem_troca_nota, cidade_troca_nota, estado_troca_nota, data_troca_nota, status
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PROGRAMADA')
+                        """, (
+                            numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
+                            nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
+                            placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
+                            medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
+                            primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
+                            data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
+                            json.dumps(lista_origens), json.dumps(lista_destinos),
+                            1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
+                        ))
+                        conn.commit()
 
                 st.session_state["exibir_modal_programacao"] = True
                 st.session_state["carga_programada_num"] = numero_carga
@@ -699,8 +687,6 @@ elif menu_selecionado == "Expedição":
     if st.session_state.get("exibir_modal_expedicao", False):
         exibir_popup_expedicao(st.session_state.get("carga_expedicao_num", ""))
 
-    conn = get_connection()
-    
     query_exp = """
         SELECT 
             c.id, 
@@ -716,7 +702,8 @@ elif menu_selecionado == "Expedição":
         FROM cargas c
         WHERE c.status = 'PROGRAMADA'
     """
-    cargas_df = pd.read_sql_query(query_exp, conn)
+    with get_connection() as conn:
+        cargas_df = pd.read_sql_query(query_exp, conn)
     
     if cargas_df.empty:
         st.info("Nenhuma carga aguardando expedição no momento.")
@@ -814,32 +801,31 @@ elif menu_selecionado == "Expedição":
                 json_ctes = json.dumps(lista_ctes)
                 json_mdfes = json.dumps(lista_mdfes)
 
-                cursor = conn.cursor()
-                cursor.execute("""
-                    INSERT INTO carga_expedicao (
-                        carga_id, numero_set, numero_viagem, numero_cte, numero_mdfe, numero_nota_fiscal,
-                        valor_pedagio_pago, data_saida_filial, observacoes_expedicao
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
-                """, (
-                    carga_id, 
-                    numero_set.strip(), 
-                    json_viagens,
-                    json_ctes, 
-                    json_mdfes, 
-                    json_nfs, 
-                    valor_pedagio_pago, 
-                    data_saida.strftime("%d/%m/%Y"), 
-                    obs_exp
-                ))
-                
-                cursor.execute("UPDATE cargas SET status = 'EM TRÂNSITO' WHERE id = %s", (carga_id,))
-                conn.commit()
+                with get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            INSERT INTO carga_expedicao (
+                                carga_id, numero_set, numero_viagem, numero_cte, numero_mdfe, numero_nota_fiscal,
+                                valor_pedagio_pago, data_saida_filial, observacoes_expedicao
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        """, (
+                            carga_id, 
+                            numero_set.strip(), 
+                            json_viagens,
+                            json_ctes, 
+                            json_mdfes, 
+                            json_nfs, 
+                            valor_pedagio_pago, 
+                            data_saida.strftime("%d/%m/%Y"), 
+                            obs_exp
+                        ))
+                        
+                        cursor.execute("UPDATE cargas SET status = 'EM TRÂNSITO' WHERE id = %s", (carga_id,))
+                        conn.commit()
 
                 st.session_state["exibir_modal_expedicao"] = True
                 st.session_state["carga_expedicao_num"] = num_carga_sel
                 st.rerun()
-
-    conn.close()
 
 # 4. OPERACIONAL
 elif menu_selecionado == "Operacional":
@@ -853,8 +839,6 @@ elif menu_selecionado == "Operacional":
     if st.session_state.get("exibir_modal_operacional", False):
         exibir_popup_operacional(st.session_state.get("carga_operacional_num", ""))
 
-    conn = get_connection()
-    
     query_op = """
         SELECT 
             c.id, 
@@ -872,7 +856,8 @@ elif menu_selecionado == "Operacional":
         LEFT JOIN carga_expedicao e ON c.id = e.carga_id
         WHERE c.status = 'EM TRÂNSITO'
     """
-    cargas_df = pd.read_sql_query(query_op, conn)
+    with get_connection() as conn:
+        cargas_df = pd.read_sql_query(query_op, conn)
     
     if cargas_df.empty:
         st.info("Nenhuma carga em trânsito no momento.")
@@ -924,28 +909,27 @@ elif menu_selecionado == "Operacional":
             margem_reais = receita_total - custo_total
             margem_pct = (margem_reais / receita_total * 100) if receita_total > 0 else 0.0
 
-            cursor = conn.cursor()
-            cursor.execute("""
-                INSERT INTO carga_operacional (
-                    carga_id, data_descarga, receita_frete, receita_pedagio, receita_taxa_descarga,
-                    fornecedor_descarga, equipamento_descarga, custo_fornecedor_descarga,
-                    peso_descarregado, observacoes_descarga, receita_total, custo_total,
-                    margem_lucro_reais, margem_lucro_pct
-                ) VALUES (%s, '', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-            """, (
-                carga_id, receita_frete, receita_pedagio, receita_taxa,
-                fornecedor, equipamento, custo_fornecedor, peso_descarregado, obs,
-                receita_total, custo_total, margem_reais, margem_pct
-            ))
-            
-            cursor.execute("UPDATE cargas SET status = 'ENTREGUE' WHERE id = %s", (carga_id,))
-            conn.commit()
+            with get_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        INSERT INTO carga_operacional (
+                            carga_id, data_descarga, receita_frete, receita_pedagio, receita_taxa_descarga,
+                            fornecedor_descarga, equipamento_descarga, custo_fornecedor_descarga,
+                            peso_descarregado, observacoes_descarga, receita_total, custo_total,
+                            margem_lucro_reais, margem_lucro_pct
+                        ) VALUES (%s, '', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                    """, (
+                        carga_id, receita_frete, receita_pedagio, receita_taxa,
+                        fornecedor, equipamento, custo_fornecedor, peso_descarregado, obs,
+                        receita_total, custo_total, margem_reais, margem_pct
+                    ))
+                    
+                    cursor.execute("UPDATE cargas SET status = 'ENTREGUE' WHERE id = %s", (carga_id,))
+                    conn.commit()
 
             st.session_state["exibir_modal_operacional"] = True
             st.session_state["carga_operacional_num"] = num_carga_sel
             st.rerun()
-
-    conn.close()
 
 # 5. ADMINISTRAÇÃO
 elif menu_selecionado == "Administração":
@@ -958,8 +942,6 @@ elif menu_selecionado == "Administração":
 
     if st.session_state.get("exibir_modal_administracao", False):
         exibir_popup_administracao(st.session_state.get("carga_admin_num", ""))
-
-    conn = get_connection()
 
     query_adm = """
         SELECT 
@@ -978,7 +960,8 @@ elif menu_selecionado == "Administração":
         LEFT JOIN carga_expedicao e ON c.id = e.carga_id
         WHERE c.status = 'ENTREGUE'
     """
-    cargas_df = pd.read_sql_query(query_adm, conn)
+    with get_connection() as conn:
+        cargas_df = pd.read_sql_query(query_adm, conn)
     
     if cargas_df.empty:
         st.info("Nenhuma carga entregue aguardando acerto administrativo.")
@@ -1026,36 +1009,34 @@ elif menu_selecionado == "Administração":
         salvar_adm = st.button("💰 Finalizar Acerto e Liberar Saldo", use_container_width=True, type="primary")
 
         if salvar_adm:
-            cursor = conn.cursor()
-            
-            cursor.execute("""
-                UPDATE carga_operacional 
-                SET data_descarga = %s 
-                WHERE carga_id = %s
-            """, (data_descarga_real.strftime("%d/%m/%Y"), carga_id))
+            with get_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("""
+                        UPDATE carga_operacional 
+                        SET data_descarga = %s 
+                        WHERE carga_id = %s
+                    """, (data_descarga_real.strftime("%d/%m/%Y"), carga_id))
 
-            cursor.execute("""
-                INSERT INTO carga_administracao (
-                    carga_id, valor_adiantamento, valor_saldo, comprovante_entregue,
-                    data_liberacao_saldo, status_pagamento_saldo
-                ) VALUES (%s, %s, %s, %s, %s, %s)
-            """, (carga_id, adiantamento_calc, saldo_calc, 1 if comprovante else 0, data_lib.strftime("%d/%m/%Y"), status_pag))
-            
-            cursor.execute("UPDATE cargas SET status = 'FINALIZADA' WHERE id = %s", (carga_id,))
-            conn.commit()
+                    cursor.execute("""
+                        INSERT INTO carga_administracao (
+                            carga_id, valor_adiantamento, valor_saldo, comprovante_entregue,
+                            data_liberacao_saldo, status_pagamento_saldo
+                        ) VALUES (%s, %s, %s, %s, %s, %s)
+                    """, (carga_id, adiantamento_calc, saldo_calc, 1 if comprovante else 0, data_lib.strftime("%d/%m/%Y"), status_pag))
+                    
+                    cursor.execute("UPDATE cargas SET status = 'FINALIZADA' WHERE id = %s", (carga_id,))
+                    conn.commit()
 
             st.session_state["exibir_modal_administracao"] = True
             st.session_state["carga_admin_num"] = num_carga_sel
             st.rerun()
 
-    conn.close()
-
 # 6. EXCLUIR CARGAS
 elif menu_selecionado == "Excluir Cargas":
     st.title("🗑️ Excluir Cargas")
     
-    conn = get_connection()
-    cargas_df = pd.read_sql_query("SELECT id, numero_carga, nome_motorista, status FROM cargas", conn)
+    with get_connection() as conn:
+        cargas_df = pd.read_sql_query("SELECT id, numero_carga, nome_motorista, status FROM cargas", conn)
     
     if cargas_df.empty:
         st.info("Nenhuma carga cadastrada.")
@@ -1065,22 +1046,22 @@ elif menu_selecionado == "Excluir Cargas":
         carga_id = opcoes_cargas[selecionada]
 
         if st.button("❌ Excluir Definitivamente", type="primary"):
-            cursor = conn.cursor()
-            cursor.execute("DELETE FROM carga_administracao WHERE carga_id = %s", (carga_id,))
-            cursor.execute("DELETE FROM carga_operacional WHERE carga_id = %s", (carga_id,))
-            cursor.execute("DELETE FROM carga_expedicao WHERE carga_id = %s", (carga_id,))
-            cursor.execute("DELETE FROM cargas WHERE id = %s", (carga_id,))
-            conn.commit()
+            with get_connection() as conn:
+                with conn.cursor() as cursor:
+                    cursor.execute("DELETE FROM carga_administracao WHERE carga_id = %s", (carga_id,))
+                    cursor.execute("DELETE FROM carga_operacional WHERE carga_id = %s", (carga_id,))
+                    cursor.execute("DELETE FROM carga_expedicao WHERE carga_id = %s", (carga_id,))
+                    cursor.execute("DELETE FROM cargas WHERE id = %s", (carga_id,))
+                    conn.commit()
             st.success("Carga excluída com sucesso!")
             st.rerun()
-    conn.close()
 
 # 7. USUÁRIOS
 elif menu_selecionado == "Usuários":
     st.title("👥 Gestão de Usuários")
     
-    conn = get_connection()
-    users_df = pd.read_sql_query("SELECT id, usuario, nome, perfil FROM usuarios", conn)
+    with get_connection() as conn:
+        users_df = pd.read_sql_query("SELECT id, usuario, nome, perfil FROM usuarios", conn)
     st.dataframe(users_df, use_container_width=True)
 
     st.subheader("➕ Adicionar Novo Usuário")
@@ -1100,16 +1081,16 @@ elif menu_selecionado == "Usuários":
                 st.error("Preencha todos os campos obrigatórios.")
             else:
                 try:
-                    cursor = conn.cursor()
-                    cursor.execute(
-                        "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
-                        (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil)
-                    )
-                    conn.commit()
+                    with get_connection() as conn:
+                        with conn.cursor() as cursor:
+                            cursor.execute(
+                                "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
+                                (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil)
+                            )
+                            conn.commit()
                     st.success(f"Usuário {novo_usr} cadastrado com sucesso!")
                     st.rerun()
                 except psycopg2.IntegrityError:
                     st.error("Nome de usuário já cadastrado.")
                 except Exception as e:
                     st.error(f"Erro ao salvar usuário: {e}")
-    conn.close()
