@@ -27,7 +27,7 @@ st.set_page_config(
 # CONEXÃO E BANCO DE DADOS (SUPABASE / POSTGRESQL)
 # ==========================================
 # Substitua SUA_SENHA_AQUI pela senha que você criou na conta do Supabase
-DB_URL = "postgresql://postgres:SUA_SENHA_AQUI@db.ddfxntmohwaqfjfvvldd.supabase.co:5432/postgres"
+DB_URL = "postgresql://postgres:Transpes@26@db.ddfxntmohwaqfjfvvldd.supabase.co:5432/postgres"
 
 def get_connection():
     return psycopg2.connect(DB_URL)
