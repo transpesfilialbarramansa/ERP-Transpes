@@ -1,0 +1,6 @@
+streamlit
+pandas
+reportlab
+openpyxl
+streamlit-option-menu
+psycopg2-binary
