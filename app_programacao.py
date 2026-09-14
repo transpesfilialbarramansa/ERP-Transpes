@@ -29,8 +29,9 @@ st.set_page_config(
 # Substitua SUA_SENHA_AQUI pela senha que você criou na conta do Supabase
 DB_URL = "postgresql://postgres:Transpes@26@db.ddfxntmohwaqfjfvvldd.supabase.co:5432/postgres"
 
+# O decorator garante que a conexão seja criada apenas uma vez e reutilizada
+@st.cache_resource
 def get_connection():
-    # Lê a URL guardada nos Secrets do Streamlit
     return psycopg2.connect(st.secrets["DB_URL"])
 
 def hash_senha(senha):
@@ -158,7 +159,10 @@ def init_db():
     conn.commit()
     conn.close()
 
-init_db()
+# Em vez de chamar init_db() solto no script, use o cache
+@st.cache_resource
+def setup_database():
+    init_db()
 
 # ==========================================
 # FUNÇÕES AUXILIARES DE EXPORTAÇÃO E IMAGEM
