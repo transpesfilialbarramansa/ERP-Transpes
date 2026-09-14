@@ -588,8 +588,8 @@ elif menu_selecionado == "Programação":
         for i in range(int(qtd_origens)):
             co1, co2, co3 = st.columns([2, 2, 1])
             cli_orig = co1.text_input(f"Cliente Origem {i+1}*", key=f"cli_orig_{i}_{v}").upper()
-            cid_orig = co2.text_input(f"Cidade Origem {i+1}*", value="CONTAGEM" if i == 0 else "", key=f"cid_orig_{i}_{v}").upper()
-            est_orig = co3.text_input(f"UF Origem {i+1}*", value="MG" if i == 0 else "", key=f"est_orig_{i}_{v}").upper()
+            cid_orig = co2.text_input(f"Cidade Origem {i+1}*", key=f"cid_orig_{i}_{v}").upper()
+            est_orig = co3.text_input(f"UF Origem {i+1}*", key=f"est_orig_{i}_{v}").upper()
             lista_origens.append({"cliente": cli_orig, "cidade": cid_orig, "estado": est_orig})
 
         lista_destinos = []
