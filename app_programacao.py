@@ -27,19 +27,16 @@ st.set_page_config(
 # CONEXÃO E BANCO DE DADOS (SUPABASE / POSTGRESQL)
 # ==========================================
 
-# A conexão deve ser aberta por demanda para evitar conexões mortas no cache
 def get_connection():
     return psycopg2.connect(st.secrets["DB_URL"])
 
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
-# Executa o schema apenas UMA VEZ ao inicializar a aplicação no Streamlit
 @st.cache_resource
 def init_db():
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # Tabela de Usuários
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     id SERIAL PRIMARY KEY,
@@ -69,7 +66,6 @@ def init_db():
                         (hash_senha(pwd), usr)
                     )
 
-            # 1. Programação
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS cargas (
                     id SERIAL PRIMARY KEY,
@@ -105,7 +101,6 @@ def init_db():
                 )
             """)
 
-            # 2. Expedição
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_expedicao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -121,7 +116,6 @@ def init_db():
                 )
             """)
 
-            # 3. Operacional
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_operacional (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -142,7 +136,6 @@ def init_db():
                 )
             """)
 
-            # 4. Administração
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_administracao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -155,7 +148,6 @@ def init_db():
             """)
             conn.commit()
 
-# Inicializa o banco de dados uma única vez
 init_db()
 
 # ==========================================
@@ -361,28 +353,29 @@ if not st.session_state["logado"]:
         </div>
     """, unsafe_allow_html=True)
 
-    with st.container():
+    with st.form("form_login"):
         usuario_input = st.text_input("Usuário", placeholder="Digite seu usuário")
         senha_input = st.text_input("Senha", type="password", placeholder="Digite sua senha")
-        
         st.markdown("<br>", unsafe_allow_html=True)
-        if st.button("Entrar", use_container_width=True, type="primary"):
-            with get_connection() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute(
-                        "SELECT usuario, nome, perfil FROM usuarios WHERE usuario = %s AND senha = %s",
-                        (usuario_input.strip().lower(), hash_senha(senha_input))
-                    )
-                    usr = cursor.fetchone()
-            
-            if usr:
-                st.session_state["logado"] = True
-                st.session_state["usuario"] = usr[0]
-                st.session_state["nome"] = usr[1]
-                st.session_state["perfil"] = usr[2]
-                st.rerun()
-            else:
-                st.error("Usuário ou senha incorretos.")
+        btn_login = st.form_submit_button("Entrar", use_container_width=True, type="primary")
+
+    if btn_login:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT usuario, nome, perfil FROM usuarios WHERE usuario = %s AND senha = %s",
+                    (usuario_input.strip().lower(), hash_senha(senha_input))
+                )
+                usr = cursor.fetchone()
+        
+        if usr:
+            st.session_state["logado"] = True
+            st.session_state["usuario"] = usr[0]
+            st.session_state["nome"] = usr[1]
+            st.session_state["perfil"] = usr[2]
+            st.rerun()
+        else:
+            st.error("Usuário ou senha incorretos.")
 
     st.stop()
 
@@ -444,13 +437,11 @@ if menu_selecionado == "Visão Geral":
             c.cidade_origem || '/' || c.estado_origem AS "Origem",
             c.cidade_destino || '/' || c.estado_destino AS "Destino",
             
-            -- Receita
             COALESCE(o.receita_frete, 0.0) AS "Receita Frete (R$)",
             COALESCE(o.receita_pedagio, 0.0) AS "Receita Pedágio (R$)",
             COALESCE(o.receita_taxa_descarga, 0.0) AS "Receita Taxa Descarga (R$)",
             (COALESCE(o.receita_frete, 0.0) + COALESCE(o.receita_pedagio, 0.0) + COALESCE(o.receita_taxa_descarga, 0.0)) AS "Receita Total (R$)",
             
-            -- Custos
             COALESCE(c.valor_rpa, 0.0) AS "RPA (R$)",
             COALESCE(e.valor_pedagio_pago, 0.0) AS "Pedágio Pago (R$)",
             COALESCE(o.custo_fornecedor_descarga, 0.0) AS "Custo Descarga (R$)",
@@ -560,80 +551,75 @@ elif menu_selecionado == "Programação":
     
     num_carga_sugerido = gerar_numero_carga_novo()
 
-    st.subheader("1. Identificação da Carga")
-    c1, _, _ = st.columns([1, 1, 1])
-    numero_carga = c1.text_input("Número da Carga*", value=num_carga_sugerido, key=f"prog_num_carga_{v}").upper()
-
-    st.subheader("2. Dados do Motorista e Veículo")
-    m1, m2, m3 = st.columns(3)
-    nome_motorista = m1.text_input("Nome do Motorista*", key=f"prog_nome_mot_{v}").upper()
-    cpf_motorista = m2.text_input("CPF do Motorista*", key=f"prog_cpf_mot_{v}")
-    telefone_motorista = m3.text_input("Telefone", key=f"prog_tel_mot_{v}")
-
-    v1, v2, v3, v4, v5 = st.columns(5)
-    tipo_motorista = v1.selectbox("Tipo de Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"], key=f"prog_tipo_mot_{v}")
-    tipo_veiculo = v2.selectbox("Tipo de Veículo*", ["CARRETA", "BITREM", "RODOTREM", "VANDERLÉIA", "TOCO", "TRUCK"], key=f"prog_tipo_veic_{v}")
-    placa_cavalo = v3.text_input("Placa Cavalo*", key=f"prog_placa_cavalo_{v}").upper()
-    placa_carreta = v4.text_input("Placa Carreta", key=f"prog_placa_carreta_{v}").upper()
-    qtd_eixos = v5.number_input("Qtd. Eixos*", min_value=2, max_value=9, value=6, key=f"prog_eixos_{v}")
-
-    st.subheader("3. Especificações da Carga")
-    e1, e2, e3, e4 = st.columns(4)
-    peso_total = e1.number_input("Peso Total (ton)*", min_value=0.1, value=30.0, step=0.5, key=f"prog_peso_{v}")
-    tipo_carga = e2.text_input("Tipo da Carga*", value="GERAL", key=f"prog_tipo_carga_{v}").upper()
-    medida_dn = e3.text_input("Medida DN", key=f"prog_medida_dn_{v}").upper()
-    valor_rpa = e4.number_input("Valor RPA (R$)*", min_value=0.0, value=0.0, step=100.0, key=f"prog_rpa_{v}")
-
-    st.subheader("4. Rotas e Clientes (Múltiplas Origens e Destinos)")
-    
     col_qtd_orig, col_qtd_dest = st.columns(2)
     qtd_origens = col_qtd_orig.number_input("Qtd. de Clientes / Locais de Origem*", min_value=1, max_value=10, value=1, key=f"prog_qtd_origens_{v}")
     qtd_destinos = col_qtd_dest.number_input("Qtd. de Clientes / Locais de Destino*", min_value=1, max_value=10, value=1, key=f"prog_qtd_destinos_{v}")
-
-    lista_origens = []
-    st.markdown("**📍 Locais e Clientes de Origem:**")
-    for i in range(int(qtd_origens)):
-        st.caption(f"Origem {i+1}")
-        co1, co2, co3 = st.columns([2, 2, 1])
-        cli_orig = co1.text_input(f"Cliente Origem {i+1}*", key=f"cli_orig_{i}_{v}").upper()
-        cid_orig = co2.text_input(f"Cidade Origem {i+1}*", value="CONTAGEM" if i == 0 else "", key=f"cid_orig_{i}_{v}").upper()
-        est_orig = co3.text_input(f"UF Origem {i+1}*", value="MG" if i == 0 else "", key=f"est_orig_{i}_{v}").upper()
-        lista_origens.append({"cliente": cli_orig, "cidade": cid_orig, "estado": est_orig})
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    lista_destinos = []
-    st.markdown("**🏁 Locais e Clientes de Destino:**")
-    for j in range(int(qtd_destinos)):
-        st.caption(f"Destino {j+1}")
-        cd1, cd2, cd3 = st.columns([2, 2, 1])
-        cli_dest = cd1.text_input(f"Cliente Destino {j+1}*", key=f"cli_dest_{j}_{v}").upper()
-        cid_dest = cd2.text_input(f"Cidade Destino {j+1}*", key=f"cid_dest_{j}_{v}").upper()
-        est_dest = cd3.text_input(f"UF Destino {j+1}*", key=f"est_dest_{j}_{v}").upper()
-        lista_destinos.append({"cliente": cli_dest, "cidade": cid_dest, "estado": est_dest})
-
-    st.subheader("5. Datas e Troca de Nota")
-    d1, d2 = st.columns(2)
-    data_carregamento = d1.date_input("Data Carregamento*", datetime.date.today(), format="DD/MM/YYYY", key=f"prog_dt_carreg_{v}")
-    previsao_descarga = d2.date_input("Previsão Descarga*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY", key=f"prog_prev_desc_{v}")
-
-    st.markdown("---")
-    
     tem_troca_nota = st.checkbox("Houve Troca de Nota?", key=f"chk_troca_nota_{v}")
-    
-    cidade_troca = ""
-    estado_troca = ""
-    data_troca_str = ""
 
-    if tem_troca_nota:
-        st.markdown("**📋 Dados da Troca de Nota:**")
-        tn1, tn2, tn3 = st.columns(3)
-        cidade_troca = tn1.text_input("Cidade da Troca de Nota*", key=f"cid_troca_input_{v}").upper()
-        estado_troca = tn2.text_input("Estado da Troca de Nota*", key=f"est_troca_input_{v}").upper()
-        data_troca = tn3.date_input("Data da Troca de Nota*", datetime.date.today(), format="DD/MM/YYYY", key=f"dt_troca_input_{v}")
-        data_troca_str = data_troca.strftime("%d/%m/%Y")
+    with st.form(f"form_programacao_{v}"):
+        st.subheader("1. Identificação da Carga")
+        c1, _, _ = st.columns([1, 1, 1])
+        numero_carga = c1.text_input("Número da Carga*", value=num_carga_sugerido).upper()
 
-    st.markdown("<br>", unsafe_allow_html=True)
-    salvar = st.button("💾 Salvar Programação", type="primary", use_container_width=True)
+        st.subheader("2. Dados do Motorista e Veículo")
+        m1, m2, m3 = st.columns(3)
+        nome_motorista = m1.text_input("Nome do Motorista*").upper()
+        cpf_motorista = m2.text_input("CPF do Motorista*")
+        telefone_motorista = m3.text_input("Telefone")
+
+        v1, v2, v3, v4, v5 = st.columns(5)
+        tipo_motorista = v1.selectbox("Tipo de Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"])
+        tipo_veiculo = v2.selectbox("Tipo de Veículo*", ["CARRETA", "BITREM", "RODOTREM", "VANDERLÉIA", "TOCO", "TRUCK"])
+        placa_cavalo = v3.text_input("Placa Cavalo*").upper()
+        placa_carreta = v4.text_input("Placa Carreta").upper()
+        qtd_eixos = v5.number_input("Qtd. Eixos*", min_value=2, max_value=9, value=6)
+
+        st.subheader("3. Especificações da Carga")
+        e1, e2, e3, e4 = st.columns(4)
+        peso_total = e1.number_input("Peso Total (ton)*", min_value=0.1, value=30.0, step=0.5)
+        tipo_carga = e2.text_input("Tipo da Carga*", value="GERAL").upper()
+        medida_dn = e3.text_input("Medida DN").upper()
+        valor_rpa = e4.number_input("Valor RPA (R$)*", min_value=0.0, value=0.0, step=100.0)
+
+        st.subheader("4. Rotas e Clientes")
+        
+        lista_origens = []
+        st.markdown("**📍 Locais e Clientes de Origem:**")
+        for i in range(int(qtd_origens)):
+            co1, co2, co3 = st.columns([2, 2, 1])
+            cli_orig = co1.text_input(f"Cliente Origem {i+1}*", key=f"cli_orig_{i}_{v}").upper()
+            cid_orig = co2.text_input(f"Cidade Origem {i+1}*", value="CONTAGEM" if i == 0 else "", key=f"cid_orig_{i}_{v}").upper()
+            est_orig = co3.text_input(f"UF Origem {i+1}*", value="MG" if i == 0 else "", key=f"est_orig_{i}_{v}").upper()
+            lista_origens.append({"cliente": cli_orig, "cidade": cid_orig, "estado": est_orig})
+
+        lista_destinos = []
+        st.markdown("**🏁 Locais e Clientes de Destino:**")
+        for j in range(int(qtd_destinos)):
+            cd1, cd2, cd3 = st.columns([2, 2, 1])
+            cli_dest = cd1.text_input(f"Cliente Destino {j+1}*", key=f"cli_dest_{j}_{v}").upper()
+            cid_dest = cd2.text_input(f"Cidade Destino {j+1}*", key=f"cid_dest_{j}_{v}").upper()
+            est_dest = cd3.text_input(f"UF Destino {j+1}*", key=f"est_dest_{j}_{v}").upper()
+            lista_destinos.append({"cliente": cli_dest, "cidade": cid_dest, "estado": est_dest})
+
+        st.subheader("5. Datas e Troca de Nota")
+        d1, d2 = st.columns(2)
+        data_carregamento = d1.date_input("Data Carregamento*", datetime.date.today(), format="DD/MM/YYYY")
+        previsao_descarga = d2.date_input("Previsão Descarga*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
+
+        cidade_troca = ""
+        estado_troca = ""
+        data_troca_str = ""
+
+        if tem_troca_nota:
+            st.markdown("**📋 Dados da Troca de Nota:**")
+            tn1, tn2, tn3 = st.columns(3)
+            cidade_troca = tn1.text_input("Cidade da Troca de Nota*").upper()
+            estado_troca = tn2.text_input("Estado da Troca de Nota*").upper()
+            data_troca = tn3.date_input("Data da Troca de Nota*", datetime.date.today(), format="DD/MM/YYYY")
+            data_troca_str = data_troca.strftime("%d/%m/%Y")
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        salvar = st.form_submit_button("💾 Salvar Programação", type="primary", use_container_width=True)
 
     if salvar:
         if not lista_origens or not lista_destinos:
@@ -689,16 +675,9 @@ elif menu_selecionado == "Expedição":
 
     query_exp = """
         SELECT 
-            c.id, 
-            c.numero_carga, 
-            c.nome_motorista,
-            c.cliente_origem,
-            c.cidade_origem,
-            c.estado_origem,
-            c.cliente_destino,
-            c.cidade_destino,
-            c.estado_destino,
-            COALESCE(c.valor_rpa, 0.0) AS valor_rpa
+            c.id, c.numero_carga, c.nome_motorista, c.cliente_origem,
+            c.cidade_origem, c.estado_origem, c.cliente_destino,
+            c.cidade_destino, c.estado_destino, COALESCE(c.valor_rpa, 0.0) AS valor_rpa
         FROM cargas c
         WHERE c.status = 'PROGRAMADA'
     """
@@ -725,64 +704,56 @@ elif menu_selecionado == "Expedição":
         v_rpa = dados_rpa[carga_id]
         v_adiantamento_calc = v_rpa * 0.70
 
-        st.markdown("---")
-        
-        st.text_input("Valor Adiantamento (70% do RPA)", value=f"R$ {v_adiantamento_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True, key=f"exp_adiant_{v_exp}")
+        e_c1, e_c2, e_c3, e_c4 = st.columns(4)
+        qtd_viagens = e_c1.number_input("Qtd. Viagens", 1, 10, 1, key=f"exp_q_v_{v_exp}")
+        qtd_nfs = e_c2.number_input("Qtd. Notas Fiscais", 1, 10, 1, key=f"exp_q_nf_{v_exp}")
+        qtd_ctes = e_c3.number_input("Qtd. CT-es", 1, 10, 1, key=f"exp_q_cte_{v_exp}")
+        qtd_mdfes = e_c4.number_input("Qtd. MDF-es", 1, 10, 1, key=f"exp_q_mdfe_{v_exp}")
 
-        numero_set = st.text_input("Número do SET*", placeholder="Ex: 55421", key=f"exp_set_{v_exp}").upper()
+        with st.form(f"form_expedicao_{v_exp}"):
+            st.text_input("Valor Adiantamento (70% do RPA)", value=f"R$ {v_adiantamento_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
 
-        st.markdown("---")
-        
-        # 1. VIAGENS
-        st.subheader("🚩 Viagens")
-        qtd_viagens = st.selectbox("Quantidade de Viagens", list(range(1, 11)), index=0, key=f"qtd_viagens_{v_exp}")
-        lista_viagens = []
-        cols_v = st.columns(min(qtd_viagens, 4))
-        for i in range(qtd_viagens):
-            val_v = cols_v[i % 4].text_input(f"Viagem {i+1}*", key=f"exp_viagem_{i}_{v_exp}").upper()
-            if val_v.strip():
-                lista_viagens.append(val_v.strip())
+            numero_set = st.text_input("Número do SET*", placeholder="Ex: 55421").upper()
 
-        # 2. NOTAS FISCAIS
-        st.subheader("📄 Notas Fiscais (NF)")
-        qtd_nfs = st.selectbox("Quantidade de Notas Fiscais", list(range(1, 11)), index=0, key=f"qtd_nfs_{v_exp}")
-        lista_nfs = []
-        cols_nf = st.columns(min(qtd_nfs, 4))
-        for i in range(qtd_nfs):
-            val_nf = cols_nf[i % 4].text_input(f"Nº Nota Fiscal {i+1}*", key=f"exp_nf_{i}_{v_exp}").upper()
-            if val_nf.strip():
-                lista_nfs.append(val_nf.strip())
+            st.subheader("🚩 Viagens")
+            lista_viagens = []
+            cols_v = st.columns(min(qtd_viagens, 4))
+            for i in range(qtd_viagens):
+                val_v = cols_v[i % 4].text_input(f"Viagem {i+1}*", key=f"exp_viagem_{i}_{v_exp}").upper()
+                if val_v.strip():
+                    lista_viagens.append(val_v.strip())
 
-        # 3. CT-e
-        st.subheader("📑 Conhecimentos de Transporte (CT-e)")
-        qtd_ctes = st.selectbox("Quantidade de CT-es", list(range(1, 11)), index=0, key=f"qtd_ctes_{v_exp}")
-        lista_ctes = []
-        cols_cte = st.columns(min(qtd_ctes, 4))
-        for i in range(qtd_ctes):
-            val_cte = cols_cte[i % 4].text_input(f"Nº CT-e {i+1}*", key=f"exp_cte_{i}_{v_exp}").upper()
-            if val_cte.strip():
-                lista_ctes.append(val_cte.strip())
+            st.subheader("📄 Notas Fiscais (NF)")
+            lista_nfs = []
+            cols_nf = st.columns(min(qtd_nfs, 4))
+            for i in range(qtd_nfs):
+                val_nf = cols_nf[i % 4].text_input(f"Nº Nota Fiscal {i+1}*", key=f"exp_nf_{i}_{v_exp}").upper()
+                if val_nf.strip():
+                    lista_nfs.append(val_nf.strip())
 
-        # 4. MDF-e
-        st.subheader("📋 Manifestos (MDF-e)")
-        qtd_mdfes = st.selectbox("Quantidade de MDF-es", list(range(1, 11)), index=0, key=f"qtd_mdfes_{v_exp}")
-        lista_mdfes = []
-        cols_mdfe = st.columns(min(qtd_mdfes, 4))
-        for i in range(qtd_mdfes):
-            val_mdfe = cols_mdfe[i % 4].text_input(f"Nº MDF-e {i+1}*", key=f"exp_mdfe_{i}_{v_exp}").upper()
-            if val_mdfe.strip():
-                lista_mdfes.append(val_mdfe.strip())
+            st.subheader("📑 Conhecimentos de Transporte (CT-e)")
+            lista_ctes = []
+            cols_cte = st.columns(min(qtd_ctes, 4))
+            for i in range(qtd_ctes):
+                val_cte = cols_cte[i % 4].text_input(f"Nº CT-e {i+1}*", key=f"exp_cte_{i}_{v_exp}").upper()
+                if val_cte.strip():
+                    lista_ctes.append(val_cte.strip())
 
-        st.markdown("---")
+            st.subheader("📋 Manifestos (MDF-e)")
+            lista_mdfes = []
+            cols_mdfe = st.columns(min(qtd_mdfes, 4))
+            for i in range(qtd_mdfes):
+                val_mdfe = cols_mdfe[i % 4].text_input(f"Nº MDF-e {i+1}*", key=f"exp_mdfe_{i}_{v_exp}").upper()
+                if val_mdfe.strip():
+                    lista_mdfes.append(val_mdfe.strip())
 
-        col_outros1, col_outros2 = st.columns(2)
-        valor_pedagio_pago = col_outros1.number_input("Valor Pedágio Pago ao Motorista (R$)", min_value=0.0, value=0.0, key=f"exp_pedagio_{v_exp}")
-        data_saida = col_outros2.date_input("Data de Saída / Início Viagem*", datetime.date.today(), format="DD/MM/YYYY", key=f"exp_dt_saida_{v_exp}")
+            col_outros1, col_outros2 = st.columns(2)
+            valor_pedagio_pago = col_outros1.number_input("Valor Pedágio Pago ao Motorista (R$)", min_value=0.0, value=0.0)
+            data_saida = col_outros2.date_input("Data de Saída / Início Viagem*", datetime.date.today(), format="DD/MM/YYYY")
 
-        obs_exp = st.text_area("Observações da Expedição", key=f"exp_obs_{v_exp}").upper()
+            obs_exp = st.text_area("Observações da Expedição").upper()
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        salvar_exp = st.button("🚚 Confirmar Saída / Enviar para Trânsito", use_container_width=True, type="primary")
+            salvar_exp = st.form_submit_button("🚚 Confirmar Saída / Enviar para Trânsito", use_container_width=True, type="primary")
 
         if salvar_exp:
             if not numero_set.strip():
@@ -841,17 +812,9 @@ elif menu_selecionado == "Operacional":
 
     query_op = """
         SELECT 
-            c.id, 
-            c.numero_carga, 
-            c.nome_motorista,
-            c.cliente_origem,
-            c.cidade_origem,
-            c.estado_origem,
-            c.cliente_destino,
-            c.cidade_destino,
-            c.estado_destino,
-            c.previsao_descarga,
-            e.numero_cte
+            c.id, c.numero_carga, c.nome_motorista, c.cliente_origem,
+            c.cidade_origem, c.estado_origem, c.cliente_destino,
+            c.cidade_destino, c.estado_destino, c.previsao_descarga, e.numero_cte
         FROM cargas c
         LEFT JOIN carga_expedicao e ON c.id = e.carga_id
         WHERE c.status = 'EM TRÂNSITO'
@@ -885,23 +848,23 @@ elif menu_selecionado == "Operacional":
         carga_id, num_carga_sel = opcoes_cargas[selecionada]
         prev_descarga_val = dados_cargas[carga_id]
 
-        st.markdown("---")
-        o1, o2, o3 = st.columns(3)
-        o1.text_input("Previsão de Descarga", value=prev_descarga_val, disabled=True, key=f"op_prev_{v_op}")
-        receita_frete = o2.number_input("Receita Frete (R$)*", min_value=0.0, value=0.0, key=f"op_rec_frete_{v_op}")
-        receita_pedagio = o3.number_input("Receita Pedágio (R$)", min_value=0.0, value=0.0, key=f"op_rec_pedagio_{v_op}")
+        with st.form(f"form_operacional_{v_op}"):
+            st.markdown("---")
+            o1, o2, o3 = st.columns(3)
+            o1.text_input("Previsão de Descarga", value=prev_descarga_val, disabled=True)
+            receita_frete = o2.number_input("Receita Frete (R$)*", min_value=0.0, value=0.0)
+            receita_pedagio = o3.number_input("Receita Pedágio (R$)", min_value=0.0, value=0.0)
 
-        o4, o5, o6 = st.columns(3)
-        receita_taxa = o4.number_input("Receita Taxa Descarga (R$)", min_value=0.0, value=0.0, key=f"op_rec_taxa_{v_op}")
-        fornecedor = o5.text_input("Fornecedor Descarga", key=f"op_fornecedor_{v_op}").upper()
-        equipamento = o6.text_input("Equipamento Descarga", key=f"op_equipamento_{v_op}").upper()
+            o4, o5, o6 = st.columns(3)
+            receita_taxa = o4.number_input("Receita Taxa Descarga (R$)", min_value=0.0, value=0.0)
+            fornecedor = o5.text_input("Fornecedor Descarga").upper()
+            equipamento = o6.text_input("Equipamento Descarga").upper()
 
-        custo_fornecedor = st.number_input("Custo Fornecedor (R$)", min_value=0.0, value=0.0, key=f"op_custo_fornec_{v_op}")
-        peso_descarregado = st.number_input("Peso Descarregado (ton)", min_value=0.0, value=0.0, key=f"op_peso_desc_{v_op}")
-        obs = st.text_area("Observações", key=f"op_obs_{v_op}").upper()
+            custo_fornecedor = st.number_input("Custo Fornecedor (R$)", min_value=0.0, value=0.0)
+            peso_descarregado = st.number_input("Peso Descarregado (ton)", min_value=0.0, value=0.0)
+            obs = st.text_area("Observações").upper()
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        salvar_op = st.button("✅ Finalizar Operacional", use_container_width=True, type="primary")
+            salvar_op = st.form_submit_button("✅ Finalizar Operacional", use_container_width=True, type="primary")
 
         if salvar_op:
             receita_total = receita_frete + receita_pedagio + receita_taxa
@@ -945,17 +908,9 @@ elif menu_selecionado == "Administração":
 
     query_adm = """
         SELECT 
-            c.id, 
-            c.numero_carga, 
-            c.nome_motorista,
-            c.cliente_origem,
-            c.cidade_origem,
-            c.estado_origem,
-            c.cliente_destino,
-            c.cidade_destino,
-            c.estado_destino,
-            COALESCE(c.valor_rpa, 0.0) AS valor_rpa,
-            e.numero_cte
+            c.id, c.numero_carga, c.nome_motorista, c.cliente_origem,
+            c.cidade_origem, c.estado_origem, c.cliente_destino,
+            c.cidade_destino, c.estado_destino, COALESCE(c.valor_rpa, 0.0) AS valor_rpa, e.numero_cte
         FROM cargas c
         LEFT JOIN carga_expedicao e ON c.id = e.carga_id
         WHERE c.status = 'ENTREGUE'
@@ -992,21 +947,20 @@ elif menu_selecionado == "Administração":
         adiantamento_calc = v_rpa * 0.70
         saldo_calc = v_rpa * 0.30
 
-        st.markdown("---")
-        data_descarga_real = st.date_input("Data Efetiva da Descarga*", datetime.date.today(), format="DD/MM/YYYY", key=f"adm_dt_descarga_{v_adm}")
+        with st.form(f"form_administracao_{v_adm}"):
+            data_descarga_real = st.date_input("Data Efetiva da Descarga*", datetime.date.today(), format="DD/MM/YYYY")
 
-        a1, a2 = st.columns(2)
-        a1.text_input("Valor Adiantamento (70% RPA)", value=f"R$ {adiantamento_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True, key=f"adm_val_adiant_{v_adm}")
-        a2.text_input("Valor Saldo (30% RPA)", value=f"R$ {saldo_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True, key=f"adm_val_saldo_{v_adm}")
+            a1, a2 = st.columns(2)
+            a1.text_input("Valor Adiantamento (70% RPA)", value=f"R$ {adiantamento_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
+            a2.text_input("Valor Saldo (30% RPA)", value=f"R$ {saldo_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
 
-        a3, a4 = st.columns(2)
-        comprovante = a3.checkbox("Comprovante de Entregue Recebido", key=f"adm_comprovante_{v_adm}")
-        status_pag = a4.selectbox("Status Pagamento Saldo", ["PENDENTE", "PAGO", "CANCELADO"], key=f"adm_status_pag_{v_adm}")
+            a3, a4 = st.columns(2)
+            comprovante = a3.checkbox("Comprovante de Entregue Recebido")
+            status_pag = a4.selectbox("Status Pagamento Saldo", ["PENDENTE", "PAGO", "CANCELADO"])
 
-        data_lib = st.date_input("Data Liberação Saldo", datetime.date.today(), format="DD/MM/YYYY", key=f"adm_dt_lib_{v_adm}")
+            data_lib = st.date_input("Data Liberação Saldo", datetime.date.today(), format="DD/MM/YYYY")
 
-        st.markdown("<br>", unsafe_allow_html=True)
-        salvar_adm = st.button("💰 Finalizar Acerto e Liberar Saldo", use_container_width=True, type="primary")
+            salvar_adm = st.form_submit_button("💰 Finalizar Acerto e Liberar Saldo", use_container_width=True, type="primary")
 
         if salvar_adm:
             with get_connection() as conn:
