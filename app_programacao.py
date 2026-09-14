@@ -646,47 +646,47 @@ elif menu_selecionado == "Programação":
         destino_valido = all(d["cliente"] and d["cidade"] and d["estado"] for d in lista_destinos)
         troca_valida = not tem_troca_nota or (cidade_troca and estado_troca and data_troca_str)
 
-        if not (numero_carga and nome_motorista and cpf_motorista and placa_cavalo and origem_valida and destino_valido and troca_valida):
-            st.error("Por favor, preencha todos os campos obrigatórios (*), incluindo as origens, destinos e troca de nota se marcada.")
-        else:
-            # ✅ COMO DEVE FICAR:
-try:
-    conn = get_connection()
-    cursor = conn.cursor()
-    
-    primeira_origem = lista_origens[0]
-    primeiro_destino = lista_destinos[0]
+        if not lista_origens or not lista_destinos:
+        st.error("Adicione pelo menos uma origem e um destino.")
+    else:
+        # ⚠️ Tudo dentro do else DEVE estar com recuo (4 espaços à direita)
+        try:
+            conn = get_connection()
+            cursor = conn.cursor()
+            
+            primeira_origem = lista_origens[0]
+            primeiro_destino = lista_destinos[0]
 
-    cursor.execute("""
-        INSERT INTO cargas (
-            numero_carga, cliente_origem, cliente_destino, nome_motorista, cpf_motorista,
-            telefone_motorista, tipo_veiculo, placa_cavalo, placa_carreta, quantidade_eixos,
-            peso_total, tipo_carga, medida_dn, valor_rpa, tipo_motorista,
-            cidade_origem, estado_origem, cidade_destino, estado_destino,
-            data_carregamento, previsao_descarga, origens_json, destinos_json,
-            tem_troca_nota, cidade_troca_nota, estado_troca_nota, data_troca_nota, status
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PROGRAMADA')
-    """, (
-        numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
-        nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
-        placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
-        medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
-        primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
-        data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
-        json.dumps(lista_origens), json.dumps(lista_destinos),
-        1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
-    ))
-    conn.commit()
-    conn.close()
+            cursor.execute("""
+                INSERT INTO cargas (
+                    numero_carga, cliente_origem, cliente_destino, nome_motorista, cpf_motorista,
+                    telefone_motorista, tipo_veiculo, placa_cavalo, placa_carreta, quantidade_eixos,
+                    peso_total, tipo_carga, medida_dn, valor_rpa, tipo_motorista,
+                    cidade_origem, estado_origem, cidade_destino, estado_destino,
+                    data_carregamento, previsao_descarga, origens_json, destinos_json,
+                    tem_troca_nota, cidade_troca_nota, estado_troca_nota, data_troca_nota, status
+                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PROGRAMADA')
+            """, (
+                numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
+                nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
+                placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
+                medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
+                primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
+                data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
+                json.dumps(lista_origens), json.dumps(lista_destinos),
+                1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
+            ))
+            conn.commit()
+            conn.close()
 
-    st.session_state["exibir_modal_programacao"] = True
-    st.session_state["carga_programada_num"] = numero_carga
-    st.rerun()
+            st.session_state["exibir_modal_programacao"] = True
+            st.session_state["carga_programada_num"] = numero_carga
+            st.rerun()
 
-except psycopg2.IntegrityError:
-    st.error(f"Erro: O número de carga '{numero_carga}' já existe.")
-except Exception as e:
-    st.error(f"Erro ao salvar no banco de dados: {e}")
+        except psycopg2.IntegrityError:
+            st.error(f"Erro: O número de carga '{numero_carga}' já existe.")
+        except Exception as e:
+            st.error(f"Erro ao salvar no banco de dados: {e}")
 
 # 3. EXPEDIÇÃO
 elif menu_selecionado == "Expedição":
