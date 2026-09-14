@@ -372,9 +372,8 @@ if not st.session_state["logado"]:
             conn = get_connection()
             cursor = conn.cursor()
             cursor.execute(
-    "SELECT usuario, nome, perfil FROM usuarios WHERE usuario = %s AND senha = %s",
-    (usuario_input.strip().lower(), hash_senha(senha_input))
-
+                "SELECT usuario, nome, perfil FROM usuarios WHERE usuario = %s AND senha = %s",
+                (usuario_input.strip().lower(), hash_senha(senha_input))
             )
             usr = cursor.fetchone()
             conn.close()
@@ -642,51 +641,46 @@ elif menu_selecionado == "Programação":
     salvar = st.button("💾 Salvar Programação", type="primary", use_container_width=True)
 
     if salvar:
-        origem_valida = all(o["cliente"] and o["cidade"] and o["estado"] for o in lista_origens)
-        destino_valido = all(d["cliente"] and d["cidade"] and d["estado"] for d in lista_destinos)
-        troca_valida = not tem_troca_nota or (cidade_troca and estado_troca and data_troca_str)
-
         if not lista_origens or not lista_destinos:
-        st.error("Adicione pelo menos uma origem e um destino.")
-    else:
-        # ⚠️ Tudo dentro do else DEVE estar com recuo (4 espaços à direita)
-        try:
-            conn = get_connection()
-            cursor = conn.cursor()
-            
-            primeira_origem = lista_origens[0]
-            primeiro_destino = lista_destinos[0]
+            st.error("Adicione pelo menos uma origem e um destino.")
+        else:
+            try:
+                conn = get_connection()
+                cursor = conn.cursor()
+                
+                primeira_origem = lista_origens[0]
+                primeiro_destino = lista_destinos[0]
 
-            cursor.execute("""
-                INSERT INTO cargas (
-                    numero_carga, cliente_origem, cliente_destino, nome_motorista, cpf_motorista,
-                    telefone_motorista, tipo_veiculo, placa_cavalo, placa_carreta, quantidade_eixos,
-                    peso_total, tipo_carga, medida_dn, valor_rpa, tipo_motorista,
-                    cidade_origem, estado_origem, cidade_destino, estado_destino,
-                    data_carregamento, previsao_descarga, origens_json, destinos_json,
-                    tem_troca_nota, cidade_troca_nota, estado_troca_nota, data_troca_nota, status
-                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PROGRAMADA')
-            """, (
-                numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
-                nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
-                placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
-                medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
-                primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
-                data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
-                json.dumps(lista_origens), json.dumps(lista_destinos),
-                1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
-            ))
-            conn.commit()
-            conn.close()
+                cursor.execute("""
+                    INSERT INTO cargas (
+                        numero_carga, cliente_origem, cliente_destino, nome_motorista, cpf_motorista,
+                        telefone_motorista, tipo_veiculo, placa_cavalo, placa_carreta, quantidade_eixos,
+                        peso_total, tipo_carga, medida_dn, valor_rpa, tipo_motorista,
+                        cidade_origem, estado_origem, cidade_destino, estado_destino,
+                        data_carregamento, previsao_descarga, origens_json, destinos_json,
+                        tem_troca_nota, cidade_troca_nota, estado_troca_nota, data_troca_nota, status
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PROGRAMADA')
+                """, (
+                    numero_carga, primeira_origem["cliente"], primeiro_destino["cliente"], 
+                    nome_motorista, cpf_motorista, telefone_motorista, tipo_veiculo, 
+                    placa_cavalo, placa_carreta, qtd_eixos, peso_total, tipo_carga, 
+                    medida_dn, valor_rpa, tipo_motorista, primeira_origem["cidade"], 
+                    primeira_origem["estado"], primeiro_destino["cidade"], primeiro_destino["estado"],
+                    data_carregamento.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
+                    json.dumps(lista_origens), json.dumps(lista_destinos),
+                    1 if tem_troca_nota else 0, cidade_troca, estado_troca, data_troca_str
+                ))
+                conn.commit()
+                conn.close()
 
-            st.session_state["exibir_modal_programacao"] = True
-            st.session_state["carga_programada_num"] = numero_carga
-            st.rerun()
+                st.session_state["exibir_modal_programacao"] = True
+                st.session_state["carga_programada_num"] = numero_carga
+                st.rerun()
 
-        except psycopg2.IntegrityError:
-            st.error(f"Erro: O número de carga '{numero_carga}' já existe.")
-        except Exception as e:
-            st.error(f"Erro ao salvar no banco de dados: {e}")
+            except psycopg2.IntegrityError:
+                st.error(f"Erro: O número de carga '{numero_carga}' já existe.")
+            except Exception as e:
+                st.error(f"Erro ao salvar no banco de dados: {e}")
 
 # 3. EXPEDIÇÃO
 elif menu_selecionado == "Expedição":
@@ -820,7 +814,7 @@ elif menu_selecionado == "Expedição":
                     INSERT INTO carga_expedicao (
                         carga_id, numero_set, numero_viagem, numero_cte, numero_mdfe, numero_nota_fiscal,
                         valor_pedagio_pago, data_saida_filial, observacoes_expedicao
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """, (
                     carga_id, 
                     numero_set.strip(), 
@@ -932,14 +926,14 @@ elif menu_selecionado == "Operacional":
                     fornecedor_descarga, equipamento_descarga, custo_fornecedor_descarga,
                     peso_descarregado, observacoes_descarga, receita_total, custo_total,
                     margem_lucro_reais, margem_lucro_pct
-                ) VALUES (?, '', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (%s, '', %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
                 carga_id, receita_frete, receita_pedagio, receita_taxa,
                 fornecedor, equipamento, custo_fornecedor, peso_descarregado, obs,
                 receita_total, custo_total, margem_reais, margem_pct
             ))
             
-            cursor.execute("UPDATE cargas SET status = 'ENTREGUE' WHERE id = ?", (carga_id,))
+            cursor.execute("UPDATE cargas SET status = 'ENTREGUE' WHERE id = %s", (carga_id,))
             conn.commit()
 
             st.session_state["exibir_modal_operacional"] = True
@@ -1031,18 +1025,18 @@ elif menu_selecionado == "Administração":
             
             cursor.execute("""
                 UPDATE carga_operacional 
-                SET data_descarga = ? 
-                WHERE carga_id = ?
+                SET data_descarga = %s 
+                WHERE carga_id = %s
             """, (data_descarga_real.strftime("%d/%m/%Y"), carga_id))
 
             cursor.execute("""
                 INSERT INTO carga_administracao (
                     carga_id, valor_adiantamento, valor_saldo, comprovante_entregue,
                     data_liberacao_saldo, status_pagamento_saldo
-                ) VALUES (?, ?, ?, ?, ?, ?)
+                ) VALUES (%s, %s, %s, %s, %s, %s)
             """, (carga_id, adiantamento_calc, saldo_calc, 1 if comprovante else 0, data_lib.strftime("%d/%m/%Y"), status_pag))
             
-            cursor.execute("UPDATE cargas SET status = 'FINALIZADA' WHERE id = ?", (carga_id,))
+            cursor.execute("UPDATE cargas SET status = 'FINALIZADA' WHERE id = %s", (carga_id,))
             conn.commit()
 
             st.session_state["exibir_modal_administracao"] = True
@@ -1067,9 +1061,9 @@ elif menu_selecionado == "Excluir Cargas":
 
         if st.button("❌ Excluir Definitivamente", type="primary"):
             cursor = conn.cursor()
-            cursor.execute("DELETE FROM carga_administracao WHERE carga_id = ?", (carga_id,))
-            cursor.execute("DELETE FROM carga_operacional WHERE carga_id = ?", (carga_id,))
-            cursor.execute("DELETE FROM carga_expedicao WHERE carga_id = ?", (carga_id,))
+            cursor.execute("DELETE FROM carga_administracao WHERE carga_id = %s", (carga_id,))
+            cursor.execute("DELETE FROM carga_operacional WHERE carga_id = %s", (carga_id,))
+            cursor.execute("DELETE FROM carga_expedicao WHERE carga_id = %s", (carga_id,))
             cursor.execute("DELETE FROM cargas WHERE id = %s", (carga_id,))
             conn.commit()
             st.success("Carga excluída com sucesso!")
@@ -1103,12 +1097,14 @@ elif menu_selecionado == "Usuários":
                 try:
                     cursor = conn.cursor()
                     cursor.execute(
-                        "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (?, ?, ?, ?)",
+                        "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
                         (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil)
                     )
                     conn.commit()
                     st.success(f"Usuário {novo_usr} cadastrado com sucesso!")
                     st.rerun()
-                except sqlite3.IntegrityError:
+                except psycopg2.IntegrityError:
                     st.error("Nome de usuário já cadastrado.")
+                except Exception as e:
+                    st.error(f"Erro ao salvar usuário: {e}")
     conn.close()
