@@ -6,6 +6,7 @@ import json
 import psycopg2
 import pandas as pd
 import streamlit as st
+import re
 from streamlit_option_menu import option_menu
 
 # Importações para geração de PDF e Excel
@@ -14,6 +15,23 @@ from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 
+def formatar_cpf(valor: str) -> str:
+    if not valor:
+        return ""
+    digits = re.sub(r'\D', '', str(valor))
+    if len(digits) == 11:
+        return f"{digits[:3]}.{digits[3:6]}.{digits[6:9]}-{digits[9:]}"
+    return str(valor).strip()
+
+def formatar_telefone(valor: str) -> str:
+    if not valor:
+        return ""
+    digits = re.sub(r'\D', '', str(valor))
+    if len(digits) == 11:
+        return f"({digits[:2]}) {digits[2:7]}-{digits[7:]}"
+    elif len(digits) == 10:
+        return f"({digits[:2]}) {digits[2:6]}-{digits[6:]}"
+    return str(valor).strip()
 # ==========================================
 # CONFIGURAÇÃO DA PÁGINA
 # ==========================================
@@ -839,6 +857,9 @@ elif menu_selecionado == "Programação":
         salvar = st.form_submit_button("💾 Salvar Programação", type="primary", use_container_width=True)
 
     if salvar:
+        cpf_motorista = formatar_cpf(cpf_motorista)
+        telefone_motorista = formatar_telefone(telefone_motorista)
+
         if not lista_origens or not lista_destinos:
             st.error("Adicione pelo menos uma origem e um destino.")
         else:
