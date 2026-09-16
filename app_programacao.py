@@ -731,7 +731,7 @@ if menu_selecionado == "Visão Geral":
         m2.metric("Receita Total", formatar_real(rec_tot))
         m3.metric("Custos Totais", formatar_real(custo_tot))
         m4.metric("Margem Total", formatar_real(margem_tot))
-        m5.metric("Margem Média", f"{(margem_tot / rec_tot * 100) if rec_tot > 0 else 0.0:.1f}%")
+        m5.metric("Margem Média", f"{round((margem_tot / rec_tot * 100) if rec_tot > 0 else 0.0)}%")
 
         st.markdown("---")
 
@@ -755,7 +755,9 @@ if menu_selecionado == "Visão Geral":
         cols_fin = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
         for c in cols_fin:
             df_exib[c] = df_exib[c].apply(formatar_real)
-        df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{v:.1f}%")
+        
+        # Margem inteira arredondada
+        df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{round(v)}%")
 
         cols_final = [
             "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
