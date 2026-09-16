@@ -549,36 +549,41 @@ if menu_selecionado == "Visão Geral":
         df = pd.read_sql_query(query, conn)
         
     with get_connection() as conn:
-        with conn.cursor() as cursor:
-            novas_colunas = [
-                ("numero_set", "TEXT"),
-                ("origens_json", "TEXT"),
-                ("destinos_json", "TEXT"),
-                ("notas_fiscais_comercial", "TEXT"),
-                ("receita_frete", "REAL DEFAULT 0.00"),
-                ("receita_pedagio", "REAL DEFAULT 0.00"),
-                ("receita_taxa_descarga", "REAL DEFAULT 0.00"),
-                ("data_previsao_coleta", "TEXT"),
-                ("data_previsao_entrega", "TEXT"),
-                ("numero_tp", "TEXT"),
-                ("nome_motorista", "TEXT"),
-                ("cpf_motorista", "TEXT"),
-                ("telefone_motorista", "TEXT"),
-                ("tipo_motorista", "TEXT"),
-                ("tipo_veiculo", "TEXT"),
-                ("quantidade_eixos", "INTEGER"),
-                ("placa_cavalo", "TEXT"),
-                ("placa_carreta", "TEXT"),
-                ("valor_rpa", "REAL DEFAULT 0.00"),
-                ("data_coleta", "TEXT"),
-                ("previsao_descarga", "TEXT"),
-                ("observacoes_programacao", "TEXT")
-            ]
-            for col_nome, col_tipo in novas_colunas:
-                cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
-            conn.commit()
+    with conn.cursor() as cursor:
+        # 1. Garante que todas as colunas necessárias existam na tabela cargas
+        novas_colunas = [
+            ("numero_set", "TEXT"),
+            ("origens_json", "TEXT"),
+            ("destinos_json", "TEXT"),
+            ("notas_fiscais_comercial", "TEXT"),
+            ("receita_frete", "REAL DEFAULT 0.00"),
+            ("receita_pedagio", "REAL DEFAULT 0.00"),
+            ("receita_taxa_descarga", "REAL DEFAULT 0.00"),
+            ("data_previsao_coleta", "TEXT"),
+            ("data_previsao_entrega", "TEXT"),
+            ("numero_tp", "TEXT"),
+            ("nome_motorista", "TEXT"),
+            ("cpf_motorista", "TEXT"),
+            ("telefone_motorista", "TEXT"),
+            ("tipo_motorista", "TEXT"),
+            ("tipo_veiculo", "TEXT"),
+            ("quantidade_eixos", "INTEGER"),
+            ("placa_cavalo", "TEXT"),
+            ("placa_carreta", "TEXT"),
+            ("valor_rpa", "REAL DEFAULT 0.00"),
+            ("data_coleta", "TEXT"),
+            ("previsao_descarga", "TEXT"),
+            ("observacoes_programacao", "TEXT")
+        ]
+        for col_nome, col_tipo in novas_colunas:
+            cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
+        conn.commit()
 
-        df = pd.read_sql_query(query, conn)
+        # 2. Executa a busca nativa via cursor para evitar incompatibilidade do pandas.read_sql_query
+        cursor.execute(query)
+        dados = cursor.fetchall()
+        colunas = [desc[0] for desc in cursor.description]
+        df = pd.DataFrame(dados, columns=colunas)
 
     if df.empty:
         st.info("Nenhuma carga cadastrada até o momento.")
