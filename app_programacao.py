@@ -544,6 +544,93 @@ if menu_selecionado == "Visão Geral":
         df["Margem (R$)"] = df["Receita Total (R$)"] - df["Custo Total (R$)"]
         df["Margem (%)"] = df.apply(lambda r: (r["Margem (R$)"] / r["Receita Total (R$)"] * 100) if r["Receita Total (R$)"] > 0 else 0.0, axis=1)
 
+        def formatar_json_col(val, separador=", "):
+            lista = processar_json_lista(val)
+            if not lista:
+                return "-"
+            itens = [str(i).strip() for i in lista if str(i).strip() and str(i).strip() != "-"]
+            return separador.join(itens) if itens else "-"
+
+        df["CT-e"] = df["CT-e"].apply(lambda x: formatar_json_col(x, separador=", "))
+        df["Viagem"] = df["Viagem"].apply(lambda x: formatar_json_col(x, separador=", "))
+        df["MDF-e"] = df["MDF-e"].apply(lambda x: formatar_json_col(x, separador=", "))
+        df["Nota Fiscal"] = df["Nota Fiscal"].apply(lambda x: formatar_json_col(x, separador=" / "))
+
+        rec_tot = df["Receita Total (R$)"].sum()
+        custo_tot = df["Custo Total (R$)"].sum()
+        margem_tot = df["Margem (R$)"].sum()
+
+        m1, m2, m3, m4, m5 = st.columns(5)
+        m1.metric("Total Cargas", len(df))
+        m2.metric("Receita Total", formatar_real(rec_tot))
+        m3.metric("Custos Totais", formatar_real(custo_tot))
+        m4.metric("Margem Total", formatar_real(margem_tot))
+        m5.metric("Margem Média", f"{(margem_tot / rec_tot * 100) if rec_tot > 0 else 0.0:.1f}%")
+
+        st.markdown("---")
+        
+        st.subheader("📥 Exportar Relatório")
+        col_exp1, col_exp2, _ = st.columns([1, 1, 2])
+        with col_exp1:
+            st.download_button("📗 Exportar para Excel (.xlsx)", data=gerar_excel_geral(df), file_name="Relatorio_Geral_Transpes.xlsx", use_container_width=True)
+        with col_exp2:
+            st.download_button("📕 Exportar para PDF", data=gerar_pdf_geral(df), file_name="Relatorio_Geral_Transpes.pdf", use_container_width=True)
+
+        st.markdown("---")
+        st.subheader("📋 Detalhamento das Cargas")
+        
+        df_exib = df.copy()
+        cols_fin = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
+        for c in cols_fin:
+            df_exib[c] = df_exib[c].apply(formatar_real)
+        df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{v:.1f}%")
+
+        cols_final = [
+            "Nº TP", 
+            "Nº SET",
+            "Data Programada", 
+            "Status", 
+            "Motorista", 
+            "Tipo Motorista", 
+            "Origem", 
+            "Destino", 
+            "Cliente Origem", 
+            "Cliente Destino", 
+            "Receita Total (R$)", 
+            "RPA", 
+            "Pedágio Pago", 
+            "Custo Descarga", 
+            "Fornecedor Descarga", 
+            "Data Agendamento Descarga", 
+            "CT-e", 
+            "Viagem", 
+            "MDF-e",
+            "Contrato",
+            "Nota Fiscal", 
+            "Custo Total (R$)", 
+            "Margem (R$)", 
+            "Margem (%)", 
+            "Data Pagamento Saldo"
+        ]
+        
+        st.dataframe(df_exib[cols_final], use_container_width=True)
+
+    if df.empty:
+        st.info("Nenhuma carga cadastrada até o momento.")
+    else:
+        def formatar_real(valor):
+            return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+        df["Origem"] = df["origens_json"].apply(lambda x: formatar_origens_destinos(x))
+        df["Destino"] = df["destinos_json"].apply(lambda x: formatar_origens_destinos(x))
+        df["Cliente Origem"] = df["origens_json"].apply(lambda x: " | ".join([i.get("cliente","") for i in processar_json_lista(x) if isinstance(i, dict)]))
+        df["Cliente Destino"] = df["destinos_json"].apply(lambda x: " | ".join([i.get("cliente","") for i in processar_json_lista(x) if isinstance(i, dict)]))
+
+        df["Receita Total (R$)"] = df["receita_frete"] + df["receita_pedagio"] + df["receita_taxa_descarga"]
+        df["Custo Total (R$)"] = df["RPA"] + df["Pedágio Pago"] + df["Custo Descarga"]
+        df["Margem (R$)"] = df["Receita Total (R$)"] - df["Custo Total (R$)"]
+        df["Margem (%)"] = df.apply(lambda r: (r["Margem (R$)"] / r["Receita Total (R$)"] * 100) if r["Receita Total (R$)"] > 0 else 0.0, axis=1)
+
         def formatar_json_col(val):
             lista = processar_json_lista(val)
             return ", ".join([str(i) for i in lista]) if lista else "-"
