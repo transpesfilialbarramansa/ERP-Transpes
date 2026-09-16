@@ -515,7 +515,12 @@ if menu_selecionado == "Visão Geral":
                     COALESCE(e.numero_viagem, '-') AS "Viagem",
                     COALESCE(e.numero_mdfe, '-') AS "MDF-e",
                     COALESCE(e.numero_contrato, '-') AS "Contrato",
-                    COALESCE(c.notas_fiscais_comercial, e.notas_fiscais_expedicao, '-') AS "Nota Fiscal",
+                    -- Busca Nota Fiscal da Expedição primeiro, se nula/vazia pega do Comercial
+                    CASE 
+                        WHEN e.notas_fiscais_expedicao IS NOT NULL AND e.notas_fiscais_expedicao != '' AND e.notas_fiscais_expedicao != '[]' 
+                        THEN e.notas_fiscais_expedicao
+                        ELSE c.notas_fiscais_comercial
+                    END AS "Nota Fiscal",
                     COALESCE(a.data_liberacao_saldo, '-') AS "Data Pagamento Saldo"
                 FROM cargas c
                 LEFT JOIN carga_expedicao e ON c.id = e.carga_id
