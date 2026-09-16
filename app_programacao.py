@@ -496,6 +496,7 @@ if menu_selecionado == "Visão Geral":
             query = """
                 SELECT 
                     COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
+                    c.numero_set AS "Nº SET",
                     c.data_coleta AS "Data Programada",
                     c.status AS "Status",
                     COALESCE(c.nome_motorista, '-') AS "Motorista",
@@ -512,6 +513,8 @@ if menu_selecionado == "Visão Geral":
                     COALESCE(o.data_agendamento_descarga, '-') AS "Data Agendamento Descarga",
                     COALESCE(e.numero_cte, '-') AS "CT-e",
                     COALESCE(e.numero_viagem, '-') AS "Viagem",
+                    COALESCE(e.numero_mdfe, '-') AS "MDF-e",
+                    COALESCE(e.numero_contrato, '-') AS "Contrato",
                     COALESCE(c.notas_fiscais_comercial, e.notas_fiscais_expedicao, '-') AS "Nota Fiscal",
                     COALESCE(a.data_liberacao_saldo, '-') AS "Data Pagamento Saldo"
                 FROM cargas c
@@ -547,6 +550,7 @@ if menu_selecionado == "Visão Geral":
 
         df["CT-e"] = df["CT-e"].apply(formatar_json_col)
         df["Viagem"] = df["Viagem"].apply(formatar_json_col)
+        df["MDF-e"] = df["MDF-e"].apply(formatar_json_col)
         df["Nota Fiscal"] = df["Nota Fiscal"].apply(formatar_json_col)
 
         rec_tot = df["Receita Total (R$)"].sum()
@@ -580,6 +584,7 @@ if menu_selecionado == "Visão Geral":
 
         cols_final = [
             "Nº TP", 
+            "Nº SET",
             "Data Programada", 
             "Status", 
             "Motorista", 
@@ -596,6 +601,8 @@ if menu_selecionado == "Visão Geral":
             "Data Agendamento Descarga", 
             "CT-e", 
             "Viagem", 
+            "MDF-e",
+            "Contrato",
             "Nota Fiscal", 
             "Custo Total (R$)", 
             "Margem (R$)", 
