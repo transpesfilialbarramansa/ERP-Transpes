@@ -493,36 +493,26 @@ if menu_selecionado == "Visão Geral":
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # Compatibilidade de tipos com PostgreSQL / Supabase
-            novas_colunas = [
-                ("numero_set", "TEXT"),
-                ("origens_json", "TEXT"),
-                ("destinos_json", "TEXT"),
-                ("notas_fiscais_comercial", "TEXT"),
-                ("receita_frete", "DOUBLE PRECISION DEFAULT 0.00"),
-                ("receita_pedagio", "DOUBLE PRECISION DEFAULT 0.00"),
-                ("receita_taxa_descarga", "DOUBLE PRECISION DEFAULT 0.00"),
-                ("data_previsao_coleta", "TEXT"),
-                ("data_previsao_entrega", "TEXT"),
-                ("numero_tp", "TEXT"),
-                ("nome_motorista", "TEXT"),
-                ("cpf_motorista", "TEXT"),
-                ("telefone_motorista", "TEXT"),
-                ("tipo_motorista", "TEXT"),
-                ("tipo_veiculo", "TEXT"),
-                ("quantidade_eixos", "INTEGER"),
-                ("placa_cavalo", "TEXT"),
-                ("placa_carreta", "TEXT"),
-                ("valor_rpa", "DOUBLE PRECISION DEFAULT 0.00"),
-                ("data_coleta", "TEXT"),
-                ("previsao_descarga", "TEXT"),
-                ("observacoes_programacao", "TEXT")
-            ]
-            
-            for col_nome, col_tipo in novas_colunas:
-                cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
+            # 1. Garante que as tabelas necessárias existam
+            cursor.execute("""
+                CREATE TABLE IF NOT EXISTS carga_expedicao (
+                    id SERIAL PRIMARY KEY,
+                    carga_id INTEGER,
+                    valor_pedagio_pago DOUBLE PRECISION DEFAULT 0.0,
+                    numero_cte TEXT,
+                    numero_viagem TEXT,
+                    notas_fiscais_expedicao TEXT
+                );
+                CREATE TABLE IF NOT EXISTS carga_operacional (
+                    id SERIAL PRIMARY KEY,
+                    carga_id INTEGER,
+                    custo_fornecedor_descarga DOUBLE PRECISION DEFAULT 0.0,
+                    fornecedor_descarga TEXT
+                );
+            """)
             conn.commit()
 
+            # 2. Executa a consulta
             query = """
                 SELECT 
                     COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
