@@ -63,7 +63,7 @@ FORNECEDORES_INICIAIS = [
 def init_db():
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # Tabela de Usuários
+            # 1. Tabela de Usuários
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     id SERIAL PRIMARY KEY,
@@ -93,42 +93,46 @@ def init_db():
                         (hash_senha(pwd), usr)
                     )
 
-            # Tabela Principal de Cargas (Iniciada pelo Comercial)
+            # 2. Tabela Principal de Cargas
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS cargas (
                     id SERIAL PRIMARY KEY,
                     numero_carga TEXT UNIQUE NOT NULL,
-                    numero_set TEXT NOT NULL,
-                    origens_json TEXT NOT NULL,
-                    destinos_json TEXT NOT NULL,
-                    notas_fiscais_comercial TEXT,
-                    receita_frete REAL NOT NULL,
-                    receita_pedagio REAL DEFAULT 0.00,
-                    receita_taxa_descarga REAL DEFAULT 0.00,
-                    data_previsao_coleta TEXT,
-                    data_previsao_entrega TEXT,
-                    
-                    -- Preenchidos pela Programação
-                    numero_tp TEXT,
-                    nome_motorista TEXT,
-                    cpf_motorista TEXT,
-                    telefone_motorista TEXT,
-                    tipo_motorista TEXT,
-                    tipo_veiculo TEXT,
-                    quantidade_eixos INTEGER,
-                    placa_cavalo TEXT,
-                    placa_carreta TEXT,
-                    valor_rpa REAL,
-                    data_coleta TEXT,
-                    previsao_descarga TEXT,
-                    observacoes_programacao TEXT,
-                    
                     status TEXT DEFAULT 'PENDENTE_PROGRAMACAO',
                     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
 
-            # Tabela Carga Expedição
+            # 3. Adicionar Colunas da Aba Comercial na tabela cargas (migração automática)
+            novas_colunas_cargas = [
+                ("numero_set", "TEXT"),
+                ("origens_json", "TEXT"),
+                ("destinos_json", "TEXT"),
+                ("notas_fiscais_comercial", "TEXT"),
+                ("receita_frete", "REAL DEFAULT 0.00"),
+                ("receita_pedagio", "REAL DEFAULT 0.00"),
+                ("receita_taxa_descarga", "REAL DEFAULT 0.00"),
+                ("data_previsao_coleta", "TEXT"),
+                ("data_previsao_entrega", "TEXT"),
+                ("numero_tp", "TEXT"),
+                ("nome_motorista", "TEXT"),
+                ("cpf_motorista", "TEXT"),
+                ("telefone_motorista", "TEXT"),
+                ("tipo_motorista", "TEXT"),
+                ("tipo_veiculo", "TEXT"),
+                ("quantidade_eixos", "INTEGER"),
+                ("placa_cavalo", "TEXT"),
+                ("placa_carreta", "TEXT"),
+                ("valor_rpa", "REAL"),
+                ("data_coleta", "TEXT"),
+                ("previsao_descarga", "TEXT"),
+                ("observacoes_programacao", "TEXT")
+            ]
+
+            for col_nome, col_tipo in novas_colunas_cargas:
+                cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
+
+            # 4. Tabela Carga Expedição
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_expedicao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -144,7 +148,7 @@ def init_db():
                 )
             """)
 
-            # Tabela Carga Operacional
+            # 5. Tabela Carga Operacional
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_operacional (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -157,7 +161,7 @@ def init_db():
                 )
             """)
 
-            # Tabela Carga Administração
+            # 6. Tabela Carga Administração
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_administracao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -169,7 +173,7 @@ def init_db():
                 )
             """)
 
-            # Tabela Fornecedores
+            # 7. Tabela Fornecedores
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS fornecedores (
                     id SERIAL PRIMARY KEY,
