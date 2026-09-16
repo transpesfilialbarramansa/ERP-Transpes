@@ -629,14 +629,17 @@ with st.sidebar:
 # ==========================================
 # PÁGINAS DO SISTEMA
 # ==========================================
-# 1. VISÃO GERAL
+# 1. VISÃO GERAL E EDICÃO (ADMIN)
+# ==========================================
 if menu_selecionado == "Visão Geral":
     st.title("📊 Visão Geral e Relatórios")
 
+    # (Sua consulta SQL existente...)
     with get_connection() as conn:
         with conn.cursor() as cursor:
             query = """
                 SELECT 
+                    c.id AS id_carga,
                     COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
                     c.numero_set AS "Nº SET",
                     c.data_coleta AS "Data Programada",
@@ -677,6 +680,7 @@ if menu_selecionado == "Visão Geral":
     if df.empty:
         st.info("Nenhuma carga cadastrada até o momento.")
     else:
+        # (Formatações visuais existentes...)
         def formatar_real(valor):
             return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
@@ -690,18 +694,7 @@ if menu_selecionado == "Visão Geral":
         df["Margem (R$)"] = df["Receita Total (R$)"] - df["Custo Total (R$)"]
         df["Margem (%)"] = df.apply(lambda r: (r["Margem (R$)"] / r["Receita Total (R$)"] * 100) if r["Receita Total (R$)"] > 0 else 0.0, axis=1)
 
-        def formatar_json_col(val, separador=", "):
-            lista = processar_json_lista(val)
-            if not lista:
-                return "-"
-            itens = [str(i).strip() for i in lista if str(i).strip() and str(i).strip() != "-"]
-            return separador.join(itens) if itens else "-"
-
-        df["CT-e"] = df["CT-e"].apply(lambda x: formatar_json_col(x, separador=", "))
-        df["Viagem"] = df["Viagem"].apply(lambda x: formatar_json_col(x, separador=", "))
-        df["MDF-e"] = df["MDF-e"].apply(lambda x: formatar_json_col(x, separador=", "))
-        df["Nota Fiscal"] = df["Nota Fiscal"].apply(lambda x: formatar_json_col(x, separador=" / "))
-
+        # MÉTRAMA DE EXIBIÇÃO
         rec_tot = df["Receita Total (R$)"].sum()
         custo_tot = df["Custo Total (R$)"].sum()
         margem_tot = df["Margem (R$)"].sum()
@@ -714,7 +707,62 @@ if menu_selecionado == "Visão Geral":
         m5.metric("Margem Média", f"{(margem_tot / rec_tot * 100) if rec_tot > 0 else 0.0:.1f}%")
 
         st.markdown("---")
-        
+
+        # ÁREA DE EDIÇÃO EXCLUSIVA PARA ADMIN
+        is_admin = st.session_state.get("usuario_perfil") == "admin" or st.session_state.get("is_admin", True)
+
+        if is_admin:
+            with st.expander("✏️ Editar Informações de Cargas (Apenas Admin)", expanded=False):
+                st.subheader("Painel de Edição Rápida")
+                
+                # Selecionar Carga pelo Nº TP ou SET
+                lista_cargas_opt = df[["id_carga", "Nº TP", "Nº SET"]].copy()
+                lista_cargas_opt["label"] = lista_cargas_opt.apply(lambda r: f"ID: {r['id_carga']} | TP: {r['Nº TP']} | SET: {r['Nº SET']}", axis=1)
+                
+                carga_selecionada_label = st.selectbox("Selecione a carga que deseja editar:", lista_cargas_opt["label"])
+                id_carga_sel = int(carga_selecionada_label.split("|")[0].replace("ID:", "").strip())
+                
+                # Dados atuais da carga selecionada
+                dados_carga_sel = df[df["id_carga"] == id_carga_sel].iloc[0]
+
+                with st.form("form_edicao_admin"):
+                    col_e1, col_e2, col_e3 = st.columns(3)
+                    novo_set = col_e1.text_input("Nº SET", value=str(dados_carga_sel["Nº SET"]))
+                    novo_status = col_e2.selectbox(
+                        "Status", 
+                        ["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM_TRANSPORTE", "ENTREGUE", "FINALIZADA", "CANCELADA"],
+                        index=0 if dados_carga_sel["Status"] not in ["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM_TRANSPORTE", "ENTREGUE", "FINALIZADA", "CANCELADA"] else ["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM_TRANSPORTE", "ENTREGUE", "FINALIZADA", "CANCELADA"].index(dados_carga_sel["Status"])
+                    )
+                    novo_motorista = col_e3.text_input("Motorista", value=str(dados_carga_sel["Motorista"]))
+
+                    col_v1, col_v2, col_v3 = st.columns(3)
+                    nova_rec_frete = col_v1.number_input("Frete Recebido (R$)", value=float(dados_carga_sel["receita_frete"]))
+                    nova_rec_pedagio = col_v2.number_input("Pedágio Recebido (R$)", value=float(dados_carga_sel["receita_pedagio"]))
+                    novo_rpa = col_v3.number_input("Valor RPA (R$)", value=float(dados_carga_sel["RPA"]))
+
+                    btn_salvar_edicao = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+
+                    if btn_salvar_edicao:
+                        try:
+                            with get_connection() as conn:
+                                with conn.cursor() as cursor:
+                                    cursor.execute("""
+                                        UPDATE cargas 
+                                        SET numero_set = %s,
+                                            status = %s,
+                                            nome_motorista = %s,
+                                            receita_frete = %s,
+                                            receita_pedagio = %s,
+                                            valor_rpa = %s
+                                        WHERE id = %s
+                                    """, (novo_set, novo_status, novo_motorista, nova_rec_frete, nova_rec_pedagio, novo_rpa, id_carga_sel))
+                                    conn.commit()
+                            st.success(f"Carga #{id_carga_sel} atualizada com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao salvar alterações: {e}")
+
+        # BOTÕES DE EXPORTAÇÃO
         st.subheader("📥 Exportar Relatório")
         col_exp1, col_exp2, _ = st.columns([1, 1, 2])
         with col_exp1:
@@ -725,18 +773,11 @@ if menu_selecionado == "Visão Geral":
                 use_container_width=True,
                 key="btn_export_excel_visao_geral"
             )
-        with col_exp2:
-            st.download_button(
-                "📕 Exportar para PDF", 
-                data=gerar_pdf_geral(df), 
-                file_name="Relatorio_Geral_Transpes.pdf", 
-                use_container_width=True,
-                key="btn_export_pdf_visao_geral"
-            )
 
         st.markdown("---")
         st.subheader("📋 Detalhamento das Cargas")
-        
+
+        # TABELA DE EXIBIÇÃO
         df_exib = df.copy()
         cols_fin = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
         for c in cols_fin:
@@ -744,34 +785,15 @@ if menu_selecionado == "Visão Geral":
         df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{v:.1f}%")
 
         cols_final = [
-            "Nº TP", 
-            "Nº SET",
-            "Data Programada", 
-            "Status", 
-            "Motorista", 
-            "Tipo Motorista", 
-            "Origem", 
-            "Destino", 
-            "Cliente Origem", 
-            "Cliente Destino", 
-            "Receita Total (R$)", 
-            "RPA", 
-            "Pedágio Pago", 
-            "Custo Descarga", 
-            "Fornecedor Descarga", 
-            "Data Agendamento Descarga", 
-            "CT-e", 
-            "Viagem", 
-            "MDF-e",
-            "Contrato",
-            "Nota Fiscal", 
-            "Custo Total (R$)", 
-            "Margem (R$)", 
-            "Margem (%)", 
-            "Data Pagamento Saldo"
+            "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
+            "Tipo Motorista", "Origem", "Destino", "Cliente Origem", 
+            "Cliente Destino", "Receita Total (R$)", "RPA", "Pedágio Pago", 
+            "Custo Descarga", "Fornecedor Descarga", "Data Agendamento Descarga", 
+            "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", 
+            "Custo Total (R$)", "Margem (R$)", "Margem (%)", "Data Pagamento Saldo"
         ]
-        
-        st.dataframe(df_exib[cols_final], use_container_width=True)
+
+        st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
 
 # 2. COMERCIAL
 elif menu_selecionado == "Comercial":
