@@ -523,66 +523,33 @@ if menu_selecionado == "Visão Geral":
                 cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
             conn.commit()
 
-        query = """
-            SELECT 
-                COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
-                c.status AS "Status",
-                COALESCE(c.nome_motorista, '-') AS "Motorista",
-                COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
-                c.origens_json,
-                c.destinos_json,
-                c.receita_frete,
-                c.receita_pedagio,
-                c.receita_taxa_descarga,
-                COALESCE(c.valor_rpa, 0.0) AS "RPA",
-                COALESCE(e.valor_pedagio_pago, 0.0) AS "Pedágio Pago",
-                COALESCE(o.custo_fornecedor_descarga, 0.0) AS "Custo Descarga",
-                COALESCE(o.fornecedor_descarga, '-') AS "Fornecedor Descarga",
-                COALESCE(e.numero_cte, '-') AS "CT-e",
-                COALESCE(e.numero_viagem, '-') AS "Viagem",
-                COALESCE(c.notas_fiscais_comercial, e.notas_fiscais_expedicao, '-') AS "Nota Fiscal"
-            FROM cargas c
-            LEFT JOIN carga_expedicao e ON c.id = e.carga_id
-            LEFT JOIN carga_operacional o ON c.id = o.carga_id
-            ORDER BY c.id DESC
-        """
-        df = pd.read_sql_query(query, conn)
-        
-with get_connection() as conn:
-    with conn.cursor() as cursor:
-        novas_colunas = [
-            ("numero_set", "TEXT"),
-            ("origens_json", "TEXT"),
-            ("destinos_json", "TEXT"),
-            ("notas_fiscais_comercial", "TEXT"),
-            ("receita_frete", "REAL DEFAULT 0.00"),
-            ("receita_pedagio", "REAL DEFAULT 0.00"),
-            ("receita_taxa_descarga", "REAL DEFAULT 0.00"),
-            ("data_previsao_coleta", "TEXT"),
-            ("data_previsao_entrega", "TEXT"),
-            ("numero_tp", "TEXT"),
-            ("nome_motorista", "TEXT"),
-            ("cpf_motorista", "TEXT"),
-            ("telefone_motorista", "TEXT"),
-            ("tipo_motorista", "TEXT"),
-            ("tipo_veiculo", "TEXT"),
-            ("quantidade_eixos", "INTEGER"),
-            ("placa_cavalo", "TEXT"),
-            ("placa_carreta", "TEXT"),
-            ("valor_rpa", "REAL DEFAULT 0.00"),
-            ("data_coleta", "TEXT"),
-            ("previsao_descarga", "TEXT"),
-            ("observacoes_programacao", "TEXT")
-        ]
-        for col_nome, col_tipo in novas_colunas:
-            cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
-        conn.commit()
-
-        # Busca os dados usando o cursor nativo
-        cursor.execute(query)
-        dados = cursor.fetchall()
-        colunas = [desc[0] for desc in cursor.description]
-        df = pd.DataFrame(dados, columns=colunas)
+            query = """
+                SELECT 
+                    COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
+                    c.status AS "Status",
+                    COALESCE(c.nome_motorista, '-') AS "Motorista",
+                    COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
+                    c.origens_json,
+                    c.destinos_json,
+                    c.receita_frete,
+                    c.receita_pedagio,
+                    c.receita_taxa_descarga,
+                    COALESCE(c.valor_rpa, 0.0) AS "RPA",
+                    COALESCE(e.valor_pedagio_pago, 0.0) AS "Pedágio Pago",
+                    COALESCE(o.custo_fornecedor_descarga, 0.0) AS "Custo Descarga",
+                    COALESCE(o.fornecedor_descarga, '-') AS "Fornecedor Descarga",
+                    COALESCE(e.numero_cte, '-') AS "CT-e",
+                    COALESCE(e.numero_viagem, '-') AS "Viagem",
+                    COALESCE(c.notas_fiscais_comercial, e.notas_fiscais_expedicao, '-') AS "Nota Fiscal"
+                FROM cargas c
+                LEFT JOIN carga_expedicao e ON c.id = e.carga_id
+                LEFT JOIN carga_operacional o ON c.id = o.carga_id
+                ORDER BY c.id DESC
+            """
+            cursor.execute(query)
+            dados = cursor.fetchall()
+            colunas = [desc[0] for desc in cursor.description]
+            df = pd.DataFrame(dados, columns=colunas)
 
     if df.empty:
         st.info("Nenhuma carga cadastrada até o momento.")
