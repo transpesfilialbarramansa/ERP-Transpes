@@ -324,7 +324,7 @@ def gerar_excel_geral(df):
                     cell.number_format = 'R$ #,##0.00'
                 elif col_nome == "Margem (%)":
                     cell.alignment = align_right
-                    cell.number_format = '0.0%'
+                    cell.number_format = '0%'
 
         # 5. Ajuste de Largura das Colunas
         larguras_fixas = {
