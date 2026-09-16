@@ -488,13 +488,12 @@ with st.sidebar:
 # PÁGINAS DO SISTEMA
 # ==========================================
 # 1. VISÃO GERAL
-# 1. VISÃO GERAL
 if menu_selecionado == "Visão Geral":
     st.title("📊 Visão Geral e Relatórios")
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # Colunas com tipos compatíveis com PostgreSQL/Supabase
+            # Compatibilidade de tipos com PostgreSQL / Supabase
             novas_colunas = [
                 ("numero_set", "TEXT"),
                 ("origens_json", "TEXT"),
@@ -520,7 +519,6 @@ if menu_selecionado == "Visão Geral":
                 ("observacoes_programacao", "TEXT")
             ]
             
-            # Adiciona colunas pendentes sem quebrar a transação
             for col_nome, col_tipo in novas_colunas:
                 cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
             conn.commit()
