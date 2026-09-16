@@ -493,26 +493,7 @@ if menu_selecionado == "Visão Geral":
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # 1. Garante que as tabelas necessárias existam
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS carga_expedicao (
-                    id SERIAL PRIMARY KEY,
-                    carga_id INTEGER,
-                    valor_pedagio_pago DOUBLE PRECISION DEFAULT 0.0,
-                    numero_cte TEXT,
-                    numero_viagem TEXT,
-                    notas_fiscais_expedicao TEXT
-                );
-                CREATE TABLE IF NOT EXISTS carga_operacional (
-                    id SERIAL PRIMARY KEY,
-                    carga_id INTEGER,
-                    custo_fornecedor_descarga DOUBLE PRECISION DEFAULT 0.0,
-                    fornecedor_descarga TEXT
-                );
-            """)
-            conn.commit()
-
-            # 2. Executa a consulta
+            # Consulta SQL corrigida sem tentativa de recriar tabelas
             query = """
                 SELECT 
                     COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
@@ -536,7 +517,6 @@ if menu_selecionado == "Visão Geral":
                 LEFT JOIN carga_operacional o ON c.id = o.carga_id
                 ORDER BY c.id DESC
             """
-            cursor.execute("ROLLBACK;")
             cursor.execute(query)
             dados = cursor.fetchall()
             colunas = [desc[0] for desc in cursor.description]
