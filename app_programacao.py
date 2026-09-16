@@ -493,7 +493,6 @@ if menu_selecionado == "Visão Geral":
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # Consulta SQL corrigida sem tentativa de recriar tabelas
             query = """
                 SELECT 
                     COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
@@ -584,7 +583,7 @@ if menu_selecionado == "Visão Geral":
         
         st.dataframe(df_exib[cols_final], use_container_width=True)
 
-# 2. COMERCIAL (NOVA ABA)
+# 2. COMERCIAL
 elif menu_selecionado == "Comercial":
     st.title("💼 Comercial - Novo Frete / Carga")
 
@@ -952,7 +951,6 @@ elif menu_selecionado == "Operacional":
         carga_id = opcoes_cargas[selecionada]
         row_sel = dados_consulta[carga_id]
 
-        # Busca fornecedores cadastrados
         with get_connection() as conn:
             forn_df = pd.read_sql_query("SELECT razao_social, nome_fantasia FROM fornecedores ORDER BY razao_social", conn)
         
