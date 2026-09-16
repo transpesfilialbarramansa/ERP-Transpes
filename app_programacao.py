@@ -7,6 +7,7 @@ import psycopg2
 import pandas as pd
 import streamlit as st
 import re
+import openpyxl
 from streamlit_option_menu import option_menu
 
 # Importações para geração de PDF e Excel
@@ -245,30 +246,96 @@ def formatar_origens_destinos(json_str, apenas_locais=False):
 def gerar_excel_geral(df):
     output = io.BytesIO()
     
-    # Prepara o DataFrame do Excel usando apenas as colunas formatadas e finais
-    df_excel = df.copy()
-    
-    cols_finais_excel = [
-        "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", "Tipo Motorista", 
-        "Origem", "Destino", "Cliente Origem", "Cliente Destino", 
-        "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", 
-        "Fornecedor Descarga", "Data Agendamento Descarga", 
-        "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", 
-        "Custo Total (R$)", "Margem (R$)", "Margem (%)", "Data Pagamento Saldo"
+    # 1. Seleciona estritamente as colunas do layout da imagem
+    cols_excel = [
+        "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
+        "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", 
+        "Margem (R$)", "Margem (%)"
     ]
     
-    # Filtra mantendo apenas as colunas que existem no DataFrame
-    cols_presentes = [c for c in cols_finais_excel if c in df_excel.columns]
+    df_excel = df.copy()
+    
+    # Garante que as colunas existam no DataFrame
+    cols_presentes = [c for c in cols_excel if c in df_excel.columns]
     df_excel = df_excel[cols_presentes]
 
-    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
-        df_excel.to_excel(writer, index=False, sheet_name="Relatório Geral")
+    with pd.ExcelWriter(output, engine="openpyxl") as writer:
+        # Escreve a tabela a partir da linha 4 para dar espaço ao título
+        df_excel.to_excel(writer, index=False, sheet_name="Relatório Geral", startrow=3)
         
-        # Ajusta a largura das colunas automaticamente no Excel
+        workbook = writer.book
         worksheet = writer.sheets["Relatório Geral"]
-        for idx, col in enumerate(df_excel.columns):
-            max_len = max(df_excel[col].astype(str).map(len).max(), len(col)) + 3
-            worksheet.set_column(idx, idx, max_len)
+        
+        # Desativa as linhas de grade padrão para dar o visual limpo do relatório
+        worksheet.views.sheetView[0].showGridLines = True
+
+        # --- ESTILOS ---
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        
+        font_titulo = Font(name="Arial", size=14, bold=True, color="0F2A4A")
+        font_cabecalho = Font(name="Arial", size=9, bold=True, color="FFFFFF")
+        font_dados = Font(name="Arial", size=8)
+        
+        align_titulo = Alignment(horizontal="center", vertical="center")
+        align_center = Alignment(horizontal="center", vertical="center")
+        align_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
+        align_right = Alignment(horizontal="right", vertical="center")
+
+        fill_cabecalho = PatternFill(start_color="0F2A4A", end_color="0F2A4A", fill_type="solid")
+        fill_zebra = PatternFill(start_color="F8F9FA", end_color="F8F9FA", fill_type="solid")
+        fill_branca = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+
+        borda_fina = Side(border_style="thin", color="CCCCCC")
+        borda_caixa = Border(left=borda_fina, right=borda_fina, top=borda_fina, bottom=borda_fina)
+
+        # 2. Insere e formata o Título
+        worksheet.merge_cells(start_row=1, start_column=1, end_row=2, end_column=len(cols_presentes))
+        cell_titulo = worksheet.cell(row=1, column=1)
+        cell_titulo.value = "Relatório Geral de Cargas - Transpes"
+        cell_titulo.font = font_titulo
+        cell_titulo.alignment = align_titulo
+
+        # 3. Formata o Cabeçalho (Linha 4 do Excel)
+        for col_num in range(1, len(cols_presentes) + 1):
+            cell = worksheet.cell(row=4, column=col_num)
+            cell.font = font_cabecalho
+            cell.fill = fill_cabecalho
+            cell.alignment = align_center
+            cell.border = borda_caixa
+
+        # 4. Formata as Linhas de Dados
+        num_linhas = len(df_excel)
+        for row_idx in range(5, 5 + num_linhas):
+            fill_atual = fill_zebra if row_idx % 2 == 0 else fill_branca
+            
+            for col_idx, col_nome in enumerate(cols_presentes, start=1):
+                cell = worksheet.cell(row=row_idx, column=col_idx)
+                cell.font = font_dados
+                cell.fill = fill_atual
+                cell.border = borda_caixa
+                
+                # Alinhamento e formatação por tipo de dado
+                if col_nome in ["Nº TP", "Nº SET", "Data Programada", "Status"]:
+                    cell.alignment = align_center
+                elif col_nome in ["Motorista", "Origem", "Destino"]:
+                    cell.alignment = align_left
+                elif col_nome in ["Receita Total (R$)", "Custo Total (R$)", "Margem (R$)"]:
+                    cell.alignment = align_right
+                    cell.number_format = 'R$ #,##0.00'
+                elif col_nome == "Margem (%)":
+                    cell.alignment = align_right
+                    cell.number_format = '0.0%'
+
+        # 5. Ajuste de Largura das Colunas
+        larguras_fixas = {
+            "Nº TP": 12, "Nº SET": 12, "Data Programada": 15, "Status": 14,
+            "Motorista": 30, "Origem": 45, "Destino": 45,
+            "Receita Total (R$)": 18, "Custo Total (R$)": 18, "Margem (R$)": 18, "Margem (%)": 12
+        }
+
+        for idx, col in enumerate(cols_presentes, start=1):
+            col_letter = openpyxl.utils.get_column_letter(idx)
+            worksheet.column_dimensions[col_letter].width = larguras_fixas.get(col, 15)
 
     return output.getvalue()
 
