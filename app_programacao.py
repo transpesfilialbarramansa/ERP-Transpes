@@ -489,10 +489,11 @@ with st.sidebar:
 # ==========================================
 
 # 1. VISÃO GERAL
+# 1. VISÃO GERAL
 if menu_selecionado == "Visão Geral":
     st.title("📊 Visão Geral e Relatórios")
 
-    # Garante que as colunas existam antes de rodar a query
+    # Corrigido: Tipos de dados adequados para PostgreSQL / Supabase
     with get_connection() as conn:
         with conn.cursor() as cursor:
             novas_colunas = [
@@ -500,9 +501,9 @@ if menu_selecionado == "Visão Geral":
                 ("origens_json", "TEXT"),
                 ("destinos_json", "TEXT"),
                 ("notas_fiscais_comercial", "TEXT"),
-                ("receita_frete", "REAL DEFAULT 0.00"),
-                ("receita_pedagio", "REAL DEFAULT 0.00"),
-                ("receita_taxa_descarga", "REAL DEFAULT 0.00"),
+                ("receita_frete", "DOUBLE PRECISION DEFAULT 0.00"),
+                ("receita_pedagio", "DOUBLE PRECISION DEFAULT 0.00"),
+                ("receita_taxa_descarga", "DOUBLE PRECISION DEFAULT 0.00"),
                 ("data_previsao_coleta", "TEXT"),
                 ("data_previsao_entrega", "TEXT"),
                 ("numero_tp", "TEXT"),
@@ -514,7 +515,7 @@ if menu_selecionado == "Visão Geral":
                 ("quantidade_eixos", "INTEGER"),
                 ("placa_cavalo", "TEXT"),
                 ("placa_carreta", "TEXT"),
-                ("valor_rpa", "REAL DEFAULT 0.00"),
+                ("valor_rpa", "DOUBLE PRECISION DEFAULT 0.00"),
                 ("data_coleta", "TEXT"),
                 ("previsao_descarga", "TEXT"),
                 ("observacoes_programacao", "TEXT")
@@ -531,9 +532,9 @@ if menu_selecionado == "Visão Geral":
                     COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
                     c.origens_json,
                     c.destinos_json,
-                    c.receita_frete,
-                    c.receita_pedagio,
-                    c.receita_taxa_descarga,
+                    COALESCE(c.receita_frete, 0.0) AS receita_frete,
+                    COALESCE(c.receita_pedagio, 0.0) AS receita_pedagio,
+                    COALESCE(c.receita_taxa_descarga, 0.0) AS receita_taxa_descarga,
                     COALESCE(c.valor_rpa, 0.0) AS "RPA",
                     COALESCE(e.valor_pedagio_pago, 0.0) AS "Pedágio Pago",
                     COALESCE(o.custo_fornecedor_descarga, 0.0) AS "Custo Descarga",
