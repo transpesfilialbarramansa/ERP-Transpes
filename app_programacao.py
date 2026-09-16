@@ -496,6 +496,7 @@ if menu_selecionado == "Visão Geral":
             query = """
                 SELECT 
                     COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
+                    c.data_coleta AS "Data Programada",
                     c.status AS "Status",
                     COALESCE(c.nome_motorista, '-') AS "Motorista",
                     COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
@@ -508,12 +509,15 @@ if menu_selecionado == "Visão Geral":
                     COALESCE(e.valor_pedagio_pago, 0.0) AS "Pedágio Pago",
                     COALESCE(o.custo_fornecedor_descarga, 0.0) AS "Custo Descarga",
                     COALESCE(o.fornecedor_descarga, '-') AS "Fornecedor Descarga",
+                    COALESCE(o.data_agendamento_descarga, '-') AS "Data Agendamento Descarga",
                     COALESCE(e.numero_cte, '-') AS "CT-e",
                     COALESCE(e.numero_viagem, '-') AS "Viagem",
-                    COALESCE(c.notas_fiscais_comercial, e.notas_fiscais_expedicao, '-') AS "Nota Fiscal"
+                    COALESCE(c.notas_fiscais_comercial, e.notas_fiscais_expedicao, '-') AS "Nota Fiscal",
+                    COALESCE(a.data_liberacao_saldo, '-') AS "Data Pagamento Saldo"
                 FROM cargas c
                 LEFT JOIN carga_expedicao e ON c.id = e.carga_id
                 LEFT JOIN carga_operacional o ON c.id = o.carga_id
+                LEFT JOIN carga_administracao a ON c.id = a.carga_id
                 ORDER BY c.id DESC
             """
             cursor.execute(query)
@@ -575,10 +579,28 @@ if menu_selecionado == "Visão Geral":
         df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{v:.1f}%")
 
         cols_final = [
-            "Nº TP", "Status", "Motorista", "Tipo Motorista", "Origem", "Destino", 
-            "Cliente Origem", "Cliente Destino", "Receita Total (R$)", "RPA", "Pedágio Pago", 
-            "Custo Descarga", "Fornecedor Descarga", "CT-e", "Viagem", "Nota Fiscal", 
-            "Custo Total (R$)", "Margem (R$)", "Margem (%)"
+            "Nº TP", 
+            "Data Programada", 
+            "Status", 
+            "Motorista", 
+            "Tipo Motorista", 
+            "Origem", 
+            "Destino", 
+            "Cliente Origem", 
+            "Cliente Destino", 
+            "Receita Total (R$)", 
+            "RPA", 
+            "Pedágio Pago", 
+            "Custo Descarga", 
+            "Fornecedor Descarga", 
+            "Data Agendamento Descarga", 
+            "CT-e", 
+            "Viagem", 
+            "Nota Fiscal", 
+            "Custo Total (R$)", 
+            "Margem (R$)", 
+            "Margem (%)", 
+            "Data Pagamento Saldo"
         ]
         
         st.dataframe(df_exib[cols_final], use_container_width=True)
