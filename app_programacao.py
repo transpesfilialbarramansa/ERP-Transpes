@@ -59,6 +59,7 @@ FORNECEDORES_INICIAIS = [
     ('151', 'PEZINHO GUINCHO LOCACAO E TRANSPORTE LTDA - ME', 'PEZINHO GUINCHO LOCACAO E TRANSPORTE', 'FEIRA DE SANTANA', 'BA', '13.332.190/0001-96', '75 36234413')
 ]
 
+@st.cache_resource
 def init_db():
     with get_connection() as conn:
         with conn.cursor() as cursor:
