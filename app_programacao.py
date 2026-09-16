@@ -684,11 +684,6 @@ elif menu_selecionado == "Comercial":
         receita_pedagio = v2.number_input("Valor do Pedágio (R$)", min_value=0.0, value=0.0, step=50.0)
         receita_taxa_descarga = v3.number_input("Taxa de Descarga (R$)", min_value=0.0, value=0.0, step=50.0)
 
-        st.subheader("6. Datas Previstas")
-        d1, d2 = st.columns(2)
-        dt_coleta = d1.date_input("Data Previsão Coleta*", datetime.date.today(), format="DD/MM/YYYY")
-        dt_entrega = d2.date_input("Data Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
-
         salvar_com = st.form_submit_button("💾 Salvar Lançamento Comercial", type="primary", use_container_width=True)
 
     if salvar_com:
@@ -715,13 +710,12 @@ elif menu_selecionado == "Comercial":
                         cursor.execute("""
                             INSERT INTO cargas (
                                 numero_carga, numero_set, origens_json, destinos_json, notas_fiscais_comercial,
-                                receita_frete, receita_pedagio, receita_taxa_descarga, data_previsao_coleta,
-                                data_previsao_entrega, status, nome_motorista
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_PROGRAMACAO', '-')
+                                receita_frete, receita_pedagio, receita_taxa_descarga,
+                                status, nome_motorista
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_PROGRAMACAO', '-')
                         """, (
                            num_carga_novo, numero_set, json_orig, json_dest, json_nfs,
-                           receita_frete, receita_pedagio, receita_taxa_descarga,
-                           dt_coleta.strftime("%d/%m/%Y"), dt_entrega.strftime("%d/%m/%Y")
+                           receita_frete, receita_pedagio, receita_taxa_descarga
                        ))
                         conn.commit()
 
