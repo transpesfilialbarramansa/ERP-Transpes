@@ -536,6 +536,7 @@ if menu_selecionado == "Visão Geral":
                 LEFT JOIN carga_operacional o ON c.id = o.carga_id
                 ORDER BY c.id DESC
             """
+            cursor.execute("ROLLBACK;")
             cursor.execute(query)
             dados = cursor.fetchall()
             colunas = [desc[0] for desc in cursor.description]
