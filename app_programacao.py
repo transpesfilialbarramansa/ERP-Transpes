@@ -548,9 +548,8 @@ if menu_selecionado == "Visão Geral":
         """
         df = pd.read_sql_query(query, conn)
         
-    with get_connection() as conn:
+with get_connection() as conn:
     with conn.cursor() as cursor:
-        # 1. Garante que todas as colunas necessárias existam na tabela cargas
         novas_colunas = [
             ("numero_set", "TEXT"),
             ("origens_json", "TEXT"),
@@ -579,7 +578,7 @@ if menu_selecionado == "Visão Geral":
             cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
         conn.commit()
 
-        # 2. Executa a busca nativa via cursor para evitar incompatibilidade do pandas.read_sql_query
+        # Busca os dados usando o cursor nativo
         cursor.execute(query)
         dados = cursor.fetchall()
         colunas = [desc[0] for desc in cursor.description]
