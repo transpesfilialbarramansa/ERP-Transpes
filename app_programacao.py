@@ -273,9 +273,15 @@ def gerar_excel_geral(df):
     return output.getvalue()
 
 
+from reportlab.lib.pagesizes import letter, landscape, A4
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
 def gerar_pdf_geral(df):
     buffer = io.BytesIO()
-    # Define a página em modo PAISAGEM (Landscape) com margens reduzidas
+    
+    # 1. Configura a folha explicitamente na horizontal (A4 Paisagem) com margens finas
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=landscape(A4), 
@@ -292,11 +298,11 @@ def gerar_pdf_geral(df):
         'TitleStyle',
         parent=styles['Heading1'],
         fontName='Helvetica-Bold',
-        fontSize=14,
-        leading=16,
-        alignment=1, # Centralizado
+        fontSize=12,
+        leading=14,
+        alignment=1,
         textColor=colors.HexColor("#0f2a4a"),
-        spaceAfter=15
+        spaceAfter=10
     )
     
     style_cell = ParagraphStyle(
@@ -320,7 +326,7 @@ def gerar_pdf_geral(df):
 
     elements.append(Paragraph("Relatório Geral de Cargas - Transpes", style_title))
 
-    # Seleção de colunas otimizada para o relatório impresso em PDF
+    # 2. Seleção estrita das colunas essenciais
     cols_pdf = [
         "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
         "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", 
@@ -329,7 +335,7 @@ def gerar_pdf_geral(df):
     
     df_pdf = df.copy()
     
-    # Formatação numérica dos valores no PDF
+    # Formatação visual dos números no relatório
     for c in ["Receita Total (R$)", "Custo Total (R$)", "Margem (R$)"]:
         if c in df_pdf.columns:
             df_pdf[c] = df_pdf[c].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if isinstance(x, (int, float)) else str(x))
@@ -339,19 +345,19 @@ def gerar_pdf_geral(df):
 
     table_data = []
     
-    # Adiciona Cabeçalhos
+    # Monta os cabeçalhos
     headers = [Paragraph(col, style_header) for col in cols_pdf]
     table_data.append(headers)
 
-    # Adiciona Linhas
+    # Monta as linhas de dados
     for _, row in df_pdf.iterrows():
         linha = []
         for col in cols_pdf:
-            val = str(row[col]) if pd.notnull(row[col]) else "-"
+            val = str(row[col]) if pd.notnull(row[col]) and str(row[col]) != "" else "-"
             linha.append(Paragraph(val, style_cell))
         table_data.append(linha)
 
-    # Larguras customizadas das colunas em pontos (Total aprox ~812 pt na largura A4 Paisagem)
+    # 3. Distribuição das larguras das colunas em pontos para fechar 810pt (largura exata da folha A4 em modo paisagem)
     col_widths = [45, 55, 55, 60, 95, 150, 150, 65, 65, 65, 45]
 
     pdf_table = Table(table_data, colWidths=col_widths, repeatRows=1)
