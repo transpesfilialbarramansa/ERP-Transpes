@@ -668,13 +668,13 @@ elif menu_selecionado == "Comercial":
                             INSERT INTO cargas (
                                 numero_carga, numero_set, origens_json, destinos_json, notas_fiscais_comercial,
                                 receita_frete, receita_pedagio, receita_taxa_descarga, data_previsao_coleta,
-                                data_previsao_entrega, status
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_PROGRAMACAO')
+                                data_previsao_entrega, status, nome_motorista
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_PROGRAMACAO', '-')
                         """, (
-                            num_carga_novo, numero_set, json_orig, json_dest, json_nfs,
-                            receita_frete, receita_pedagio, receita_taxa_descarga,
-                            dt_coleta.strftime("%d/%m/%Y"), dt_entrega.strftime("%d/%m/%Y")
-                        ))
+                           num_carga_novo, numero_set, json_orig, json_dest, json_nfs,
+                           receita_frete, receita_pedagio, receita_taxa_descarga,
+                           dt_coleta.strftime("%d/%m/%Y"), dt_entrega.strftime("%d/%m/%Y")
+                       ))
                         conn.commit()
 
                 st.session_state["exibir_modal_comercial"] = True
