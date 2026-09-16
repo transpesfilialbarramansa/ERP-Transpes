@@ -577,9 +577,21 @@ if menu_selecionado == "Visão Geral":
         st.subheader("📥 Exportar Relatório")
         col_exp1, col_exp2, _ = st.columns([1, 1, 2])
         with col_exp1:
-            st.download_button("📗 Exportar para Excel (.xlsx)", data=gerar_excel_geral(df), file_name="Relatorio_Geral_Transpes.xlsx", use_container_width=True)
+            st.download_button(
+                "📗 Exportar para Excel (.xlsx)", 
+                data=gerar_excel_geral(df), 
+                file_name="Relatorio_Geral_Transpes.xlsx", 
+                use_container_width=True,
+                key="btn_export_excel_visao_geral"
+            )
         with col_exp2:
-            st.download_button("📕 Exportar para PDF", data=gerar_pdf_geral(df), file_name="Relatorio_Geral_Transpes.pdf", use_container_width=True)
+            st.download_button(
+                "📕 Exportar para PDF", 
+                data=gerar_pdf_geral(df), 
+                file_name="Relatorio_Geral_Transpes.pdf", 
+                use_container_width=True,
+                key="btn_export_pdf_visao_geral"
+            )
 
         st.markdown("---")
         st.subheader("📋 Detalhamento das Cargas")
