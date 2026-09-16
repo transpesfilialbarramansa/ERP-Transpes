@@ -515,7 +515,6 @@ if menu_selecionado == "Visão Geral":
                     COALESCE(e.numero_viagem, '-') AS "Viagem",
                     COALESCE(e.numero_mdfe, '-') AS "MDF-e",
                     COALESCE(e.numero_contrato, '-') AS "Contrato",
-                    -- Busca Nota Fiscal da Expedição primeiro, se nula/vazia pega do Comercial
                     CASE 
                         WHEN e.notas_fiscais_expedicao IS NOT NULL AND e.notas_fiscais_expedicao != '' AND e.notas_fiscais_expedicao != '[]' 
                         THEN e.notas_fiscais_expedicao
