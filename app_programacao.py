@@ -244,63 +244,132 @@ def formatar_origens_destinos(json_str, apenas_locais=False):
 
 def gerar_excel_geral(df):
     output = io.BytesIO()
-    with pd.ExcelWriter(output, engine='openpyxl') as writer:
-        df.to_excel(writer, index=False, sheet_name='Visao_Geral_Cargas')
-        worksheet = writer.sheets['Visao_Geral_Cargas']
-        for col in worksheet.columns:
-            max_len = max(len(str(cell.value or '')) for cell in col)
-            col_letter = col[0].column_letter
-            worksheet.column_dimensions[col_letter].width = max(max_len + 3, 12)
-    output.seek(0)
-    return output
+    
+    # Prepara o DataFrame do Excel usando apenas as colunas formatadas e finais
+    df_excel = df.copy()
+    
+    cols_finais_excel = [
+        "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", "Tipo Motorista", 
+        "Origem", "Destino", "Cliente Origem", "Cliente Destino", 
+        "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", 
+        "Fornecedor Descarga", "Data Agendamento Descarga", 
+        "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", 
+        "Custo Total (R$)", "Margem (R$)", "Margem (%)", "Data Pagamento Saldo"
+    ]
+    
+    # Filtra mantendo apenas as colunas que existem no DataFrame
+    cols_presentes = [c for c in cols_finais_excel if c in df_excel.columns]
+    df_excel = df_excel[cols_presentes]
+
+    with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+        df_excel.to_excel(writer, index=False, sheet_name="Relatório Geral")
+        
+        # Ajusta a largura das colunas automaticamente no Excel
+        worksheet = writer.sheets["Relatório Geral"]
+        for idx, col in enumerate(df_excel.columns):
+            max_len = max(df_excel[col].astype(str).map(len).max(), len(col)) + 3
+            worksheet.set_column(idx, idx, max_len)
+
+    return output.getvalue()
+
 
 def gerar_pdf_geral(df):
-    output = io.BytesIO()
+    buffer = io.BytesIO()
+    # Define a página em modo PAISAGEM (Landscape) com margens reduzidas
     doc = SimpleDocTemplate(
-        output,
-        pagesize=landscape(A4),
-        rightMargin=20, leftMargin=20, topMargin=20, bottomMargin=20
+        buffer, 
+        pagesize=landscape(A4), 
+        rightMargin=15, 
+        leftMargin=15, 
+        topMargin=20, 
+        bottomMargin=20
     )
     elements = []
+
     styles = getSampleStyleSheet()
     
-    titulo_style = ParagraphStyle(
-        'TituloPDF',
+    style_title = ParagraphStyle(
+        'TitleStyle',
         parent=styles['Heading1'],
-        fontSize=16, leading=20,
-        textColor=colors.HexColor('#0E2F56'),
-        alignment=1, spaceAfter=15
+        fontName='Helvetica-Bold',
+        fontSize=14,
+        leading=16,
+        alignment=1, # Centralizado
+        textColor=colors.HexColor("#0f2a4a"),
+        spaceAfter=15
     )
     
-    elements.append(Paragraph("Relatório Geral de Cargas - Transpes", titulo_style))
-    elements.append(Spacer(1, 10))
+    style_cell = ParagraphStyle(
+        'Cell',
+        parent=styles['Normal'],
+        fontName='Helvetica',
+        fontSize=6,
+        leading=7,
+        alignment=0
+    )
     
-    colunas_pdf = ["Nº TP", "Status", "Motorista", "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", "Margem (R$)", "Margem (%)"]
-    cols_existentes = [c for c in colunas_pdf if c in df.columns]
-    df_pdf = df[cols_existentes].copy()
+    style_header = ParagraphStyle(
+        'Header',
+        parent=styles['Normal'],
+        fontName='Helvetica-Bold',
+        fontSize=6.5,
+        leading=8,
+        textColor=colors.white,
+        alignment=1
+    )
+
+    elements.append(Paragraph("Relatório Geral de Cargas - Transpes", style_title))
+
+    # Seleção de colunas otimizada para o relatório impresso em PDF
+    cols_pdf = [
+        "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
+        "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", 
+        "Margem (R$)", "Margem (%)"
+    ]
     
-    table_data = [cols_existentes]
-    for row in df_pdf.itertuples(index=False):
-        table_data.append([str(val) if val is not None else "" for val in row])
-        
-    t = Table(table_data, repeatRows=1)
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#0E2F56')),
+    df_pdf = df.copy()
+    
+    # Formatação numérica dos valores no PDF
+    for c in ["Receita Total (R$)", "Custo Total (R$)", "Margem (R$)"]:
+        if c in df_pdf.columns:
+            df_pdf[c] = df_pdf[c].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if isinstance(x, (int, float)) else str(x))
+    
+    if "Margem (%)" in df_pdf.columns:
+        df_pdf["Margem (%)"] = df_pdf["Margem (%)"].apply(lambda x: f"{x:.1f}%" if isinstance(x, (int, float)) else str(x))
+
+    table_data = []
+    
+    # Adiciona Cabeçalhos
+    headers = [Paragraph(col, style_header) for col in cols_pdf]
+    table_data.append(headers)
+
+    # Adiciona Linhas
+    for _, row in df_pdf.iterrows():
+        linha = []
+        for col in cols_pdf:
+            val = str(row[col]) if pd.notnull(row[col]) else "-"
+            linha.append(Paragraph(val, style_cell))
+        table_data.append(linha)
+
+    # Larguras customizadas das colunas em pontos (Total aprox ~812 pt na largura A4 Paisagem)
+    col_widths = [45, 55, 55, 60, 95, 150, 150, 65, 65, 65, 45]
+
+    pdf_table = Table(table_data, colWidths=col_widths, repeatRows=1)
+    pdf_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0f2a4a")),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 9),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 6),
-        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor('#CCCCCC')),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 8),
-        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F8F9FA')])
+        ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
+        ('TOPPADDING', (0, 0), (-1, -1), 3),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8f9fa")]),
     ]))
-    
-    elements.append(t)
+
+    elements.append(pdf_table)
     doc.build(elements)
-    output.seek(0)
-    return output
+    
+    return buffer.getvalue()
 
 # ==========================================
 # DIÁLOGOS / POP-UPS
