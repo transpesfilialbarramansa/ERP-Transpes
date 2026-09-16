@@ -103,7 +103,7 @@ def init_db():
                 )
             """)
 
-            # 3. Adicionar Colunas da Aba Comercial na tabela cargas (migração automática)
+            # 3. Adiciona as colunas novas caso ainda não existam no banco Supabase/Postgres
             novas_colunas_cargas = [
                 ("numero_set", "TEXT"),
                 ("origens_json", "TEXT"),
@@ -123,7 +123,7 @@ def init_db():
                 ("quantidade_eixos", "INTEGER"),
                 ("placa_cavalo", "TEXT"),
                 ("placa_carreta", "TEXT"),
-                ("valor_rpa", "REAL"),
+                ("valor_rpa", "REAL DEFAULT 0.00"),
                 ("data_coleta", "TEXT"),
                 ("previsao_descarga", "TEXT"),
                 ("observacoes_programacao", "TEXT")
