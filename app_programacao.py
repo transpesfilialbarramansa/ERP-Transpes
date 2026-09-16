@@ -525,7 +525,7 @@ if menu_selecionado == "Visão Geral":
                 LEFT JOIN carga_expedicao e ON c.id = e.carga_id
                 LEFT JOIN carga_operacional o ON c.id = o.carga_id
                 LEFT JOIN carga_administracao a ON c.id = a.carga_id
-                ORDER BY c.id DESC
+                ORDER BY c.id ASC
             """
             cursor.execute(query)
             dados = cursor.fetchall()
