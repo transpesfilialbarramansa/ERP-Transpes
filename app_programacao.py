@@ -278,10 +278,10 @@ def gerar_excel_geral(df_dados):
         ]
 
         cols_centro = [
-            "Nº TP", "Nº SET", "Data Programada", "Status", "Tipo Motorista",
-            "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal",
-            "Tipo de Pedágio", "Plataforma", "Vínculo", "Data Agendamento Descarga",
-            "Data Pagamento Saldo"
+            "Nº TP", "Nº SET", "Data Programada", "Status", "CPF Motorista",
+            "Tipo Motorista", "Placa Cavalo", "Placa Carreta", "CT-e", "Viagem", 
+            "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", "Plataforma", 
+            "Vínculo", "Data Agendamento Descarga", "Data Pagamento Saldo"
         ]
 
         # 1. Estilização do Cabeçalho (Linha 1)
@@ -646,7 +646,10 @@ if menu_selecionado == "Visão Geral":
                     c.data_coleta AS "Data Programada",
                     c.status AS "Status",
                     COALESCE(c.nome_motorista, '-') AS "Motorista",
+                    COALESCE(c.cpf_motorista, '-') AS "CPF Motorista",
                     COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
+                    COALESCE(c.placa_cavalo, '-') AS "Placa Cavalo",
+                    COALESCE(c.placa_carreta, '-') AS "Placa Carreta",
                     c.origens_json,
                     c.destinos_json,
                     COALESCE(c.receita_frete, 0.0) AS receita_frete,
@@ -708,12 +711,13 @@ if menu_selecionado == "Visão Geral":
         # Definição das colunas exatas da tabela
         cols_final = [
             "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
-            "Tipo Motorista", "Origem", "Destino", "Cliente Origem", 
-            "Cliente Destino", "Receita Total (R$)", "RPA", "Pedágio Pago", 
-            "Custo Descarga", "Fornecedor Descarga", "Data Agendamento Descarga", 
-            "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", 
-            "Tipo de Pedágio", "Plataforma", "Vínculo",
-            "Custo Total (R$)", "Margem (R$)", "Margem (%)", "Data Pagamento Saldo"
+            "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta",
+            "Origem", "Destino", "Cliente Origem", "Cliente Destino", 
+            "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", 
+            "Fornecedor Descarga", "Data Agendamento Descarga", "CT-e", 
+            "Viagem", "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", 
+            "Plataforma", "Vínculo", "Custo Total (R$)", "Margem (R$)", 
+            "Margem (%)", "Data Pagamento Saldo"
         ]
 
         # Exibição de Métricas
@@ -755,12 +759,13 @@ if menu_selecionado == "Visão Geral":
 
         cols_final = [
             "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
-            "Tipo Motorista", "Origem", "Destino", "Cliente Origem", 
-            "Cliente Destino", "Receita Total (R$)", "RPA", "Pedágio Pago", 
-            "Custo Descarga", "Fornecedor Descarga", "Data Agendamento Descarga", 
-            "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", 
-            "Tipo de Pedágio", "Plataforma", "Vínculo",
-            "Custo Total (R$)", "Margem (R$)", "Margem (%)", "Data Pagamento Saldo"
+            "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta",
+            "Origem", "Destino", "Cliente Origem", "Cliente Destino", 
+            "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", 
+            "Fornecedor Descarga", "Data Agendamento Descarga", "CT-e", 
+            "Viagem", "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", 
+            "Plataforma", "Vínculo", "Custo Total (R$)", "Margem (R$)", 
+            "Margem (%)", "Data Pagamento Saldo"
         ]
 
         st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
