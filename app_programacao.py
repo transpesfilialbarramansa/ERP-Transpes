@@ -744,7 +744,7 @@ if menu_selecionado == "Visão Geral":
         with col_exp1:
             st.download_button(
                 "📗 Exportar para Excel (.xlsx)", 
-                data=gerar_excel_geral(df), 
+                data=gerar_excel_geral(df[cols_final]), 
                 file_name="Relatorio_Geral_Transpes.xlsx", 
                 use_container_width=True,
                 key="btn_export_excel_visao_geral"
