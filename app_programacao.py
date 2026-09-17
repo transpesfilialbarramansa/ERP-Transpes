@@ -923,6 +923,13 @@ elif menu_selecionado == "Programação":
             data_coleta = d2.date_input("Data Coleta*", datetime.date.today(), format="DD/MM/YYYY")
             previsao_descarga = d3.date_input("Data Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
 
+            st.subheader("Dados do Pedágio e Operação")
+            col_p1, col_p2, col_p3 = st.columns(3)
+
+            tipo_pedagio = col_p1.text_input("Tipo de Pedágio", placeholder="Ex: Sem Parar, Veloe, ConectCar...").strip().upper()
+            plataforma = col_p2.selectbox("Plataforma*", ["APP", "Card"])
+            vinculo = col_p3.selectbox("Vínculo*", ["CPF", "CNPJ"])
+
             obs_prog = st.text_area("Observação").upper()
 
             salvar_prog = st.form_submit_button("💾 Salvar Programação", type="primary", use_container_width=True)
@@ -944,13 +951,14 @@ elif menu_selecionado == "Programação":
                                     telefone_motorista = %s, tipo_motorista = %s, tipo_veiculo = %s,
                                     quantidade_eixos = %s, placa_cavalo = %s, placa_carreta = %s,
                                     valor_rpa = %s, data_coleta = %s, previsao_descarga = %s,
+                                    tipo_pedagio = %s, plataforma = %s, vinculo = %s, 
                                     observacoes_programacao = %s, status = 'PROGRAMADA'
                                 WHERE id = %s
                             """, (
                                 numero_tp, nome_motorista, cpf_fmt, tel_fmt, tipo_motorista,
                                 tipo_veiculo, eixos, placa_cavalo, placa_carreta, valor_rpa,
                                 data_coleta.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
-                                obs_prog, carga_id
+                                tipo_pedagio, plataforma, vinculo, obs_prog, carga_id
                             ))
                             conn.commit()
 
