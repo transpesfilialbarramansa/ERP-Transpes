@@ -243,100 +243,84 @@ def formatar_origens_destinos(json_str, apenas_locais=False):
             res.append(str(item))
     return " | ".join(res)
 
-def gerar_excel_geral(df):
+def gerar_excel_geral(df_dados):
     output = io.BytesIO()
-    
-    # 1. Seleciona estritamente as colunas do layout da imagem
-    cols_excel = [
-        "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
-        "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", 
-        "Margem (R$)", "Margem (%)"
-    ]
-    
-    df_excel = df.copy()
-    
-    # Garante que as colunas existam no DataFrame
-    cols_presentes = [c for c in cols_excel if c in df_excel.columns]
-    df_excel = df_excel[cols_presentes]
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        # Escreve a tabela a partir da linha 4 para dar espaço ao título
-        df_excel.to_excel(writer, index=False, sheet_name="Relatório Geral", startrow=3)
-        
+        # Salva exatamente as colunas e dados fornecidos no DataFrame
+        df_dados.to_excel(writer, index=False, sheet_name="Detalhamento de Cargas")
+
         workbook = writer.book
-        worksheet = writer.sheets["Relatório Geral"]
-        
-        # Desativa as linhas de grade padrão para dar o visual limpo do relatório
+        worksheet = writer.sheets["Detalhamento de Cargas"]
+
+        # Habilita as linhas de grade para visualização limpa
         worksheet.views.sheetView[0].showGridLines = True
 
         # --- ESTILOS ---
-        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
-        
-        font_titulo = Font(name="Arial", size=14, bold=True, color="0F2A4A")
-        font_cabecalho = Font(name="Arial", size=9, bold=True, color="FFFFFF")
-        font_dados = Font(name="Arial", size=8)
-        
-        align_titulo = Alignment(horizontal="center", vertical="center")
-        align_center = Alignment(horizontal="center", vertical="center")
-        align_left = Alignment(horizontal="left", vertical="center", wrap_text=True)
-        align_right = Alignment(horizontal="right", vertical="center")
+        from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+        from openpyxl.utils import get_column_letter
 
         fill_cabecalho = PatternFill(start_color="0F2A4A", end_color="0F2A4A", fill_type="solid")
-        fill_zebra = PatternFill(start_color="F8F9FA", end_color="F8F9FA", fill_type="solid")
-        fill_branca = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+        font_cabecalho = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
+        font_corpo = Font(name="Calibri", size=10)
 
-        borda_fina = Side(border_style="thin", color="CCCCCC")
+        align_center = Alignment(horizontal="center", vertical="center")
+        align_left = Alignment(horizontal="left", vertical="center")
+        align_right = Alignment(horizontal="right", vertical="center")
+
+        borda_fina = Side(border_style="thin", color="D9D9D9")
         borda_caixa = Border(left=borda_fina, right=borda_fina, top=borda_fina, bottom=borda_fina)
 
-        # 2. Insere e formata o Título
-        worksheet.merge_cells(start_row=1, start_column=1, end_row=2, end_column=len(cols_presentes))
-        cell_titulo = worksheet.cell(row=1, column=1)
-        cell_titulo.value = "Relatório Geral de Cargas - Transpes"
-        cell_titulo.font = font_titulo
-        cell_titulo.alignment = align_titulo
+        # Mapeamento de regras de formatação por coluna
+        cols_moeda = [
+            "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga",
+            "Custo Total (R$)", "Margem (R$)"
+        ]
 
-        # 3. Formata o Cabeçalho (Linha 4 do Excel)
-        for col_num in range(1, len(cols_presentes) + 1):
-            cell = worksheet.cell(row=4, column=col_num)
-            cell.font = font_cabecalho
+        cols_centro = [
+            "Nº TP", "Nº SET", "Data Programada", "Status", "Tipo Motorista",
+            "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal",
+            "Tipo de Pedágio", "Plataforma", "Vínculo", "Data Agendamento Descarga",
+            "Data Pagamento Saldo"
+        ]
+
+        # 1. Estilização do Cabeçalho (Linha 1)
+        for col_num, col_name in enumerate(df_dados.columns, start=1):
+            cell = worksheet.cell(row=1, column=col_num)
             cell.fill = fill_cabecalho
+            cell.font = font_cabecalho
             cell.alignment = align_center
-            cell.border = borda_caixa
 
-        # 4. Formata as Linhas de Dados
-        num_linhas = len(df_excel)
-        for row_idx in range(5, 5 + num_linhas):
-            fill_atual = fill_zebra if row_idx % 2 == 0 else fill_branca
-            
-            for col_idx, col_nome in enumerate(cols_presentes, start=1):
-                cell = worksheet.cell(row=row_idx, column=col_idx)
-                cell.font = font_dados
-                cell.fill = fill_atual
+        # 2. Estilização do Corpo
+        for row_num in range(2, len(df_dados) + 2):
+            for col_num, col_name in enumerate(df_dados.columns, start=1):
+                cell = worksheet.cell(row=row_num, column=col_num)
+                cell.font = font_corpo
                 cell.border = borda_caixa
-                
-                # Alinhamento e formatação por tipo de dado
-                if col_nome in ["Nº TP", "Nº SET", "Data Programada", "Status"]:
-                    cell.alignment = align_center
-                elif col_nome in ["Motorista", "Origem", "Destino"]:
-                    cell.alignment = align_left
-                elif col_nome in ["Receita Total (R$)", "Custo Total (R$)", "Margem (R$)"]:
+
+                # Aplica alinhamento e formatação de números/moedas
+                if col_name in cols_moeda:
                     cell.alignment = align_right
                     cell.number_format = 'R$ #,##0.00'
-                elif col_nome == "Margem (%)":
+                elif col_name == "Margem (%)":
                     cell.alignment = align_right
                     cell.number_format = '0%'
+                elif col_name in cols_centro:
+                    cell.alignment = align_center
+                else:
+                    cell.alignment = align_left
 
-        # 5. Ajuste de Largura das Colunas
-        larguras_fixas = {
-            "Nº TP": 12, "Nº SET": 12, "Data Programada": 15, "Status": 14,
-            "Motorista": 30, "Origem": 45, "Destino": 45,
-            "Receita Total (R$)": 18, "Custo Total (R$)": 18, "Margem (R$)": 18, "Margem (%)": 12
-        }
+        # 3. Ajuste Dinâmico da Largura das Colunas
+        for col in worksheet.columns:
+            max_len = 0
+            col_letter = get_column_letter(col[0].column)
+            for cell in col:
+                val_str = str(cell.value or '')
+                if len(val_str) > max_len:
+                    max_len = len(val_str)
+            worksheet.column_dimensions[col_letter].width = max(max_len + 4, 12)
 
-        for idx, col in enumerate(cols_presentes, start=1):
-            col_letter = openpyxl.utils.get_column_letter(idx)
-            worksheet.column_dimensions[col_letter].width = larguras_fixas.get(col, 15)
-
+    output.seek(0)
     return output.getvalue()
 
 
@@ -715,14 +699,22 @@ if menu_selecionado == "Visão Geral":
         df["Margem (R$)"] = df["Receita Total (R$)"] - df["Custo Total (R$)"]
         df["Margem (%)"] = df.apply(lambda r: (r["Margem (R$)"] / r["Receita Total (R$)"] * 100) if r["Receita Total (R$)"] > 0 else 0.0, axis=1)
 
-        # -------------------------------------------------------------
-        # LIMPEZA DAS COLUNAS JSON (REMOVE ASPAS E COLCHETES)
-        # -------------------------------------------------------------
+        # Limpeza das Colunas JSON
         df["CT-e"] = df["CT-e"].apply(lambda x: limpar_formato_json_lista(x, separador=", "))
         df["Viagem"] = df["Viagem"].apply(lambda x: limpar_formato_json_lista(x, separador=", "))
         df["MDF-e"] = df["MDF-e"].apply(lambda x: limpar_formato_json_lista(x, separador=", "))
         df["Nota Fiscal"] = df["Nota Fiscal"].apply(lambda x: limpar_formato_json_lista(x, separador=" / "))
-        # -------------------------------------------------------------
+
+        # Definição das colunas exatas da tabela
+        cols_final = [
+            "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
+            "Tipo Motorista", "Origem", "Destino", "Cliente Origem", 
+            "Cliente Destino", "Receita Total (R$)", "RPA", "Pedágio Pago", 
+            "Custo Descarga", "Fornecedor Descarga", "Data Agendamento Descarga", 
+            "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", 
+            "Tipo de Pedágio", "Plataforma", "Vínculo",
+            "Custo Total (R$)", "Margem (R$)", "Margem (%)", "Data Pagamento Saldo"
+        ]
 
         # Exibição de Métricas
         rec_tot = df["Receita Total (R$)"].sum()
@@ -753,13 +745,12 @@ if menu_selecionado == "Visão Geral":
         st.markdown("---")
         st.subheader("📋 Detalhamento das Cargas")
 
-        # Tabela Formatada para Exibição
+        # Tabela Formatada para Exibição na Tela
         df_exib = df.copy()
         cols_fin = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
         for c in cols_fin:
             df_exib[c] = df_exib[c].apply(formatar_real)
         
-        # Margem inteira arredondada
         df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{round(v)}%")
 
         cols_final = [
