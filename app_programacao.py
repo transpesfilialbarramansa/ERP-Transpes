@@ -682,6 +682,9 @@ if menu_selecionado == "Visão Geral":
                         THEN e.notas_fiscais_expedicao
                         ELSE c.notas_fiscais_comercial
                     END AS "Nota Fiscal",
+                    COALESCE(c.tipo_pedagio, '-') AS "Tipo de Pedágio",
+                    COALESCE(c.plataforma, '-') AS "Plataforma",
+                    COALESCE(c.vinculo, '-') AS "Vínculo",
                     COALESCE(a.data_liberacao_saldo, '-') AS "Data Pagamento Saldo"
                 FROM cargas c
                 LEFT JOIN carga_expedicao e ON c.id = e.carga_id
@@ -765,6 +768,7 @@ if menu_selecionado == "Visão Geral":
             "Cliente Destino", "Receita Total (R$)", "RPA", "Pedágio Pago", 
             "Custo Descarga", "Fornecedor Descarga", "Data Agendamento Descarga", 
             "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", 
+            "Tipo de Pedágio", "Plataforma", "Vínculo",
             "Custo Total (R$)", "Margem (R$)", "Margem (%)", "Data Pagamento Saldo"
         ]
 
