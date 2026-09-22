@@ -71,6 +71,7 @@ def get_connection():
             dsn=db_url,
             options="-c prepare_threshold=0"
         )
+
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
@@ -149,9 +150,9 @@ def init_db():
                 ("data_coleta", "TEXT"),
                 ("previsao_descarga", "TEXT"),
                 ("observacoes_programacao", "TEXT"),
-                ("tipo_pedagio", "TEXT"),     # 👈 ADICIONADO
-                ("plataforma", "TEXT"),       # 👈 ADICIONADO
-                ("vinculo", "TEXT")           # 👈 ADICIONADO
+                ("tipo_pedagio", "TEXT"),
+                ("plataforma", "TEXT"),
+                ("vinculo", "TEXT")
             ]
 
             for col_nome, col_tipo in novas_colunas_cargas:
@@ -229,8 +230,11 @@ init_db()
 # FUNÇÕES AUXILIARES DE EXPORTAÇÃO E IMAGEM
 # ==========================================
 def get_base64_image(image_path):
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except Exception:
+        return None
 
 def gerar_numero_carga_novo():
     with get_connection() as conn:
@@ -267,20 +271,30 @@ def formatar_origens_destinos(json_str, apenas_locais=False):
             res.append(str(item))
     return " | ".join(res)
 
+def limpar_formato_json_lista(valor, separador=", "):
+    if not valor or str(valor).strip() in ["-", "None", "", "[]"]:
+        return "-"
+    if isinstance(valor, str) and (valor.startswith("[") and valor.endswith("]")):
+        try:
+            dados = json.loads(valor)
+            if isinstance(dados, list):
+                itens = [str(i).strip() for i in dados if str(i).strip()]
+                return separador.join(itens) if itens else "-"
+        except Exception:
+            pass
+    limpo = str(valor).replace("[", "").replace("]", "").replace('"', '').replace("'", "").strip()
+    return limpo if limpo else "-"
+
 def gerar_excel_geral(df_dados):
     output = io.BytesIO()
 
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
-        # Salva exatamente as colunas e dados fornecidos no DataFrame
         df_dados.to_excel(writer, index=False, sheet_name="Detalhamento de Cargas")
 
         workbook = writer.book
         worksheet = writer.sheets["Detalhamento de Cargas"]
-
-        # Habilita as linhas de grade para visualização limpa
         worksheet.views.sheetView[0].showGridLines = True
 
-        # --- ESTILOS ---
         from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
         from openpyxl.utils import get_column_letter
 
@@ -295,7 +309,6 @@ def gerar_excel_geral(df_dados):
         borda_fina = Side(border_style="thin", color="D9D9D9")
         borda_caixa = Border(left=borda_fina, right=borda_fina, top=borda_fina, bottom=borda_fina)
 
-        # Mapeamento de regras de formatação por coluna
         cols_moeda = [
             "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga",
             "Custo Total (R$)", "Margem (R$)"
@@ -308,21 +321,18 @@ def gerar_excel_geral(df_dados):
             "Vínculo", "Data Agendamento Descarga", "Data Pagamento Saldo"
         ]
 
-        # 1. Estilização do Cabeçalho (Linha 1)
         for col_num, col_name in enumerate(df_dados.columns, start=1):
             cell = worksheet.cell(row=1, column=col_num)
             cell.fill = fill_cabecalho
             cell.font = font_cabecalho
             cell.alignment = align_center
 
-        # 2. Estilização do Corpo
         for row_num in range(2, len(df_dados) + 2):
             for col_num, col_name in enumerate(df_dados.columns, start=1):
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.font = font_corpo
                 cell.border = borda_caixa
 
-                # Aplica alinhamento e formatação de números/moedas
                 if col_name in cols_moeda:
                     cell.alignment = align_right
                     cell.number_format = 'R$ #,##0.00'
@@ -334,7 +344,6 @@ def gerar_excel_geral(df_dados):
                 else:
                     cell.alignment = align_left
 
-        # 3. Ajuste Dinâmico da Largura das Colunas
         for col in worksheet.columns:
             max_len = 0
             col_letter = get_column_letter(col[0].column)
@@ -347,16 +356,9 @@ def gerar_excel_geral(df_dados):
     output.seek(0)
     return output.getvalue()
 
-
-from reportlab.lib.pagesizes import letter, landscape, A4
-from reportlab.lib import colors
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Table, TableStyle
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-
 def gerar_pdf_geral(df):
     buffer = io.BytesIO()
     
-    # 1. Configura a folha explicitamente na horizontal (A4 Paisagem) com margens finas
     doc = SimpleDocTemplate(
         buffer, 
         pagesize=landscape(A4), 
@@ -366,7 +368,6 @@ def gerar_pdf_geral(df):
         bottomMargin=20
     )
     elements = []
-
     styles = getSampleStyleSheet()
     
     style_title = ParagraphStyle(
@@ -401,7 +402,6 @@ def gerar_pdf_geral(df):
 
     elements.append(Paragraph("Relatório Geral de Cargas - Transpes", style_title))
 
-    # 2. Seleção estrita das colunas essenciais
     cols_pdf = [
         "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
         "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", 
@@ -410,7 +410,6 @@ def gerar_pdf_geral(df):
     
     df_pdf = df.copy()
     
-    # Formatação visual dos números no relatório
     for c in ["Receita Total (R$)", "Custo Total (R$)", "Margem (R$)"]:
         if c in df_pdf.columns:
             df_pdf[c] = df_pdf[c].apply(lambda x: f"R$ {x:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") if isinstance(x, (int, float)) else str(x))
@@ -419,12 +418,9 @@ def gerar_pdf_geral(df):
         df_pdf["Margem (%)"] = df_pdf["Margem (%)"].apply(lambda x: f"{x:.1f}%" if isinstance(x, (int, float)) else str(x))
 
     table_data = []
-    
-    # Monta os cabeçalhos
     headers = [Paragraph(col, style_header) for col in cols_pdf]
     table_data.append(headers)
 
-    # Monta as linhas de dados
     for _, row in df_pdf.iterrows():
         linha = []
         for col in cols_pdf:
@@ -432,7 +428,6 @@ def gerar_pdf_geral(df):
             linha.append(Paragraph(val, style_cell))
         table_data.append(linha)
 
-    # 3. Distribuição das larguras das colunas em pontos para fechar 810pt (largura exata da folha A4 em modo paisagem)
     col_widths = [45, 55, 55, 60, 95, 150, 150, 65, 65, 65, 45]
 
     pdf_table = Table(table_data, colWidths=col_widths, repeatRows=1)
@@ -539,17 +534,11 @@ if "logado" not in st.session_state:
     st.session_state["logado"] = False
 
 if not st.session_state["logado"]:
-    try:
-        bg_base64 = get_base64_image("fundo_transpes.png")
-        bg_style = f"background-image: url('data:image/jpeg;base64,{bg_base64}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;"
-    except Exception:
-        bg_style = "background-color: #0E2F56;"
+    bg_base64 = get_base64_image("fundo_transpes.png")
+    bg_style = f"background-image: url('data:image/jpeg;base64,{bg_base64}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;" if bg_base64 else "background-color: #0E2F56;"
 
-    try:
-        logo_base64 = get_base64_image("logo_transpes.png")
-        logo_html = f'<img src="data:image/png;base64,{logo_base64}" style="max-width: 180px; margin-bottom: 10px;">'
-    except Exception:
-        logo_html = '<div class="login-title" style="color: #0E2F56; font-size: 26px; font-weight: bold;">ERP Transpes</div>'
+    logo_base64 = get_base64_image("logo_transpes.png")
+    logo_html = f'<img src="data:image/png;base64,{logo_base64}" style="max-width: 180px; margin-bottom: 10px;">' if logo_base64 else '<div class="login-title" style="color: #0E2F56; font-size: 26px; font-weight: bold;">ERP Transpes</div>'
 
     st.markdown(
         f"""
@@ -637,26 +626,8 @@ with st.sidebar:
 # ==========================================
 # PÁGINAS DO SISTEMA
 # ==========================================
-# FUNÇÃO AUXILIAR DE LIMPEZA (coloque no topo do arquivo ou antes da Visão Geral)
-# ==========================================
-def limpar_formato_json_lista(valor, separador=", "):
-    if not valor or str(valor).strip() in ["-", "None", "", "[]"]:
-        return "-"
-    if isinstance(valor, str) and (valor.startswith("[") and valor.endswith("]")):
-        try:
-            dados = json.loads(valor)
-            if isinstance(dados, list):
-                itens = [str(i).strip() for i in dados if str(i).strip()]
-                return separador.join(itens) if itens else "-"
-        except Exception:
-            pass
-    limpo = str(valor).replace("[", "").replace("]", "").replace('"', '').replace("'", "").strip()
-    return limpo if limpo else "-"
 
-
-# ==========================================
 # 1. VISÃO GERAL
-# ==========================================
 if menu_selecionado == "Visão Geral":
     st.title("📊 Visão Geral e Relatórios")
 
@@ -714,25 +685,21 @@ if menu_selecionado == "Visão Geral":
         def formatar_real(valor):
             return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
-        # Formatações de Rotas e Clientes
         df["Origem"] = df["origens_json"].apply(lambda x: formatar_origens_destinos(x))
         df["Destino"] = df["destinos_json"].apply(lambda x: formatar_origens_destinos(x))
         df["Cliente Origem"] = df["origens_json"].apply(lambda x: " | ".join([i.get("cliente","") for i in processar_json_lista(x) if isinstance(i, dict)]))
         df["Cliente Destino"] = df["destinos_json"].apply(lambda x: " | ".join([i.get("cliente","") for i in processar_json_lista(x) if isinstance(i, dict)]))
 
-        # Cálculos Financeiros
         df["Receita Total (R$)"] = df["receita_frete"] + df["receita_pedagio"] + df["receita_taxa_descarga"]
         df["Custo Total (R$)"] = df["RPA"] + df["Pedágio Pago"] + df["Custo Descarga"]
         df["Margem (R$)"] = df["Receita Total (R$)"] - df["Custo Total (R$)"]
         df["Margem (%)"] = df.apply(lambda r: (r["Margem (R$)"] / r["Receita Total (R$)"] * 100) if r["Receita Total (R$)"] > 0 else 0.0, axis=1)
 
-        # Limpeza das Colunas JSON
         df["CT-e"] = df["CT-e"].apply(lambda x: limpar_formato_json_lista(x, separador=", "))
         df["Viagem"] = df["Viagem"].apply(lambda x: limpar_formato_json_lista(x, separador=", "))
         df["MDF-e"] = df["MDF-e"].apply(lambda x: limpar_formato_json_lista(x, separador=", "))
         df["Nota Fiscal"] = df["Nota Fiscal"].apply(lambda x: limpar_formato_json_lista(x, separador=" / "))
 
-        # Definição das colunas exatas da tabela
         cols_final = [
             "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
             "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta",
@@ -744,7 +711,6 @@ if menu_selecionado == "Visão Geral":
             "Margem (%)", "Data Pagamento Saldo"
         ]
 
-        # Exibição de Métricas
         rec_tot = df["Receita Total (R$)"].sum()
         custo_tot = df["Custo Total (R$)"].sum()
         margem_tot = df["Margem (R$)"].sum()
@@ -758,9 +724,8 @@ if menu_selecionado == "Visão Geral":
 
         st.markdown("---")
 
-        # Botão Exportar Excel
         st.subheader("📥 Exportar Relatório")
-        col_exp1, _ = st.columns([1, 3])
+        col_exp1, col_exp2 = st.columns([1, 1])
         with col_exp1:
             st.download_button(
                 "📗 Exportar para Excel (.xlsx)", 
@@ -769,28 +734,24 @@ if menu_selecionado == "Visão Geral":
                 use_container_width=True,
                 key="btn_export_excel_visao_geral"
             )
+        with col_exp2:
+            st.download_button(
+                "📄 Exportar para PDF (.pdf)", 
+                data=gerar_pdf_geral(df), 
+                file_name="Relatorio_Geral_Transpes.pdf", 
+                use_container_width=True,
+                key="btn_export_pdf_visao_geral"
+            )
 
         st.markdown("---")
         st.subheader("📋 Detalhamento das Cargas")
 
-        # Tabela Formatada para Exibição na Tela
         df_exib = df.copy()
         cols_fin = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
         for c in cols_fin:
             df_exib[c] = df_exib[c].apply(formatar_real)
         
         df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{round(v)}%")
-
-        cols_final = [
-            "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
-            "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta",
-            "Origem", "Destino", "Cliente Origem", "Cliente Destino", 
-            "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", 
-            "Fornecedor Descarga", "Data Agendamento Descarga", "CT-e", 
-            "Viagem", "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", 
-            "Plataforma", "Vínculo", "Custo Total (R$)", "Margem (R$)", 
-            "Margem (%)", "Data Pagamento Saldo"
-        ]
 
         st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
 
@@ -835,7 +796,7 @@ elif menu_selecionado == "Comercial":
         st.subheader("4. Notas Fiscais (Opcional)")
         lista_nfs_com = []
         if qtd_nfs > 0:
-            cols_nf = st.columns(min(qtd_nfs, 4))
+            cols_nf = st.columns(min(int(qtd_nfs), 4))
             for k in range(int(qtd_nfs)):
                 val_nf = cols_nf[k % 4].text_input(f"Nota Fiscal {k+1}", key=f"com_nf_{k}_{v_com}").upper()
                 if val_nf.strip():
@@ -1095,6 +1056,8 @@ elif menu_selecionado == "Expedição":
                 st.error("Preencha todos os campos obrigatórios de CT-e.")
             elif len(lista_mdfes) < int(qtd_mdfes):
                 st.error("Preencha todos os campos obrigatórios de MDF-e.")
+            elif not numero_contrato:
+                st.error("O número do contrato é obrigatório.")
             else:
                 json_ctes = json.dumps(lista_ctes)
                 json_viagens = json.dumps(lista_viagens) if lista_viagens else ""
