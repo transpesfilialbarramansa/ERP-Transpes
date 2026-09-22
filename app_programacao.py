@@ -50,14 +50,12 @@ st.set_page_config(
 
 def get_connection():
     db_url = st.secrets["DB_URL"]
-    
+
     if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
         url = urllib.parse.urlparse(db_url)
-        
-        # Limpa o nome do banco caso haja query params na URL
         db_name = url.path[1:].split('?')[0] if url.path else 'postgres'
-        
-        return psycopg2.connect(
+
+        return psycopg.connect(
             dbname=db_name,
             user=url.username,
             password=urllib.parse.unquote(url.password or ''),
@@ -67,7 +65,7 @@ def get_connection():
             options="-c prepare_threshold=0"
         )
     else:
-        return psycopg2.connect(
+        return psycopg.connect(
             dsn=db_url,
             options="-c prepare_threshold=0"
         )
