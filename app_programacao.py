@@ -45,7 +45,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# CONEXÃO E BANCO DE DADOS (SUPABASE / POSTGRESQL)
+# CONEXÃO E BANCO DE DADOS (SUPABASE / POSTGRESQL / NEON)
 # ==========================================
 
 def get_connection():
@@ -111,7 +111,7 @@ def init_db():
                 )
             """)
 
-            # 3. Adiciona as colunas novas caso ainda não existam no banco Supabase/Postgres
+            # 3. Adiciona as colunas novas caso ainda não existam no banco
             novas_colunas_cargas = [
                 ("numero_set", "TEXT"),
                 ("origens_json", "TEXT"),
@@ -616,52 +616,52 @@ with st.sidebar:
 if menu_selecionado == "Visão Geral":
     st.title("📊 Visão Geral e Relatórios")
 
+    query = """
+        SELECT 
+            c.id AS id_carga,
+            COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
+            c.numero_set AS "Nº SET",
+            c.data_coleta AS "Data Programada",
+            c.status AS "Status",
+            COALESCE(c.nome_motorista, '-') AS "Motorista",
+            COALESCE(c.cpf_motorista, '-') AS "CPF Motorista",
+            COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
+            COALESCE(c.placa_cavalo, '-') AS "Placa Cavalo",
+            COALESCE(c.placa_carreta, '-') AS "Placa Carreta",
+            c.origens_json,
+            c.destinos_json,
+            COALESCE(c.receita_frete, 0.0) AS receita_frete,
+            COALESCE(c.receita_pedagio, 0.0) AS receita_pedagio,
+            COALESCE(c.receita_taxa_descarga, 0.0) AS receita_taxa_descarga,
+            COALESCE(c.valor_rpa, 0.0) AS "RPA",
+            COALESCE(e.valor_pedagio_pago, 0.0) AS "Pedágio Pago",
+            COALESCE(o.custo_fornecedor_descarga, 0.0) AS "Custo Descarga",
+            COALESCE(o.fornecedor_descarga, '-') AS "Fornecedor Descarga",
+            COALESCE(o.data_agendamento_descarga, '-') AS "Data Agendamento Descarga",
+            COALESCE(e.numero_cte, '-') AS "CT-e",
+            COALESCE(e.numero_viagem, '-') AS "Viagem",
+            COALESCE(e.numero_mdfe, '-') AS "MDF-e",
+            COALESCE(e.numero_contrato, '-') AS "Contrato",
+            CASE 
+                WHEN e.notas_fiscais_expedicao IS NOT NULL AND e.notas_fiscais_expedicao != '' AND e.notas_fiscais_expedicao != '[]' 
+                THEN e.notas_fiscais_expedicao
+                ELSE c.notas_fiscais_comercial
+            END AS "Nota Fiscal",
+            COALESCE(c.tipo_pedagio, '-') AS "Tipo de Pedágio",
+            COALESCE(c.plataforma, '-') AS "Plataforma",
+            COALESCE(c.vinculo, '-') AS "Vínculo",
+            COALESCE(a.data_liberacao_saldo, '-') AS "Data Pagamento Saldo"
+        FROM cargas c
+        LEFT JOIN carga_expedicao e ON c.id = e.carga_id
+        LEFT JOIN carga_operacional o ON c.id = o.carga_id
+        LEFT JOIN carga_administracao a ON c.id = a.carga_id
+        ORDER BY c.id ASC
+    """
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            query = """
-                SELECT 
-                    c.id AS id_carga,
-                    COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
-                    c.numero_set AS "Nº SET",
-                    c.data_coleta AS "Data Programada",
-                    c.status AS "Status",
-                    COALESCE(c.nome_motorista, '-') AS "Motorista",
-                    COALESCE(c.cpf_motorista, '-') AS "CPF Motorista",
-                    COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
-                    COALESCE(c.placa_cavalo, '-') AS "Placa Cavalo",
-                    COALESCE(c.placa_carreta, '-') AS "Placa Carreta",
-                    c.origens_json,
-                    c.destinos_json,
-                    COALESCE(c.receita_frete, 0.0) AS receita_frete,
-                    COALESCE(c.receita_pedagio, 0.0) AS receita_pedagio,
-                    COALESCE(c.receita_taxa_descarga, 0.0) AS receita_taxa_descarga,
-                    COALESCE(c.valor_rpa, 0.0) AS "RPA",
-                    COALESCE(e.valor_pedagio_pago, 0.0) AS "Pedágio Pago",
-                    COALESCE(o.custo_fornecedor_descarga, 0.0) AS "Custo Descarga",
-                    COALESCE(o.fornecedor_descarga, '-') AS "Fornecedor Descarga",
-                    COALESCE(o.data_agendamento_descarga, '-') AS "Data Agendamento Descarga",
-                    COALESCE(e.numero_cte, '-') AS "CT-e",
-                    COALESCE(e.numero_viagem, '-') AS "Viagem",
-                    COALESCE(e.numero_mdfe, '-') AS "MDF-e",
-                    COALESCE(e.numero_contrato, '-') AS "Contrato",
-                    CASE 
-                        WHEN e.notas_fiscais_expedicao IS NOT NULL AND e.notas_fiscais_expedicao != '' AND e.notas_fiscais_expedicao != '[]' 
-                        THEN e.notas_fiscais_expedicao
-                        ELSE c.notas_fiscais_comercial
-                    END AS "Nota Fiscal",
-                    COALESCE(c.tipo_pedagio, '-') AS "Tipo de Pedágio",
-                    COALESCE(c.plataforma, '-') AS "Plataforma",
-                    COALESCE(c.vinculo, '-') AS "Vínculo",
-                    COALESCE(a.data_liberacao_saldo, '-') AS "Data Pagamento Saldo"
-                FROM cargas c
-                LEFT JOIN carga_expedicao e ON c.id = e.carga_id
-                LEFT JOIN carga_operacional o ON c.id = o.carga_id
-                LEFT JOIN carga_administracao a ON c.id = a.carga_id
-                ORDER BY c.id ASC
-            """
             cursor.execute(query)
             dados = cursor.fetchall()
-            colunas = [desc[0] for desc in cursor.description]
+            colunas = [desc.name for desc in cursor.description]
             df = pd.DataFrame(dados, columns=colunas)
 
     if df.empty:
@@ -851,7 +851,11 @@ elif menu_selecionado == "Programação":
         WHERE status = 'PENDENTE_PROGRAMACAO'
     """
     with get_connection() as conn:
-        cargas_prog_df = pd.read_sql_query(query_prog, conn)
+        with conn.cursor() as cursor:
+            cursor.execute(query_prog)
+            dados = cursor.fetchall()
+            colunas = [desc.name for desc in cursor.description]
+            cargas_prog_df = pd.DataFrame(dados, columns=colunas)
 
     if cargas_prog_df.empty:
         st.info("Nenhuma carga pendente de programação no momento.")
@@ -955,7 +959,11 @@ elif menu_selecionado == "Expedição":
         WHERE status = 'PROGRAMADA'
     """
     with get_connection() as conn:
-        cargas_exp_df = pd.read_sql_query(query_exp, conn)
+        with conn.cursor() as cursor:
+            cursor.execute(query_exp)
+            dados = cursor.fetchall()
+            colunas = [desc.name for desc in cursor.description]
+            cargas_exp_df = pd.DataFrame(dados, columns=colunas)
 
     if cargas_exp_df.empty:
         st.info("Nenhuma carga aguardando expedição.")
@@ -1090,7 +1098,11 @@ elif menu_selecionado == "Operacional":
         WHERE c.status = 'EM TRÂNSITO'
     """
     with get_connection() as conn:
-        cargas_op_df = pd.read_sql_query(query_op, conn)
+        with conn.cursor() as cursor:
+            cursor.execute(query_op)
+            dados = cursor.fetchall()
+            colunas = [desc.name for desc in cursor.description]
+            cargas_op_df = pd.DataFrame(dados, columns=colunas)
 
     if cargas_op_df.empty:
         st.info("Nenhuma carga em trânsito aguardando operacional.")
@@ -1113,7 +1125,11 @@ elif menu_selecionado == "Operacional":
         row_sel = dados_consulta[carga_id]
 
         with get_connection() as conn:
-            forn_df = pd.read_sql_query("SELECT razao_social, nome_fantasia FROM fornecedores ORDER BY razao_social", conn)
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT razao_social, nome_fantasia FROM fornecedores ORDER BY razao_social")
+                forn_dados = cursor.fetchall()
+                forn_cols = [desc.name for desc in cursor.description]
+                forn_df = pd.DataFrame(forn_dados, columns=forn_cols)
         
         lista_fornecedores = [f"{r['razao_social']} ({r['nome_fantasia']})" if r['nome_fantasia'] else r['razao_social'] for _, r in forn_df.iterrows()]
 
@@ -1189,7 +1205,11 @@ elif menu_selecionado == "Administração":
         WHERE c.status = 'ENTREGUE'
     """
     with get_connection() as conn:
-        cargas_adm_df = pd.read_sql_query(query_adm, conn)
+        with conn.cursor() as cursor:
+            cursor.execute(query_adm)
+            dados = cursor.fetchall()
+            colunas = [desc.name for desc in cursor.description]
+            cargas_adm_df = pd.DataFrame(dados, columns=colunas)
 
     if cargas_adm_df.empty:
         st.info("Nenhuma carga entregue aguardando acerto administrativo.")
@@ -1262,7 +1282,11 @@ elif menu_selecionado == "Fornecedores":
         FROM fornecedores ORDER BY id DESC
     """
     with get_connection() as conn:
-        df_fornecedores = pd.read_sql_query(query_forn, conn)
+        with conn.cursor() as cursor:
+            cursor.execute(query_forn)
+            dados = cursor.fetchall()
+            colunas = [desc.name for desc in cursor.description]
+            df_fornecedores = pd.DataFrame(dados, columns=colunas)
 
     st.metric("Total de Fornecedores Cadastrados", len(df_fornecedores))
     st.dataframe(df_fornecedores, use_container_width=True, hide_index=True)
@@ -1272,7 +1296,11 @@ elif menu_selecionado == "Excluir Cargas":
     st.title("🗑️ Excluir Cargas")
     
     with get_connection() as conn:
-        cargas_df = pd.read_sql_query("SELECT id, numero_carga, COALESCE(numero_tp, '-') AS tp, COALESCE(nome_motorista, '-') AS mot, status FROM cargas", conn)
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, numero_carga, COALESCE(numero_tp, '-') AS tp, COALESCE(nome_motorista, '-') AS mot, status FROM cargas")
+            dados = cursor.fetchall()
+            colunas = [desc.name for desc in cursor.description]
+            cargas_df = pd.DataFrame(dados, columns=colunas)
     
     if cargas_df.empty:
         st.info("Nenhuma carga cadastrada.")
@@ -1297,7 +1325,12 @@ elif menu_selecionado == "Usuários":
     st.title("👥 Gestão de Usuários")
     
     with get_connection() as conn:
-        users_df = pd.read_sql_query("SELECT id, usuario, nome, perfil FROM usuarios", conn)
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT id, usuario, nome, perfil FROM usuarios")
+            dados = cursor.fetchall()
+            colunas = [desc.name for desc in cursor.description]
+            users_df = pd.DataFrame(dados, columns=colunas)
+            
     st.dataframe(users_df, use_container_width=True)
 
     st.subheader("➕ Adicionar Novo Usuário")
@@ -1326,7 +1359,7 @@ elif menu_selecionado == "Usuários":
                             conn.commit()
                     st.success(f"Usuário {novo_usr} cadastrado com sucesso!")
                     st.rerun()
-                except psycopg2.IntegrityError:
+                except psycopg.errors.UniqueViolation:
                     st.error("Nome de usuário já cadastrado.")
                 except Exception as e:
                     st.error(f"Erro ao salvar usuário: {e}")
