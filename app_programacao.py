@@ -1270,12 +1270,98 @@ elif menu_selecionado == "Administração":
 elif menu_selecionado == "Fornecedores":
     st.title("🚚 Gestão de Fornecedores")
 
-    col_btn, _ = st.columns([1, 3])
-    with col_btn:
+    # --- BOTOES E IMPORTACAO ---
+    col_btn1, col_btn2, _ = st.columns([1.5, 1.5, 2])
+    with col_btn1:
         if st.button("➕ Cadastrar Novo Fornecedor", type="primary", use_container_width=True):
             modal_cadastrar_fornecedor()
 
+    # --- SESSÃO DE IMPORTAÇÃO EM LOTE ---
+    with st.expander("📥 Importar Fornecedores em Lote (Excel / CSV)", expanded=False):
+        st.write("Faça o upload de uma planilha contendo os fornecedores para cadastrá-los de uma só vez.")
+        
+        # Modelo para download pré-formatado com os campos da sua tabela
+        df_modelo = pd.DataFrame({
+            "nr_contrato": ["12345"],
+            "razao_social": ["Empresa Exemplo LTDA"],
+            "nome_fantasia": ["Exemplo Fornecedor"],
+            "local_atendimento": ["São Paulo"],
+            "uf": ["SP"],
+            "cpf_cnpj": ["00.000.000/0001-00"],
+            "contato": ["(11) 99999-9999 - João"]
+        })
+        
+        buffer_modelo = io.BytesIO()
+        with pd.ExcelWriter(buffer_modelo, engine='openpyxl') as writer:
+            df_modelo.to_excel(writer, index=False, sheet_name='Fornecedores')
+        
+        st.download_button(
+            label="📄 Baixar Planilha Modelo (.xlsx)",
+            data=buffer_modelo.getvalue(),
+            file_name="Modelo_Importacao_Fornecedores.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        arquivo_carregado = st.file_uploader("Selecione o arquivo Excel (.xlsx) ou CSV", type=["xlsx", "csv"])
+
+        if arquivo_carregado is not None:
+            try:
+                if arquivo_carregado.name.endswith('.csv'):
+                    df_import = pd.read_csv(arquivo_carregado, dtype=str)
+                else:
+                    df_import = pd.read_excel(arquivo_carregado, dtype=str)
+
+                # Trata campos vazios
+                df_import = df_import.fillna("")
+
+                st.write("Pré-visualização dos dados:")
+                st.dataframe(df_import.head(10), use_container_width=True)
+
+                if st.button("🚀 Confirmar Importação dos Fornecedores"):
+                    sucessos = 0
+                    erros = 0
+
+                    query_insert = """
+                        INSERT INTO fornecedores (
+                            nr_contrato, razao_social, nome_fantasia, 
+                            local_atendimento, uf, cpf_cnpj, contato
+                        )
+                        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                    """
+
+                    with get_connection() as conn:
+                        with conn.cursor() as cursor:
+                            for _, row in df_import.iterrows():
+                                try:
+                                    nr_contrato = str(row.get("nr_contrato", "")).strip()
+                                    razao_social = str(row.get("razao_social", "")).strip()
+                                    nome_fantasia = str(row.get("nome_fantasia", "")).strip()
+                                    local_atendimento = str(row.get("local_atendimento", "")).strip()
+                                    uf = str(row.get("uf", "")).strip()
+                                    cpf_cnpj = str(row.get("cpf_cnpj", "")).strip()
+                                    contato = str(row.get("contato", "")).strip()
+
+                                    # Insere caso tenha pelo menos a Razão Social ou Nome Fantasia
+                                    if razao_social or nome_fantasia:
+                                        cursor.execute(query_insert, (
+                                            nr_contrato, razao_social, nome_fantasia, 
+                                            local_atendimento, uf, cpf_cnpj, contato
+                                        ))
+                                        sucessos += 1
+                                except Exception as e:
+                                    erros += 1
+
+                    st.success(f"✅ Importação concluída! {sucessos} fornecedores cadastrados com sucesso.")
+                    if erros > 0:
+                        st.warning(f"⚠️ {erros} linhas falharam na importação.")
+                    st.rerun()
+
+            except Exception as e:
+                st.error(f"Erro ao ler o arquivo: {e}")
+
     st.markdown("---")
+
+    # --- LISTAGEM DOS FORNECEDORES ---
     query_forn = """
         SELECT nr_contrato AS "Nr. Contrato", razao_social AS "Razão Social", nome_fantasia AS "Nome Fantasia",
                local_atendimento AS "Local de Atendimento", uf AS "UF", cpf_cnpj AS "CPF/CNPJ", contato AS "Contato"
