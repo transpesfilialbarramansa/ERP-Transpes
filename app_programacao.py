@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 import re
 import openpyxl
+import urllib.parse
 from streamlit_option_menu import option_menu
 
 # Importações para geração de PDF e Excel
@@ -48,10 +49,27 @@ st.set_page_config(
 # ==========================================
 
 def get_connection():
-    return psycopg2.connect(
-        st.secrets["DB_URL"],
-        options="-c prepare_threshold=0"
-    )
+    # Faz o parse da URL de conexão para extrair os componentes com segurança
+    db_url = st.secrets["DB_URL"]
+    
+    # Se a URL começar com postgresql:// ou postgres://
+    if db_url.startswith("postgresql://") or db_url.startswith("postgres://"):
+        url = urllib.parse.urlparse(db_url)
+        return psycopg2.connect(
+            dbname=url.path[1:],
+            user=url.username,
+            password=urllib.parse.unquote(url.password or ''),
+            host=url.hostname,
+            port=url.port or 5432,
+            sslmode="require",
+            options="-c prepare_threshold=0"
+        )
+    else:
+        # Se você já formatou como DSN clássico (chave=valor)
+        return psycopg2.connect(
+            dsn=db_url,
+            options="-c prepare_threshold=0"
+        )
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
