@@ -48,8 +48,10 @@ st.set_page_config(
 # ==========================================
 
 def get_connection():
-    return psycopg2.connect(st.secrets["DB_URL"])
-
+    return psycopg2.connect(
+        st.secrets["DB_URL"],
+        options="-c prepare_threshold=0"
+    )
 def hash_senha(senha):
     return hashlib.sha256(senha.encode()).hexdigest()
 
