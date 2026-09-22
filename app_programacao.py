@@ -3,7 +3,7 @@ import base64
 import datetime
 import hashlib
 import json
-import psycopg2
+import psycopg
 import pandas as pd
 import streamlit as st
 import re
