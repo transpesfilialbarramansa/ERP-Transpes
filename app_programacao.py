@@ -127,7 +127,10 @@ def init_db():
                 ("valor_rpa", "REAL DEFAULT 0.00"),
                 ("data_coleta", "TEXT"),
                 ("previsao_descarga", "TEXT"),
-                ("observacoes_programacao", "TEXT")
+                ("observacoes_programacao", "TEXT"),
+                ("tipo_pedagio", "TEXT"),     # 👈 ADICIONADO
+                ("plataforma", "TEXT"),       # 👈 ADICIONADO
+                ("vinculo", "TEXT")           # 👈 ADICIONADO
             ]
 
             for col_nome, col_tipo in novas_colunas_cargas:
