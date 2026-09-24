@@ -1137,11 +1137,24 @@ elif menu_selecionado == "Expedição":
         row_sel = cargas_exp_df[cargas_exp_df['id'] == carga_id].iloc[0]
         v_rpa = row_sel['valor_rpa'] or 0.0
 
-        e_c1, e_c2, e_c3, e_c4 = st.columns(4)
-        qtd_ctes = e_c1.number_input("Qtd. CT-es*", 1, 10, 1, key=f"exp_q_cte_{v_exp}")
-        qtd_viagens = e_c2.number_input("Qtd. Viagens", 1, 10, 1, key=f"exp_q_v_{v_exp}")
-        qtd_mdfes = e_c3.number_input("Qtd. MDF-es*", 1, 10, 1, key=f"exp_q_mdfe_{v_exp}")
-        qtd_nfs_exp = e_c4.number_input("Qtd. NFs livres", 0, 10, 0, key=f"exp_q_nf_{v_exp}")
+        # Processa e limpa as NFs lançadas pelo Comercial
+        nfs_comercial_brutas = row_sel['notas_fiscais_comercial']
+        nfs_comercial_lista = processar_json_lista(nfs_comercial_brutas)
+        tem_nfs_comercial = len(nfs_comercial_lista) > 0 and any(str(x).strip() for x in nfs_comercial_lista)
+
+        # Se o comercial preencheu, o campo de Qtd. NFs livres não é necessário na barra superior
+        if tem_nfs_comercial:
+            e_c1, e_c2, e_c3 = st.columns(3)
+            qtd_ctes = e_c1.number_input("Qtd. CT-es*", 1, 10, 1, key=f"exp_q_cte_{v_exp}")
+            qtd_viagens = e_c2.number_input("Qtd. Viagens", 1, 10, 1, key=f"exp_q_v_{v_exp}")
+            qtd_mdfes = e_c3.number_input("Qtd. MDF-es*", 1, 10, 1, key=f"exp_q_mdfe_{v_exp}")
+            qtd_nfs_exp = 0
+        else:
+            e_c1, e_c2, e_c3, e_c4 = st.columns(4)
+            qtd_ctes = e_c1.number_input("Qtd. CT-es*", 1, 10, 1, key=f"exp_q_cte_{v_exp}")
+            qtd_viagens = e_c2.number_input("Qtd. Viagens", 1, 10, 1, key=f"exp_q_v_{v_exp}")
+            qtd_mdfes = e_c3.number_input("Qtd. MDF-es*", 1, 10, 1, key=f"exp_q_mdfe_{v_exp}")
+            qtd_nfs_exp = e_c4.number_input("Qtd. NFs livres*", 1, 10, 1, key=f"exp_q_nf_{v_exp}")
 
         with st.form(f"form_expedicao_{v_exp}"):
             st.text_input("Adiantamento (70% RPA)", value=f"R$ {v_rpa * 0.70:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
@@ -1170,12 +1183,21 @@ elif menu_selecionado == "Expedição":
 
             valor_pedagio_pago = st.number_input("Pedágio Pago Motorista (R$)", min_value=0.0, value=0.0, step=50.0)
 
+            # LÓGICA DE EXIBIÇÃO / EDIÇÃO DAS NOTAS FISCAIS:
             lista_nfs_exp = []
-            if qtd_nfs_exp > 0:
-                cols_nf = st.columns(min(int(qtd_nfs_exp), 4))
-                for n in range(int(qtd_nfs_exp)):
-                    v_nf = cols_nf[n % 4].text_input(f"NF {n+1}", key=f"exp_nf_{n}_{v_exp}").upper()
-                    if v_nf.strip(): lista_nfs_exp.append(v_nf.strip())
+            if tem_nfs_comercial:
+                # Exibe em modo somente leitura (desativado) as NFs vindas do comercial
+                nfs_texto_consulta = " / ".join(nfs_comercial_lista)
+                st.text_input("Notas Fiscais (Registradas pelo Comercial)", value=nfs_texto_consulta, disabled=True)
+                lista_nfs_exp = nfs_comercial_lista
+            else:
+                # Libera o preenchimento para a Expedição
+                if qtd_nfs_exp > 0:
+                    st.subheader("Notas Fiscais (Expedição)")
+                    cols_nf = st.columns(min(int(qtd_nfs_exp), 4))
+                    for n in range(int(qtd_nfs_exp)):
+                        v_nf = cols_nf[n % 4].text_input(f"NF {n+1}*", key=f"exp_nf_{n}_{v_exp}").upper()
+                        if v_nf.strip(): lista_nfs_exp.append(v_nf.strip())
 
             obs_exp = st.text_area("Observação").upper()
 
@@ -1184,6 +1206,8 @@ elif menu_selecionado == "Expedição":
         if salvar_exp:
             if len(lista_ctes) < int(qtd_ctes) or len(lista_mdfes) < int(qtd_mdfes) or not numero_contrato:
                 st.error("Preencha todos os campos obrigatórios (*).")
+            elif not tem_nfs_comercial and len(lista_nfs_exp) < int(qtd_nfs_exp):
+                st.error("Preencha todas as Notas Fiscais solicitadas.")
             else:
                 try:
                     with get_connection() as conn:
