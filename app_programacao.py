@@ -36,45 +36,6 @@ def formatar_telefone(valor: str) -> str:
     return str(valor).strip()
 
 # ==========================================
-# NOTIFICAÇÕES DESKTOP (NATIVE WEB NOTIFICATIONS)
-# ==========================================
-def disparar_notificacao_desktop(titulo, mensagem):
-    """
-    Injeta um componente JavaScript que solicita permissão (caso ainda não tenha)
-    e exibe a notificação de área de trabalho do sistema operacional.
-    """
-    js_code = f"""
-    <script>
-    (function() {{
-        function notificar() {{
-            if (!("Notification" in window)) {{
-                console.log("Este navegador não suporta notificações de área de trabalho.");
-                return;
-            }}
-            
-            if (Notification.permission === "granted") {{
-                new Notification("{titulo}", {{
-                    body: "{mensagem}",
-                    icon: "https://cdn-icons-png.flaticon.com/512/1828/1828640.png"
-                }});
-            }} else if (Notification.permission !== "denied") {{
-                Notification.requestPermission().then(function (permission) {{
-                    if (permission === "granted") {{
-                        new Notification("{titulo}", {{
-                            body: "{mensagem}",
-                            icon: "https://cdn-icons-png.flaticon.com/512/1828/1828640.png"
-                        }});
-                    }}
-                }});
-            }}
-        }}
-        notificar();
-    }})();
-    </script>
-    """
-    components.html(js_code, height=0, width=0)
-
-# ==========================================
 # DEF_SVGS - DEFINIÇÃO DOS ÍCONES SVG PADRONIZADOS
 # ==========================================
 SVG_ICONS = {
@@ -716,14 +677,14 @@ elif perfil == "OPERACIONAL":
 elif perfil == "ADMINISTRATIVO":
     opcoes_perfil.extend(["Administração", "Fornecedores"])
 
-logo_base64_sidebar = get_base64_image("logo_transpes.png")
+logo_base64_sidebar = get_base64_image("transpes_nova_logo_azul.jpg")
 
 with st.sidebar:
     # Cabeçalho da Sidebar (Logo + Subtítulo Perfeitamente Agrupados)
     if logo_base64_sidebar:
         st.markdown(f"""
             <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                <img src="data:image/png;base64,{logo_base64_sidebar}" style="max-width: 130px; height: auto; display: block; margin: 0 auto 6px auto;">
+                <img src="data:image/jpeg;base64,{logo_base64_sidebar}" style="max-width: 140px; height: auto; display: block; margin: 0 auto 6px auto; mix-blend-mode: multiply;">
                 <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
         """, unsafe_allow_html=True)
@@ -1061,12 +1022,6 @@ elif menu_selecionado == "Comercial":
                        ))
                         conn.commit()
 
-                # Notificação na Área de Trabalho
-                disparar_notificacao_desktop(
-                    "Nova Carga Registrada!", 
-                    f"A carga {num_carga_novo} (SET {numero_set}) foi cadastrada pelo Comercial e está disponível para a Programação."
-                )
-
                 st.session_state["exibir_modal_comercial"] = True
                 st.session_state["carga_comercial_num"] = num_carga_novo
                 st.rerun()
@@ -1148,12 +1103,6 @@ elif menu_selecionado == "Programação":
                                 tipo_pedagio, plataforma, vinculo, obs_prog, carga_id
                             ))
                             conn.commit()
-
-                    # Notificação na Área de Trabalho
-                    disparar_notificacao_desktop(
-                        "Carga Programada!", 
-                        f"A carga TP {numero_tp} foi programada e está pronta para a Expedição."
-                    )
 
                     st.session_state["exibir_modal_programacao"] = True
                     st.session_state["tp_programado_num"] = numero_tp
@@ -1252,12 +1201,6 @@ elif menu_selecionado == "Expedição":
                             cursor.execute("UPDATE cargas SET status = 'EM TRÂNSITO' WHERE id = %s", (carga_id,))
                             conn.commit()
 
-                    # Notificação na Área de Trabalho
-                    disparar_notificacao_desktop(
-                        "Carga Expedida!", 
-                        f"A carga TP {row_sel['numero_tp']} saiu da filial e está em trânsito para o Operacional."
-                    )
-
                     st.session_state["exibir_modal_expedicao"] = True
                     st.session_state["exp_tp_num"] = row_sel['numero_tp']
                     st.rerun()
@@ -1336,12 +1279,6 @@ elif menu_selecionado == "Operacional":
                             ))
                             cursor.execute("UPDATE cargas SET status = 'ENTREGUE' WHERE id = %s", (carga_id,))
                             conn.commit()
-
-                    # Notificação na Área de Trabalho
-                    disparar_notificacao_desktop(
-                        "Descarga Agendada!", 
-                        f"A carga TP {row_sel['numero_tp']} foi entregue/agendada e aguarda acerto na Administração."
-                    )
 
                     st.session_state["exibir_modal_operacional"] = True
                     st.session_state["op_tp_num"] = row_sel['numero_tp']
