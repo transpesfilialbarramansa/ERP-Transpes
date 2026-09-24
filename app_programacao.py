@@ -680,11 +680,11 @@ elif perfil == "ADMINISTRATIVO":
 logo_base64_sidebar = get_base64_image("transpes_nova_logo_azul.jpg")
 
 with st.sidebar:
-    # Cabeçalho da Sidebar (Fundo do logótipo totalmente invisível)
+    # Cabeçalho da Sidebar (Logo com fundo integrado e fonte branca)
     if logo_base64_sidebar:
         st.markdown(f"""
-            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                <img src="data:image/jpeg;base64,{logo_base64_sidebar}" style="max-width: 150px; height: auto; display: block; margin: 0 auto 6px auto; filter: brightness(0) invert(1); mix-blend-mode: screen;">
+            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0B2136; border-radius: 6px;">
+                <img src="data:image/jpeg;base64,{logo_base64_sidebar}" style="max-width: 150px; height: auto; display: block; margin: 0 auto 6px auto; filter: brightness(1.05) contrast(1.05);">
                 <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
         """, unsafe_allow_html=True)
