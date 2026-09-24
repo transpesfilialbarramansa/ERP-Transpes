@@ -1256,7 +1256,7 @@ elif menu_selecionado == "Fornecedores":
             except Exception as e:
                 st.error(f"Erro na importação: {e}")
 
-    query_forn = "SELECT nr_contrato AS 'Nr. Contrato', razao_social AS 'Razão Social', nome_fantasia AS 'Nome Fantasia', local_atendimento AS 'Local', uf AS 'UF', cpf_cnpj AS 'CPF/CNPJ', contato AS 'Contato' FROM fornecedores ORDER BY id DESC"
+    query_forn = 'SELECT nr_contrato AS "Nr. Contrato", razao_social AS "Razão Social", nome_fantasia AS "Nome Fantasia", local_atendimento AS "Local", uf AS "UF", cpf_cnpj AS "CPF/CNPJ", contato AS "Contato" FROM fornecedores ORDER BY id DESC'
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query_forn)
