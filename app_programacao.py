@@ -1311,34 +1311,95 @@ elif menu_selecionado == "Excluir Cargas":
 elif menu_selecionado == "Usuários":
     st.title("👥 Gestão de Usuários")
     
+    # 1. Consulta e exibe os usuários cadastrados
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT id, usuario, nome, perfil FROM usuarios")
+            cursor.execute("SELECT id, usuario, nome, perfil FROM usuarios ORDER BY id ASC")
             users_df = pd.DataFrame(cursor.fetchall(), columns=[desc.name for desc in cursor.description])
             
     st.dataframe(users_df, use_container_width=True, hide_index=True)
 
-    st.subheader("➕ Novo Usuário")
-    with st.form("form_novo_usuario"):
-        u1, u2, u3, u4 = st.columns(4)
-        novo_usr = u1.text_input("Usuário*").strip().lower()
-        novo_nome = u2.text_input("Nome*").strip().upper()
-        nova_senha = u3.text_input("Senha*", type="password")
-        novo_perfil = u4.selectbox("Perfil*", ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
+    st.markdown("---")
+    
+    # Criando abas para separar a criação e a edição de usuários
+    aba_novo, aba_editar = st.tabs(["➕ Novo Usuário", "✏️ Editar Usuário"])
 
-        salvar_usr = st.form_submit_button("💾 Salvar Usuário", type="primary", use_container_width=True)
+    # --- ABA 1: CADASTRAR NOVO USUÁRIO ---
+    with aba_novo:
+        st.subheader("Cadastrar Novo Usuário")
+        with st.form("form_novo_usuario"):
+            u1, u2, u3, u4 = st.columns(4)
+            novo_usr = u1.text_input("Usuário*").strip().lower()
+            novo_nome = u2.text_input("Nome*").strip().upper()
+            nova_senha = u3.text_input("Senha*", type="password")
+            novo_perfil = u4.selectbox("Perfil*", ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
 
-        if salvar_usr:
-            if not (novo_usr and novo_nome and nova_senha and novo_perfil):
-                st.error("Preencha todos os campos.")
-            else:
-                try:
-                    with get_connection() as conn:
-                        with conn.cursor() as cursor:
-                            cursor.execute("INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
-                                           (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil))
-                            conn.commit()
-                    st.success("Usuário criado com sucesso!")
-                    st.rerun()
-                except Exception as e:
-                    st.error(f"Erro ao salvar: {e}")
+            salvar_usr = st.form_submit_button("💾 Salvar Usuário", type="primary", use_container_width=True)
+
+            if salvar_usr:
+                if not (novo_usr and novo_nome and nova_senha and novo_perfil):
+                    st.error("Preencha todos os campos obrigatórios.")
+                else:
+                    try:
+                        with get_connection() as conn:
+                            with conn.cursor() as cursor:
+                                cursor.execute(
+                                    "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
+                                    (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil)
+                                )
+                                conn.commit()
+                        st.success("Usuário criado com sucesso!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao salvar usuário: {e}")
+
+    # --- ABA 2: EDITAR USUÁRIO EXISTENTE ---
+    with aba_editar:
+        st.subheader("Editar Usuário")
+        if users_df.empty:
+            st.info("Nenum usuário disponível para edição.")
+        else:
+            # Mapeia os usuários para o selectbox
+            opcoes_usuarios = {f"{r['usuario']} ({r['nome']} - {r['perfil']})": r['id'] for _, r in users_df.iterrows()}
+            usuario_selecionado_label = st.selectbox("Selecione o Usuário para Editar", list(opcoes_usuarios.keys()))
+            usr_id_editar = opcoes_usuarios[usuario_selecionado_label]
+
+            # Busca os dados atuais do usuário selecionado
+            usr_dados = users_df[users_df['id'] == usr_id_editar].iloc[0]
+
+            with st.form("form_editar_usuario"):
+                e1, e2 = st.columns(2)
+                edit_nome = e1.text_input("Nome*", value=usr_dados['nome']).strip().upper()
+                
+                perfis_disponiveis = ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"]
+                idx_perfil = perfis_disponiveis.index(usr_dados['perfil']) if usr_dados['perfil'] in perfis_disponiveis else 0
+                edit_perfil = e2.selectbox("Perfil*", perfis_disponiveis, index=idx_perfil)
+
+                edit_senha = st.text_input("Nova Senha (deixe em branco para manter a atual)", type="password")
+
+                salvar_edicao = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+
+                if salvar_edicao:
+                    if not edit_nome:
+                        st.error("O campo Nome não pode ficar em branco.")
+                    else:
+                        try:
+                            with get_connection() as conn:
+                                with conn.cursor() as cursor:
+                                    if edit_senha.strip():
+                                        # Atualiza Nome, Perfil e Senha
+                                        cursor.execute(
+                                            "UPDATE usuarios SET nome = %s, perfil = %s, senha = %s WHERE id = %s",
+                                            (edit_nome, edit_perfil, hash_senha(edit_senha.strip()), usr_id_editar)
+                                        )
+                                    else:
+                                        # Atualiza apenas Nome e Perfil
+                                        cursor.execute(
+                                            "UPDATE usuarios SET nome = %s, perfil = %s WHERE id = %s",
+                                            (edit_nome, edit_perfil, usr_id_editar)
+                                        )
+                                    conn.commit()
+                            st.success("Dados do usuário atualizados com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao atualizar usuário: {e}")
