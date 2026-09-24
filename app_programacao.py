@@ -62,44 +62,52 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* Estilização e largura da Sidebar */
+    /* --- ESTILIZAÇÃO DA SIDEBAR --- */
     [data-testid="stSidebar"] {
         background-color: #0B2136 !important;
-        min-width: 220px !important;
-        max-width: 220px !important;
+        min-width: 230px !important;
+        max-width: 230px !important;
     }
 
     [data-testid="stSidebar"] * {
         color: #E2E8F0 !important;
     }
 
-    /* Botões do Menu Lateral Compactos */
+    /* Reduz o padding padrão do Streamlit no topo da Sidebar */
+    [data-testid="stSidebarUserContent"] {
+        padding-top: 1.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+
+    /* Botões do Menu Lateral Modernos */
     [data-testid="stSidebar"] .stButton > button {
         background-color: transparent !important;
-        color: #CBD5E1 !important;
+        color: #94A3B8 !important;
         border: none !important;
         text-align: left !important;
         justify-content: flex-start !important;
         font-weight: 500 !important;
-        font-size: 0.82rem !important;
-        border-radius: 4px !important;
-        padding: 5px 10px !important;
-        margin-bottom: -4px !important;
+        font-size: 0.85rem !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+        margin-bottom: 4px !important;
         width: 100% !important;
+        transition: all 0.2s ease-in-out !important;
     }
 
-    /* Botão Selecionado */
-    [data-testid="stSidebar"] .stButton > button[kind="primary"],
-    [data-testid="stSidebar"] .stButton > button:focus {
+    /* Hover nos Botões */
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Botão Selecionado (Ativo) */
+    [data-testid="stSidebar"] .stButton > button[kind="primary"] {
         background-color: #D99B26 !important;
         color: #0B2136 !important;
-        font-weight: bold !important;
-    }
-
-    /* Hover Sidebar */
-    [data-testid="stSidebar"] .stButton > button:hover {
-        background-color: #1A365D !important;
-        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
     }
 
     /* Títulos compactos */
@@ -654,24 +662,23 @@ elif perfil == "ADMINISTRATIVO":
 logo_base64_sidebar = get_base64_image("logo_transpes.png")
 
 with st.sidebar:
-    # 1. Logo + Cabeçalho na Sidebar
+    # Cabeçalho da Sidebar (Logo + Subtítulo Perfeitamente Agrupados)
     if logo_base64_sidebar:
         st.markdown(f"""
-            <div style="text-align: center; padding: 5px 0px 10px 0px;">
-                <img src="data:image/png;base64,{logo_base64_sidebar}" style="max-width: 120px; height: auto; margin-bottom: 5px;">
-                <h3 style="color: #FFFFFF; margin: 0; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
-                <p style="color: #94A3B8; font-size: 0.65rem; margin: 0;">SISTEMA DE GESTÃO</p>
+            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <img src="data:image/png;base64,{logo_base64_sidebar}" style="max-width: 130px; height: auto; display: block; margin: 0 auto 6px auto;">
+                <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
-            <div style="text-align: center; padding: 5px 0px 10px 0px;">
-                <h3 style="color: #FFFFFF; margin: 0; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
-                <p style="color: #94A3B8; font-size: 0.65rem; margin: 0;">SISTEMA DE GESTÃO</p>
+            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <h3 style="color: #FFFFFF !important; margin: 0 0 2px 0 !important; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
+                <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
         """, unsafe_allow_html=True)
 
-    # 2. Navegação
+    # Menus Selecionáveis
     menus_icones = {
         "Visão Geral": "📊 Visão Geral",
         "Comercial": "💲 Comercial",
@@ -685,14 +692,23 @@ with st.sidebar:
     }
 
     for item in opcoes_perfil:
-        if st.button(menus_icones.get(item, item), type="primary" if menu_selecionado == item else "secondary", use_container_width=True):
+        if st.button(
+            menus_icones.get(item, item), 
+            type="primary" if menu_selecionado == item else "secondary", 
+            use_container_width=True
+        ):
             st.session_state["menu"] = item
             st.rerun()
 
-    # 3. Rodapé do Usuário Logado
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("---")
-    st.markdown(f"<small style='color: #CBD5E1;'>👤 <b>{st.session_state.get('usuario_nome', 'Admin')}</b> ({st.session_state.get('usuario_perfil', 'ADMIN')})</small>", unsafe_allow_html=True)
+    # Rodapé do Usuário
+    st.markdown("""
+        <div style="margin-top: 25px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown(
+        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>👤 <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
+        unsafe_allow_html=True
+    )
 
     if st.button("🚪 Sair", use_container_width=True):
         st.session_state.clear()
