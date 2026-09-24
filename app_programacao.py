@@ -10,12 +10,38 @@ import streamlit.components.v1 as components
 import re
 import openpyxl
 import urllib.parse
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 # Importações para geração de PDF e Excel
 from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+
+# ==========================================
+# CONFIGURAÇÃO DE E-MAIL E NOTIFICAÇÕES
+# ==========================================
+EMAIL_DESTINATARIO_GRUPO = "filial.barramansa@transpes.com.br"
+
+def enviar_email_notificacao(assunto, corpo):
+    """Envia e-mail automático de notificação do ERP"""
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"ERP TRANSPES - Barra Mansa <{st.secrets['EMAIL_REMETENTE']}>"
+        msg['To'] = EMAIL_DESTINATARIO_GRUPO
+        msg['Subject'] = assunto
+
+        msg.attach(MIMEText(corpo, 'plain', 'utf-8'))
+
+        server = smtplib.SMTP(st.secrets['SMTP_SERVER'], int(st.secrets['SMTP_PORT']))
+        server.starttls()
+        server.login(st.secrets['EMAIL_REMETENTE'], st.secrets['SENHA_REMETENTE'])
+        server.send_message(msg)
+        server.close()
+    except Exception as e:
+        st.error(f"Erro ao enviar e-mail automático: {e}")
 
 def formatar_cpf(valor: str) -> str:
     if not valor:
@@ -206,6 +232,7 @@ st.markdown("""
 # ==========================================
 
 def get_connection():
+    """Abre conexão com o banco PostgreSQL utilizando a URL dos secrets"""
     db_url = st.secrets["DB_URL"]
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -1022,6 +1049,12 @@ elif menu_selecionado == "Comercial":
                        ))
                         conn.commit()
 
+                origens_txt = formatar_origens_destinos(json.dumps(lista_origens))
+                destinos_txt = formatar_origens_destinos(json.dumps(lista_destinos))
+                assunto = f"COMERCIAL [{origens_txt} x {destinos_txt}]"
+                corpo = f"SET {numero_set} adicionado ao portal com Origem {origens_txt} e Destino {destinos_txt}"
+                enviar_email_notificacao(assunto, corpo)
+
                 st.session_state["exibir_modal_comercial"] = True
                 st.session_state["carga_comercial_num"] = num_carga_novo
                 st.rerun()
@@ -1051,6 +1084,7 @@ elif menu_selecionado == "Programação":
     else:
         opcoes_cargas = {f"SET: {r['numero_set']} - ORIGEM: {formatar_origens_destinos(r['origens_json'], True)} - DESTINO: {formatar_origens_destinos(r['destinos_json'], True)}": r['id'] for _, r in cargas_prog_df.iterrows()}
         carga_id = opcoes_cargas[st.selectbox("Selecione a Carga*", list(opcoes_cargas.keys()), key=f"prog_sel_{v_prog}")]
+        row_sel = cargas_prog_df[cargas_prog_df['id'] == carga_id].iloc[0]
 
         with st.form(f"form_programacao_{v_prog}"):
             c1, c2, c3, c4 = st.columns(4)
@@ -1103,6 +1137,11 @@ elif menu_selecionado == "Programação":
                                 tipo_pedagio, plataforma, vinculo, obs_prog, carga_id
                             ))
                             conn.commit()
+
+                    numero_set = row_sel['numero_set']
+                    assunto = f"PROGRAMAÇÃO {numero_tp}"
+                    corpo = f"SET {numero_set} programado no portal com o TP {numero_tp} para o Motorista {nome_motorista} e Veículo {placa_cavalo}/{placa_carreta}."
+                    enviar_email_notificacao(assunto, corpo)
 
                     st.session_state["exibir_modal_programacao"] = True
                     st.session_state["tp_programado_num"] = numero_tp
@@ -1225,6 +1264,13 @@ elif menu_selecionado == "Expedição":
                             cursor.execute("UPDATE cargas SET status = 'EM TRÂNSITO' WHERE id = %s", (carga_id,))
                             conn.commit()
 
+                    numero_tp = row_sel['numero_tp']
+                    origens_txt = formatar_origens_destinos(row_sel['origens_json'])
+                    destinos_txt = formatar_origens_destinos(row_sel['destinos_json'])
+                    assunto = f"EXPEDIÇÃO {numero_tp}"
+                    corpo = f"Carga {numero_tp} com Origem {origens_txt} e Destino {destinos_txt} está em trânsito."
+                    enviar_email_notificacao(assunto, corpo)
+
                     st.session_state["exibir_modal_expedicao"] = True
                     st.session_state["exp_tp_num"] = row_sel['numero_tp']
                     st.rerun()
@@ -1243,7 +1289,7 @@ elif menu_selecionado == "Operacional":
         exibir_popup_operacional(st.session_state.get("op_tp_num", ""))
 
     query_op = """
-        SELECT c.id, c.numero_tp, c.nome_motorista, c.origens_json, c.destinos_json, c.previsao_descarga, e.data_saida_filial
+        SELECT c.id, c.numero_tp, c.nome_motorista, c.placa_cavalo, c.placa_carreta, c.origens_json, c.destinos_json, c.previsao_descarga, e.data_saida_filial
         FROM cargas c
         INNER JOIN carga_expedicao e ON c.id = e.carga_id
         WHERE c.status = 'EM TRÂNSITO'
@@ -1303,6 +1349,14 @@ elif menu_selecionado == "Operacional":
                             ))
                             cursor.execute("UPDATE cargas SET status = 'ENTREGUE' WHERE id = %s", (carga_id,))
                             conn.commit()
+
+                    numero_tp = row_sel['numero_tp']
+                    nome_motorista = row_sel['nome_motorista']
+                    placa_cavalo = row_sel['placa_cavalo']
+                    placa_carreta = row_sel['placa_carreta']
+                    assunto = f"AGENDAMENTO DESCARGA {numero_tp} - {nome_motorista} - {placa_cavalo}/{placa_carreta}"
+                    corpo = f"Carga agendada para descarga em {data_agendamento.strftime('%d/%m/%Y')}."
+                    enviar_email_notificacao(assunto, corpo)
 
                     st.session_state["exibir_modal_operacional"] = True
                     st.session_state["op_tp_num"] = row_sel['numero_tp']
