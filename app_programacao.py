@@ -36,6 +36,45 @@ def formatar_telefone(valor: str) -> str:
     return str(valor).strip()
 
 # ==========================================
+# NOTIFICAÇÕES DESKTOP (NATIVE WEB NOTIFICATIONS)
+# ==========================================
+def disparar_notificacao_desktop(titulo, mensagem):
+    """
+    Injeta um componente JavaScript que solicita permissão (caso ainda não tenha)
+    e exibe a notificação de área de trabalho do sistema operacional.
+    """
+    js_code = f"""
+    <script>
+    (function() {{
+        function notificar() {{
+            if (!("Notification" in window)) {{
+                console.log("Este navegador não suporta notificações de área de trabalho.");
+                return;
+            }}
+            
+            if (Notification.permission === "granted") {{
+                new Notification("{titulo}", {{
+                    body: "{mensagem}",
+                    icon: "https://cdn-icons-png.flaticon.com/512/1828/1828640.png"
+                }});
+            }} else if (Notification.permission !== "denied") {{
+                Notification.requestPermission().then(function (permission) {{
+                    if (permission === "granted") {{
+                        new Notification("{titulo}", {{
+                            body: "{mensagem}",
+                            icon: "https://cdn-icons-png.flaticon.com/512/1828/1828640.png"
+                        }});
+                    }}
+                }});
+            }}
+        }}
+        notificar();
+    }})();
+    </script>
+    """
+    components.html(js_code, height=0, width=0)
+
+# ==========================================
 # DEF_SVGS - DEFINIÇÃO DOS ÍCONES SVG PADRONIZADOS
 # ==========================================
 SVG_ICONS = {
@@ -1022,6 +1061,12 @@ elif menu_selecionado == "Comercial":
                        ))
                         conn.commit()
 
+                # Notificação na Área de Trabalho
+                disparar_notificacao_desktop(
+                    "Nova Carga Registrada!", 
+                    f"A carga {num_carga_novo} (SET {numero_set}) foi cadastrada pelo Comercial e está disponível para a Programação."
+                )
+
                 st.session_state["exibir_modal_comercial"] = True
                 st.session_state["carga_comercial_num"] = num_carga_novo
                 st.rerun()
@@ -1103,6 +1148,12 @@ elif menu_selecionado == "Programação":
                                 tipo_pedagio, plataforma, vinculo, obs_prog, carga_id
                             ))
                             conn.commit()
+
+                    # Notificação na Área de Trabalho
+                    disparar_notificacao_desktop(
+                        "Carga Programada!", 
+                        f"A carga TP {numero_tp} foi programada e está pronta para a Expedição."
+                    )
 
                     st.session_state["exibir_modal_programacao"] = True
                     st.session_state["tp_programado_num"] = numero_tp
@@ -1201,6 +1252,12 @@ elif menu_selecionado == "Expedição":
                             cursor.execute("UPDATE cargas SET status = 'EM TRÂNSITO' WHERE id = %s", (carga_id,))
                             conn.commit()
 
+                    # Notificação na Área de Trabalho
+                    disparar_notificacao_desktop(
+                        "Carga Expedida!", 
+                        f"A carga TP {row_sel['numero_tp']} saiu da filial e está em trânsito para o Operacional."
+                    )
+
                     st.session_state["exibir_modal_expedicao"] = True
                     st.session_state["exp_tp_num"] = row_sel['numero_tp']
                     st.rerun()
@@ -1279,6 +1336,12 @@ elif menu_selecionado == "Operacional":
                             ))
                             cursor.execute("UPDATE cargas SET status = 'ENTREGUE' WHERE id = %s", (carga_id,))
                             conn.commit()
+
+                    # Notificação na Área de Trabalho
+                    disparar_notificacao_desktop(
+                        "Descarga Agendada!", 
+                        f"A carga TP {row_sel['numero_tp']} foi entregue/agendada e aguarda acerto na Administração."
+                    )
 
                     st.session_state["exibir_modal_operacional"] = True
                     st.session_state["op_tp_num"] = row_sel['numero_tp']
