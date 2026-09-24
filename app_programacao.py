@@ -828,6 +828,99 @@ if menu_selecionado == "Visão Geral":
 
         st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
 
+        # ==========================================
+        # RECURSO DE EDIÇÃO RÁPIDA (EXCLUSIVO ADMIN)
+        # ==========================================
+        if perfil == "ADMIN":
+            st.markdown("---")
+            with st.expander("✏️ **Painel Admin: Editar Carga Registrada**", expanded=False):
+                opcoes_cargas = {
+                    f"TP: {r['Nº TP']} | SET: {r['Nº SET']} | Motorista: {r['Motorista']} | Status: {r['Status']}": r['id_carga']
+                    for _, r in df.iterrows()
+                }
+                
+                carga_sel_label = st.selectbox("Selecione a Carga para Editar", list(opcoes_cargas.keys()))
+                id_carga_edit = opcoes_cargas[carga_sel_label]
+                
+                # Dados atuais da carga selecionada
+                dados_carga = df[df['id_carga'] == id_carga_edit].iloc[0]
+
+                with st.form(f"form_admin_edit_carga_{id_carga_edit}"):
+                    st.markdown("#### Dados Gerais & Comerciais")
+                    ec1, ec2, ec3, ec4 = st.columns(4)
+                    edit_tp = ec1.text_input("Nº TP", value=str(dados_carga['Nº TP']) if dados_carga['Nº TP'] != '-' else "").strip().upper()
+                    edit_set = ec2.text_input("Nº SET", value=str(dados_carga['Nº SET'])).strip().upper()
+                    edit_status = ec3.selectbox(
+                        "Status", 
+                        ["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"], 
+                        index=["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"].index(dados_carga['Status']) if dados_carga['Status'] in ["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"] else 0
+                    )
+                    edit_data_prog = ec4.text_input("Data Programada", value=str(dados_carga['Data Programada']) if dados_carga['Data Programada'] != '-' else "")
+
+                    ec5, ec6, ec7 = st.columns(3)
+                    edit_rec_frete = ec5.number_input("Receita Frete (R$)", min_value=0.0, value=float(dados_carga['receita_frete']), step=100.0)
+                    edit_rec_pedagio = ec6.number_input("Receita Pedágio (R$)", min_value=0.0, value=float(dados_carga['receita_pedagio']), step=50.0)
+                    edit_rec_descarga = ec7.number_input("Receita Descarga (R$)", min_value=0.0, value=float(dados_carga['receita_taxa_descarga']), step=50.0)
+
+                    st.markdown("#### Dados do Transportador & Motorista")
+                    em1, em2, em3 = st.columns(3)
+                    edit_motorista = em1.text_input("Nome Motorista", value=str(dados_carga['Motorista']) if dados_carga['Motorista'] != '-' else "").upper()
+                    edit_cpf = em2.text_input("CPF Motorista", value=str(dados_carga['CPF Motorista']) if dados_carga['CPF Motorista'] != '-' else "")
+                    
+                    tipos_motoristas = ["TERCEIRO", "FROTA", "AGREGADO", "-"]
+                    idx_tm = tipos_motoristas.index(dados_carga['Tipo Motorista']) if dados_carga['Tipo Motorista'] in tipos_motoristas else 3
+                    edit_tipo_mot = em3.selectbox("Tipo Motorista", tipos_motoristas, index=idx_tm)
+
+                    em4, em5, em6 = st.columns(3)
+                    edit_cavalo = em4.text_input("Placa Cavalo", value=str(dados_carga['Placa Cavalo']) if dados_carga['Placa Cavalo'] != '-' else "").upper()
+                    edit_carreta = em5.text_input("Placa Carreta", value=str(dados_carga['Placa Carreta']) if dados_carga['Placa Carreta'] != '-' else "").upper()
+                    edit_rpa = em6.number_input("Valor RPA (R$)", min_value=0.0, value=float(dados_carga['RPA']), step=100.0)
+
+                    st.markdown("#### Documentação & Outros")
+                    ed1, ed2, ed3 = st.columns(3)
+                    edit_pedagio_tipo = ed1.text_input("Tipo Pedágio", value=str(dados_carga['Tipo de Pedágio']) if dados_carga['Tipo de Pedágio'] != '-' else "").upper()
+                    edit_plataforma = ed2.text_input("Plataforma", value=str(dados_carga['Plataforma']) if dados_carga['Plataforma'] != '-' else "").upper()
+                    edit_vinculo = ed3.text_input("Vínculo", value=str(dados_carga['Vínculo']) if dados_carga['Vínculo'] != '-' else "").upper()
+
+                    btn_salvar_edicao_admin = st.form_submit_button("💾 Salvar Alterações da Carga", type="primary", use_container_width=True)
+
+                    if btn_salvar_edicao_admin:
+                        try:
+                            with get_connection() as conn:
+                                with conn.cursor() as cursor:
+                                    cursor.execute("""
+                                        UPDATE cargas SET
+                                            numero_tp = %s,
+                                            numero_set = %s,
+                                            status = %s,
+                                            data_coleta = %s,
+                                            receita_frete = %s,
+                                            receita_pedagio = %s,
+                                            receita_taxa_descarga = %s,
+                                            nome_motorista = %s,
+                                            cpf_motorista = %s,
+                                            tipo_motorista = %s,
+                                            placa_cavalo = %s,
+                                            placa_carreta = %s,
+                                            valor_rpa = %s,
+                                            tipo_pedagio = %s,
+                                            plataforma = %s,
+                                            vinculo = %s
+                                        WHERE id = %s
+                                    """, (
+                                        edit_tp, edit_set, edit_status, edit_data_prog,
+                                        edit_rec_frete, edit_rec_pedagio, edit_rec_descarga,
+                                        edit_motorista, formatar_cpf(edit_cpf), edit_tipo_mot,
+                                        edit_cavalo, edit_carreta, edit_rpa,
+                                        edit_pedagio_tipo, edit_plataforma, edit_vinculo,
+                                        id_carga_edit
+                                    ))
+                                    conn.commit()
+                            st.success("✅ Dados da carga atualizados com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao atualizar carga: {e}")
+
 # 2. COMERCIAL
 elif menu_selecionado == "Comercial":
     st.title("💼 Comercial - Novo Frete")
