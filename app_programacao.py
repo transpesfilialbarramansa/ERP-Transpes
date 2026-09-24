@@ -9,7 +9,6 @@ import streamlit as st
 import re
 import openpyxl
 import urllib.parse
-from streamlit_option_menu import option_menu
 
 # Importações para geração de PDF e Excel
 from reportlab.lib.pagesizes import A4, landscape
@@ -36,13 +35,80 @@ def formatar_telefone(valor: str) -> str:
     return str(valor).strip()
 
 # ==========================================
-# CONFIGURAÇÃO DA PÁGINA
+# 1. CONFIGURAÇÃO DA PÁGINA (Sempre o primeiro comando)
 # ==========================================
 st.set_page_config(
-    page_title="Transpes - Sistema de Gestão",
+    page_title="TRANSPES - Sistema de Gestão",
     page_icon="logo_transpes.png",
     layout="wide"
 )
+
+# ==========================================
+# APLICAÇÃO DE ESTILO E LAYOUT (CSS CUSTOMIZADO)
+# ==========================================
+st.markdown("""
+    <style>
+    /* Fundo da aplicação */
+    .stApp {
+        background-color: #F4F6F9;
+    }
+
+    /* Estilização da Sidebar */
+    [data-testid="stSidebar"] {
+        background-color: #0B2136 !important;
+    }
+
+    [data-testid="stSidebar"] * {
+        color: #E2E8F0 !important;
+    }
+
+    /* Estilo dos Botões de Menu da Sidebar */
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: transparent !important;
+        color: #CBD5E1 !important;
+        border: none !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        font-weight: 500 !important;
+        border-radius: 6px !important;
+        padding: 10px 15px !important;
+        width: 100% !important;
+    }
+
+    /* Botão Selecionado (Destaque Amarelo Gold) */
+    [data-testid="stSidebar"] .stButton > button[kind="primary"],
+    [data-testid="stSidebar"] .stButton > button:focus {
+        background-color: #D99B26 !important;
+        color: #0B2136 !important;
+        font-weight: bold !important;
+    }
+
+    /* Hover nos botões da sidebar */
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: #1A365D !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Título das Páginas */
+    h1 {
+        color: #0F172A !important;
+        font-weight: 700 !important;
+        font-size: 1.6rem !important;
+    }
+
+    /* Container de Alertas/Mensagens e Cards */
+    .stAlert, div[data-testid="stExpander"], div[data-testid="metric-container"] {
+        background-color: #FFFFFF !important;
+        border-radius: 10px !important;
+        border: 1px solid #E2E8F0 !important;
+        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04) !important;
+    }
+
+    header[data-testid="stHeader"] {
+        background: transparent !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 # ==========================================
 # CONEXÃO E BANCO DE DADOS (SUPABASE / POSTGRESQL / NEON)
@@ -556,8 +622,8 @@ if not st.session_state["logado"]:
         if usr:
             st.session_state["logado"] = True
             st.session_state["usuario"] = usr[0]
-            st.session_state["nome"] = usr[1]
-            st.session_state["perfil"] = usr[2]
+            st.session_state["usuario_nome"] = usr[1]
+            st.session_state["usuario_perfil"] = usr[2]
             st.rerun()
         else:
             st.error("Usuário ou senha incorretos.")
@@ -565,48 +631,98 @@ if not st.session_state["logado"]:
     st.stop()
 
 # ==========================================
-# BARRA LATERAL E NAVEGAÇÃO
+# NAVEGAÇÃO E SIDEBAR ESTILIZADA
 # ==========================================
-st.sidebar.markdown(f"### 👤 {st.session_state['nome']}")
-st.sidebar.caption(f"Perfil: **{st.session_state['perfil']}**")
+if "menu" not in st.session_state:
+    st.session_state["menu"] = "Visão Geral"
 
-if st.sidebar.button("🚪 Sair", use_container_width=True):
-    st.session_state.clear()
-    st.rerun()
+menu_selecionado = st.session_state["menu"]
 
-perfil = st.session_state["perfil"]
+perfil = st.session_state.get("usuario_perfil", "ADMIN")
 
-opcoes = ["Visão Geral"]
-icones = ["bar-chart"]
-
+# Define opções disponíveis com base no perfil do usuário
+opcoes_perfil = ["Visão Geral"]
 if perfil == "ADMIN":
-    opcoes.extend(["Comercial", "Programação", "Expedição", "Operacional", "Administração", "Fornecedores", "Excluir Cargas", "Usuários"])
-    icones.extend(["currency-dollar", "clipboard-plus", "file-earmark-text", "tools", "briefcase", "truck", "trash", "people"])
-else:
-    if perfil == "COMERCIAL":
-        opcoes.append("Comercial")
-        icones.append("currency-dollar")
-    elif perfil == "PROGRAMACAO":
-        opcoes.append("Programação")
-        icones.append("clipboard-plus")
-    elif perfil == "EXPEDICAO":
-        opcoes.append("Expedição")
-        icones.append("file-earmark-text")
-    elif perfil == "OPERACIONAL":
-        opcoes.extend(["Operacional", "Fornecedores"])
-        icones.extend(["tools", "truck"])
-    elif perfil == "ADMINISTRATIVO":
-        opcoes.extend(["Administração", "Fornecedores"])
-        icones.extend(["briefcase", "truck"])
+    opcoes_perfil.extend(["Comercial", "Programação", "Expedição", "Operacional", "Administração", "Fornecedores", "Excluir Cargas", "Usuários"])
+elif perfil == "COMERCIAL":
+    opcoes_perfil.append("Comercial")
+elif perfil == "PROGRAMACAO":
+    opcoes_perfil.append("Programação")
+elif perfil == "EXPEDICAO":
+    opcoes_perfil.append("Expedição")
+elif perfil == "OPERACIONAL":
+    opcoes_perfil.extend(["Operacional", "Fornecedores"])
+elif perfil == "ADMINISTRATIVO":
+    opcoes_perfil.extend(["Administração", "Fornecedores"])
 
 with st.sidebar:
-    menu_selecionado = option_menu(
-        "Menu Principal",
-        opcoes,
-        icons=icones,
-        menu_icon="cast",
-        default_index=0
-    )
+    # 1. Logo / Cabeçalho da Sidebar
+    st.markdown("""
+        <div style="text-align: center; padding: 10px 0px 20px 0px;">
+            <h2 style="color: #FFFFFF; margin: 0; font-weight: 800; letter-spacing: 1px;">TRANSPES</h2>
+            <p style="color: #94A3B8; font-size: 0.75rem; margin: 0;">SISTEMA DE GESTÃO</p>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # 2. Navegação dos Menus (Com verificação de permissões do perfil)
+    if "Visão Geral" in opcoes_perfil:
+        if st.button("📊 Visão Geral", type="primary" if menu_selecionado == "Visão Geral" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Visão Geral"
+            st.rerun()
+
+    if "Comercial" in opcoes_perfil:
+        if st.button("💲 Comercial", type="primary" if menu_selecionado == "Comercial" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Comercial"
+            st.rerun()
+
+    if "Programação" in opcoes_perfil:
+        if st.button("📅 Programação", type="primary" if menu_selecionado == "Programação" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Programação"
+            st.rerun()
+
+    if "Expedição" in opcoes_perfil:
+        if st.button("📦 Expedição", type="primary" if menu_selecionado == "Expedição" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Expedição"
+            st.rerun()
+
+    if "Operacional" in opcoes_perfil:
+        if st.button("⚙️ Operacional", type="primary" if menu_selecionado == "Operacional" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Operacional"
+            st.rerun()
+
+    if "Administração" in opcoes_perfil:
+        if st.button("💼 Administração", type="primary" if menu_selecionado == "Administração" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Administração"
+            st.rerun()
+
+    if "Fornecedores" in opcoes_perfil:
+        if st.button("🚚 Fornecedores", type="primary" if menu_selecionado == "Fornecedores" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Fornecedores"
+            st.rerun()
+
+    if "Excluir Cargas" in opcoes_perfil:
+        if st.button("🗑️ Excluir Cargas", type="primary" if menu_selecionado == "Excluir Cargas" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Excluir Cargas"
+            st.rerun()
+
+    if "Usuários" in opcoes_perfil:
+        if st.button("👥 Usuários", type="primary" if menu_selecionado == "Usuários" else "secondary", use_container_width=True):
+            st.session_state["menu"] = "Usuários"
+            st.rerun()
+
+    st.markdown("<br><br>", unsafe_allow_html=True)
+
+    # 3. Rodapé do Usuário Logado
+    st.markdown("---")
+    col_usr1, col_usr2 = st.columns([1, 3])
+    with col_usr1:
+        st.markdown("👤")
+    with col_usr2:
+        st.markdown(f"**{st.session_state.get('usuario_nome', 'Administrador')}**\n<small style='color: #94A3B8;'>{st.session_state.get('usuario_perfil', 'ADMIN')}</small>", unsafe_allow_html=True)
+
+    if st.button("🚪 Sair", use_container_width=True):
+        st.session_state.clear()
+        st.rerun()
 
 # ==========================================
 # PÁGINAS DO SISTEMA
@@ -1271,7 +1387,6 @@ elif menu_selecionado == "Fornecedores":
     with st.expander("📥 Importar Fornecedores em Lote (Excel / CSV)", expanded=False):
         st.write("Faça o upload de uma planilha contendo os fornecedores para cadastrá-los de uma só vez.")
         
-        # Modelo para download pré-formatado com os campos da sua tabela
         df_modelo = pd.DataFrame({
             "nr_contrato": ["12345"],
             "razao_social": ["Empresa Exemplo LTDA"],
@@ -1302,7 +1417,6 @@ elif menu_selecionado == "Fornecedores":
                 else:
                     df_import = pd.read_excel(arquivo_carregado, dtype=str)
 
-                # Trata campos vazios
                 df_import = df_import.fillna("")
 
                 st.write("Pré-visualização dos dados:")
@@ -1332,7 +1446,6 @@ elif menu_selecionado == "Fornecedores":
                                     cpf_cnpj = str(row.get("cpf_cnpj", "")).strip()
                                     contato = str(row.get("contato", "")).strip()
 
-                                    # Insere caso tenha pelo menos a Razão Social ou Nome Fantasia
                                     if razao_social or nome_fantasia:
                                         cursor.execute(query_insert, (
                                             nr_contrato, razao_social, nome_fantasia, 
