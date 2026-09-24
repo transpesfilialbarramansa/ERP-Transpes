@@ -35,6 +35,23 @@ def formatar_telefone(valor: str) -> str:
     return str(valor).strip()
 
 # ==========================================
+# DEF_SVGS - DEFINIÇÃO DOS ÍCONES SVG PADRONIZADOS
+# ==========================================
+SVG_ICONS = {
+    "visao_geral": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
+    "comercial": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+    "programacao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+    "expedicao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
+    "operacional": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
+    "administracao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>',
+    "fornecedores": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>',
+    "excluir": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
+    "usuarios": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+    "user": '<svg style="vertical-align: middle; margin-right: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+    "logout": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>'
+}
+
+# ==========================================
 # 1. CONFIGURAÇÃO DA PÁGINA (Sempre o primeiro comando)
 # ==========================================
 st.set_page_config(
@@ -509,7 +526,7 @@ def gerar_pdf_geral(df):
 # ==========================================
 # DIÁLOGOS / POP-UPS
 # ==========================================
-@st.dialog("💼 Dados Comerciais Registrados!")
+@st.dialog("Dados Comerciais Registrados!")
 def exibir_popup_comercial(num_carga):
     st.success(f"A carga **{num_carga}** foi cadastrada pelo Comercial com sucesso!")
     if st.button("OK / Nova Carga", type="primary", use_container_width=True):
@@ -517,7 +534,7 @@ def exibir_popup_comercial(num_carga):
         st.session_state["com_form_version"] = st.session_state.get("com_form_version", 0) + 1
         st.rerun()
 
-@st.dialog("📌 Programação Concluída!")
+@st.dialog("Programação Concluída!")
 def exibir_popup_programacao(num_tp):
     st.success(f"A carga TP **{num_tp}** foi programada com sucesso!")
     if st.button("OK / Próxima Programação", type="primary", use_container_width=True):
@@ -525,7 +542,7 @@ def exibir_popup_programacao(num_tp):
         st.session_state["prog_form_version"] = st.session_state.get("prog_form_version", 0) + 1
         st.rerun()
 
-@st.dialog("📦 Carga Expedida!")
+@st.dialog("Carga Expedida!")
 def exibir_popup_expedicao(num_tp):
     st.success(f"A carga TP **{num_tp}** foi expedida e está **EM TRÂNSITO**!")
     if st.button("OK / Próxima Carga", type="primary", use_container_width=True):
@@ -533,7 +550,7 @@ def exibir_popup_expedicao(num_tp):
         st.session_state["exp_form_version"] = st.session_state.get("exp_form_version", 0) + 1
         st.rerun()
 
-@st.dialog("⚙️ Agendamento Confirmado!")
+@st.dialog("Agendamento Confirmado!")
 def exibir_popup_operacional(num_tp):
     st.success(f"A carga TP **{num_tp}** teve os dados operacionais salvos!")
     if st.button("OK / Próxima Carga", type="primary", use_container_width=True):
@@ -541,7 +558,7 @@ def exibir_popup_operacional(num_tp):
         st.session_state["op_form_version"] = st.session_state.get("op_form_version", 0) + 1
         st.rerun()
 
-@st.dialog("💼 Processo Finalizado!")
+@st.dialog("Processo Finalizado!")
 def exibir_popup_administracao(num_tp):
     st.success(f"A carga TP **{num_tp}** teve o acerto concluído!")
     if st.button("OK / Concluir", type="primary", use_container_width=True):
@@ -549,7 +566,7 @@ def exibir_popup_administracao(num_tp):
         st.session_state["adm_form_version"] = st.session_state.get("adm_form_version", 0) + 1
         st.rerun()
 
-@st.dialog("➕ Novo Fornecedor")
+@st.dialog("Novo Fornecedor")
 def modal_cadastrar_fornecedor():
     with st.form("form_modal_fornecedor"):
         f1, f2 = st.columns(2)
@@ -565,7 +582,7 @@ def modal_cadastrar_fornecedor():
 
         contato = st.text_input("Contato / Telefone").strip()
 
-        btn_salvar_forn = st.form_submit_button("💾 Salvar Fornecedor", type="primary", use_container_width=True)
+        btn_salvar_forn = st.form_submit_button("Salvar Fornecedor", type="primary", use_container_width=True)
 
     if btn_salvar_forn:
         if not razao_social or not local_atendimento or not uf:
@@ -680,20 +697,21 @@ with st.sidebar:
 
     # Menus Selecionáveis
     menus_icones = {
-        "Visão Geral": "📊 Visão Geral",
-        "Comercial": "💲 Comercial",
-        "Programação": "📅 Programação",
-        "Expedição": "📦 Expedição",
-        "Operacional": "⚙️ Operacional",
-        "Administração": "💼 Administração",
-        "Fornecedores": "🚚 Fornecedores",
-        "Excluir Cargas": "🗑️ Excluir Cargas",
-        "Usuários": "👥 Usuários"
+        "Visão Geral": ("visao_geral", "Visão Geral"),
+        "Comercial": ("comercial", "Comercial"),
+        "Programação": ("programacao", "Programação"),
+        "Expedição": ("expedicao", "Expedição"),
+        "Operacional": ("operacional", "Operacional"),
+        "Administração": ("administracao", "Administração"),
+        "Fornecedores": ("fornecedores", "Fornecedores"),
+        "Excluir Cargas": ("excluir", "Excluir Cargas"),
+        "Usuários": ("usuarios", "Usuários")
     }
 
     for item in opcoes_perfil:
+        chave_svg, rotulo = menus_icones.get(item, ("visao_geral", item))
         if st.button(
-            menus_icones.get(item, item), 
+            rotulo, 
             type="primary" if menu_selecionado == item else "secondary", 
             use_container_width=True
         ):
@@ -706,11 +724,11 @@ with st.sidebar:
     """, unsafe_allow_html=True)
     
     st.markdown(
-        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>👤 <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
+        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>{SVG_ICONS['user']} <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
         unsafe_allow_html=True
     )
 
-    if st.button("🚪 Sair", use_container_width=True):
+    if st.button("Sair", use_container_width=True):
         st.session_state.clear()
         st.rerun()
 
@@ -720,7 +738,7 @@ with st.sidebar:
 
 # 1. VISÃO GERAL
 if menu_selecionado == "Visão Geral":
-    st.title("📊 Visão Geral e Relatórios")
+    st.markdown(f"<h1>{SVG_ICONS['visao_geral']} Visão Geral e Relatórios</h1>", unsafe_allow_html=True)
 
     query = """
         SELECT 
@@ -817,9 +835,9 @@ if menu_selecionado == "Visão Geral":
 
         c_exp1, c_exp2, _ = st.columns([1, 1, 3])
         with c_exp1:
-            st.download_button("📗 Exportar Excel", data=gerar_excel_geral(df[cols_final]), file_name="Relatorio_Geral_Transpes.xlsx", use_container_width=True, key="btn_export_excel")
+            st.download_button("Exportar Excel", data=gerar_excel_geral(df[cols_final]), file_name="Relatorio_Geral_Transpes.xlsx", use_container_width=True, key="btn_export_excel")
         with c_exp2:
-            st.download_button("📄 Exportar PDF", data=gerar_pdf_geral(df), file_name="Relatorio_Geral_Transpes.pdf", use_container_width=True, key="btn_export_pdf")
+            st.download_button("Exportar PDF", data=gerar_pdf_geral(df), file_name="Relatorio_Geral_Transpes.pdf", use_container_width=True, key="btn_export_pdf")
 
         df_exib = df.copy()
         for c in ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]:
@@ -833,7 +851,7 @@ if menu_selecionado == "Visão Geral":
         # ==========================================
         if perfil == "ADMIN":
             st.markdown("---")
-            with st.expander("✏️ **Painel Admin: Editar Carga Registrada**", expanded=False):
+            with st.expander("Painel Admin: Editar Carga Registrada", expanded=False):
                 opcoes_cargas = {
                     f"TP: {r['Nº TP']} | SET: {r['Nº SET']} | Motorista: {r['Motorista']} | Status: {r['Status']}": r['id_carga']
                     for _, r in df.iterrows()
@@ -882,7 +900,7 @@ if menu_selecionado == "Visão Geral":
                     edit_plataforma = ed2.text_input("Plataforma", value=str(dados_carga['Plataforma']) if dados_carga['Plataforma'] != '-' else "").upper()
                     edit_vinculo = ed3.text_input("Vínculo", value=str(dados_carga['Vínculo']) if dados_carga['Vínculo'] != '-' else "").upper()
 
-                    btn_salvar_edicao_admin = st.form_submit_button("💾 Salvar Alterações da Carga", type="primary", use_container_width=True)
+                    btn_salvar_edicao_admin = st.form_submit_button("Salvar Alterações da Carga", type="primary", use_container_width=True)
 
                     if btn_salvar_edicao_admin:
                         try:
@@ -916,14 +934,14 @@ if menu_selecionado == "Visão Geral":
                                         id_carga_edit
                                     ))
                                     conn.commit()
-                            st.success("✅ Dados da carga atualizados com sucesso!")
+                            st.success("Dados da carga atualizados com sucesso!")
                             st.rerun()
                         except Exception as e:
                             st.error(f"Erro ao atualizar carga: {e}")
 
 # 2. COMERCIAL
 elif menu_selecionado == "Comercial":
-    st.title("💼 Comercial - Novo Frete")
+    st.markdown(f"<h1>{SVG_ICONS['comercial']} Comercial - Novo Frete</h1>", unsafe_allow_html=True)
 
     if "com_form_version" not in st.session_state:
         st.session_state["com_form_version"] = 0
@@ -973,7 +991,7 @@ elif menu_selecionado == "Comercial":
         receita_pedagio = v2.number_input("Pedágio (R$)", min_value=0.0, value=0.0, step=50.0)
         receita_taxa_descarga = v3.number_input("Taxa Descarga (R$)", min_value=0.0, value=0.0, step=50.0)
 
-        salvar_com = st.form_submit_button("💾 Salvar Comercial", type="primary", use_container_width=True)
+        salvar_com = st.form_submit_button("Salvar Comercial", type="primary", use_container_width=True)
 
     if salvar_com:
         valid_orig = all(o["cliente"] and o["cidade"] and o["estado"] for o in lista_origens)
@@ -1011,7 +1029,7 @@ elif menu_selecionado == "Comercial":
 
 # 3. PROGRAMAÇÃO
 elif menu_selecionado == "Programação":
-    st.title("📌 Programação de Cargas")
+    st.markdown(f"<h1>{SVG_ICONS['programacao']} Programação de Cargas</h1>", unsafe_allow_html=True)
 
     if "prog_form_version" not in st.session_state:
         st.session_state["prog_form_version"] = 0
@@ -1059,7 +1077,7 @@ elif menu_selecionado == "Programação":
 
             obs_prog = st.text_area("Observação").upper()
 
-            salvar_prog = st.form_submit_button("💾 Salvar Programação", type="primary", use_container_width=True)
+            salvar_prog = st.form_submit_button("Salvar Programação", type="primary", use_container_width=True)
 
         if salvar_prog:
             if not numero_tp or not nome_motorista or not placa_cavalo or not placa_carreta:
@@ -1093,7 +1111,7 @@ elif menu_selecionado == "Programação":
 
 # 4. EXPEDIÇÃO
 elif menu_selecionado == "Expedição":
-    st.title("📦 Expedição")
+    st.markdown(f"<h1>{SVG_ICONS['expedicao']} Expedição</h1>", unsafe_allow_html=True)
 
     if "exp_form_version" not in st.session_state:
         st.session_state["exp_form_version"] = 0
@@ -1160,7 +1178,7 @@ elif menu_selecionado == "Expedição":
 
             obs_exp = st.text_area("Observação").upper()
 
-            salvar_exp = st.form_submit_button("🚚 Confirmar Saída / Expedição", type="primary", use_container_width=True)
+            salvar_exp = st.form_submit_button("Confirmar Saída / Expedição", type="primary", use_container_width=True)
 
         if salvar_exp:
             if len(lista_ctes) < int(qtd_ctes) or len(lista_mdfes) < int(qtd_mdfes) or not numero_contrato:
@@ -1190,7 +1208,7 @@ elif menu_selecionado == "Expedição":
 
 # 5. OPERACIONAL
 elif menu_selecionado == "Operacional":
-    st.title("⚙️ Operacional - Descarga")
+    st.markdown(f"<h1>{SVG_ICONS['operacional']} Operacional - Descarga</h1>", unsafe_allow_html=True)
 
     if "op_form_version" not in st.session_state:
         st.session_state["op_form_version"] = 0
@@ -1240,7 +1258,7 @@ elif menu_selecionado == "Operacional":
             forma_pagamento = p2.selectbox("Forma Pagamento*", ["PIX", "BOLETO", "DEPÓSITO BANCÁRIO"])
             prazo_dias = p3.number_input("Prazo (dias)*", min_value=0, value=30, step=5)
 
-            salvar_op = st.form_submit_button("✅ Salvar Operacional", type="primary", use_container_width=True)
+            salvar_op = st.form_submit_button("Salvar Operacional", type="primary", use_container_width=True)
 
         if salvar_op:
             if not fornecedor_sel:
@@ -1269,7 +1287,7 @@ elif menu_selecionado == "Operacional":
 
 # 6. ADMINISTRAÇÃO
 elif menu_selecionado == "Administração":
-    st.title("💼 Administração - Acerto Financeiro")
+    st.markdown(f"<h1>{SVG_ICONS['administracao']} Administração - Acerto Financeiro</h1>", unsafe_allow_html=True)
 
     if "adm_form_version" not in st.session_state:
         st.session_state["adm_form_version"] = 0
@@ -1305,7 +1323,7 @@ elif menu_selecionado == "Administração":
 
             comprovante = st.checkbox("Comprovante de Entregue Recebido")
 
-            salvar_adm = st.form_submit_button("💰 Finalizar Acerto Financeiro", type="primary", use_container_width=True)
+            salvar_adm = st.form_submit_button("Finalizar Acerto Financeiro", type="primary", use_container_width=True)
 
         if salvar_adm:
             try:
@@ -1328,9 +1346,9 @@ elif menu_selecionado == "Administração":
 
 # 7. FORNECEDORES
 elif menu_selecionado == "Fornecedores":
-    st.title("🚚 Gestão de Fornecedores")
+    st.markdown(f"<h1>{SVG_ICONS['fornecedores']} Gestão de Fornecedores</h1>", unsafe_allow_html=True)
 
-    aba_lista, aba_editar = st.tabs(["🚚 Lista de Fornecedores", "✏️ Editar Fornecedor"])
+    aba_lista, aba_editar = st.tabs(["Lista de Fornecedores", "Editar Fornecedor"])
 
     with get_connection() as conn:
         with conn.cursor() as cursor:
@@ -1341,16 +1359,16 @@ elif menu_selecionado == "Fornecedores":
     with aba_lista:
         col_btn1, _ = st.columns([2, 3])
         with col_btn1:
-            if st.button("➕ Cadastrar Novo Fornecedor", type="primary", use_container_width=True):
+            if st.button("Cadastrar Novo Fornecedor", type="primary", use_container_width=True):
                 modal_cadastrar_fornecedor()
 
-        with st.expander("📥 Importação em Lote (Excel / CSV)", expanded=False):
+        with st.expander("Importação em Lote (Excel / CSV)", expanded=False):
             df_modelo = pd.DataFrame({"nr_contrato": ["12345"], "razao_social": ["EXEMPLO LTDA"], "nome_fantasia": ["EXEMPLO"], "local_atendimento": ["SÃO PAULO"], "uf": ["SP"], "cpf_cnpj": ["00.000.000/0001-00"], "contato": ["(11) 99999-9999"]})
             buffer_modelo = io.BytesIO()
             with pd.ExcelWriter(buffer_modelo, engine='openpyxl') as writer:
                 df_modelo.to_excel(writer, index=False, sheet_name='Fornecedores')
             
-            st.download_button("📄 Baixar Modelo (.xlsx)", data=buffer_modelo.getvalue(), file_name="Modelo_Fornecedores.xlsx")
+            st.download_button("Baixar Modelo (.xlsx)", data=buffer_modelo.getvalue(), file_name="Modelo_Fornecedores.xlsx")
 
             arquivo_carregado = st.file_uploader("Arquivo Excel ou CSV", type=["xlsx", "csv"])
             if arquivo_carregado is not None:
@@ -1359,7 +1377,7 @@ elif menu_selecionado == "Fornecedores":
                     df_import = df_import.fillna("")
                     st.dataframe(df_import.head(5), use_container_width=True)
 
-                    if st.button("🚀 Confirmar Importação"):
+                    if st.button("Confirmar Importação"):
                         sucessos = 0
                         with get_connection() as conn:
                             with conn.cursor() as cursor:
@@ -1369,7 +1387,7 @@ elif menu_selecionado == "Fornecedores":
                                                        (row.get("nr_contrato", ""), row.get("razao_social", ""), row.get("nome_fantasia", ""), row.get("local_atendimento", ""), row.get("uf", ""), row.get("cpf_cnpj", ""), row.get("contato", "")))
                                         sucessos += 1
                                 conn.commit()
-                        st.success(f"✅ {sucessos} fornecedores importados!")
+                        st.success(f"{sucessos} fornecedores importados!")
                         st.rerun()
                 except Exception as e:
                     st.error(f"Erro na importação: {e}")
@@ -1401,7 +1419,7 @@ elif menu_selecionado == "Fornecedores":
 
                 edit_contato = st.text_input("Contato / Telefone", value=dados_forn['Contato']).strip()
 
-                btn_salvar_edicao = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+                btn_salvar_edicao = st.form_submit_button("Salvar Alterações", type="primary", use_container_width=True)
 
                 if btn_salvar_edicao:
                     if not edit_razao or not edit_local or not edit_uf:
@@ -1424,7 +1442,7 @@ elif menu_selecionado == "Fornecedores":
 
 # 8. EXCLUIR CARGAS
 elif menu_selecionado == "Excluir Cargas":
-    st.title("🗑️ Excluir Cargas")
+    st.markdown(f"<h1>{SVG_ICONS['excluir']} Excluir Cargas</h1>", unsafe_allow_html=True)
     
     with get_connection() as conn:
         with conn.cursor() as cursor:
@@ -1437,7 +1455,7 @@ elif menu_selecionado == "Excluir Cargas":
         opcoes_cargas = {f"Carga: {r['numero_carga']} | TP: {r['tp']} | Motorista: {r['mot']} | Status: {r['status']}": r['id'] for _, r in cargas_df.iterrows()}
         carga_id = opcoes_cargas[st.selectbox("Selecione a Carga*", list(opcoes_cargas.keys()))]
 
-        if st.button("❌ Excluir Definitivamente", type="primary"):
+        if st.button("Excluir Definitivamente", type="primary"):
             with get_connection() as conn:
                 with conn.cursor() as cursor:
                     cursor.execute("DELETE FROM carga_administracao WHERE carga_id = %s", (carga_id,))
@@ -1450,7 +1468,7 @@ elif menu_selecionado == "Excluir Cargas":
 
 # 9. USUÁRIOS
 elif menu_selecionado == "Usuários":
-    st.title("👥 Gestão de Usuários")
+    st.markdown(f"<h1>{SVG_ICONS['usuarios']} Gestão de Usuários</h1>", unsafe_allow_html=True)
     
     # 1. Consulta e exibe os usuários cadastrados
     with get_connection() as conn:
@@ -1463,7 +1481,7 @@ elif menu_selecionado == "Usuários":
     st.markdown("---")
     
     # Criando abas para separar a criação e a edição de usuários
-    aba_novo, aba_editar = st.tabs(["➕ Novo Usuário", "✏️ Editar Usuário"])
+    aba_novo, aba_editar = st.tabs(["Novo Usuário", "Editar Usuário"])
 
     # --- ABA 1: CADASTRAR NOVO USUÁRIO ---
     with aba_novo:
@@ -1475,7 +1493,7 @@ elif menu_selecionado == "Usuários":
             nova_senha = u3.text_input("Senha*", type="password")
             novo_perfil = u4.selectbox("Perfil*", ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
 
-            salvar_usr = st.form_submit_button("💾 Salvar Usuário", type="primary", use_container_width=True)
+            salvar_usr = st.form_submit_button("Salvar Usuário", type="primary", use_container_width=True)
 
             if salvar_usr:
                 if not (novo_usr and novo_nome and nova_senha and novo_perfil):
@@ -1498,7 +1516,7 @@ elif menu_selecionado == "Usuários":
     with aba_editar:
         st.subheader("Editar Usuário")
         if users_df.empty:
-            st.info("Nenum usuário disponível para edição.")
+            st.info("Nenhum usuário disponível para edição.")
         else:
             # Mapeia os usuários para o selectbox
             opcoes_usuarios = {f"{r['usuario']} ({r['nome']} - {r['perfil']})": r['id'] for _, r in users_df.iterrows()}
@@ -1518,7 +1536,7 @@ elif menu_selecionado == "Usuários":
 
                 edit_senha = st.text_input("Nova Senha (deixe em branco para manter a atual)", type="password")
 
-                salvar_edicao = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+                salvar_edicao = st.form_submit_button("Salvar Alterações", type="primary", use_container_width=True)
 
                 if salvar_edicao:
                     if not edit_nome:
