@@ -1237,49 +1237,97 @@ elif menu_selecionado == "Administração":
 elif menu_selecionado == "Fornecedores":
     st.title("🚚 Gestão de Fornecedores")
 
-    col_btn1, _ = st.columns([2, 3])
-    with col_btn1:
-        if st.button("➕ Cadastrar Novo Fornecedor", type="primary", use_container_width=True):
-            modal_cadastrar_fornecedor()
+    aba_lista, aba_editar = st.tabs(["🚚 Lista de Fornecedores", "✏️ Editar Fornecedor"])
 
-    with st.expander("📥 Importação em Lote (Excel / CSV)", expanded=False):
-        df_modelo = pd.DataFrame({"nr_contrato": ["12345"], "razao_social": ["EXEMPLO LTDA"], "nome_fantasia": ["EXEMPLO"], "local_atendimento": ["SÃO PAULO"], "uf": ["SP"], "cpf_cnpj": ["00.000.000/0001-00"], "contato": ["(11) 99999-9999"]})
-        buffer_modelo = io.BytesIO()
-        with pd.ExcelWriter(buffer_modelo, engine='openpyxl') as writer:
-            df_modelo.to_excel(writer, index=False, sheet_name='Fornecedores')
-        
-        st.download_button("📄 Baixar Modelo (.xlsx)", data=buffer_modelo.getvalue(), file_name="Modelo_Fornecedores.xlsx")
-
-        arquivo_carregado = st.file_uploader("Arquivo Excel ou CSV", type=["xlsx", "csv"])
-        if arquivo_carregado is not None:
-            try:
-                df_import = pd.read_csv(arquivo_carregado, dtype=str) if arquivo_carregado.name.endswith('.csv') else pd.read_excel(arquivo_carregado, dtype=str)
-                df_import = df_import.fillna("")
-                st.dataframe(df_import.head(5), use_container_width=True)
-
-                if st.button("🚀 Confirmar Importação"):
-                    sucessos = 0
-                    with get_connection() as conn:
-                        with conn.cursor() as cursor:
-                            for _, row in df_import.iterrows():
-                                if str(row.get("razao_social", "")).strip():
-                                    cursor.execute("INSERT INTO fornecedores (nr_contrato, razao_social, nome_fantasia, local_atendimento, uf, cpf_cnpj, contato) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                                                   (row.get("nr_contrato", ""), row.get("razao_social", ""), row.get("nome_fantasia", ""), row.get("local_atendimento", ""), row.get("uf", ""), row.get("cpf_cnpj", ""), row.get("contato", "")))
-                                    sucessos += 1
-                            conn.commit()
-                    st.success(f"✅ {sucessos} fornecedores importados!")
-                    st.rerun()
-            except Exception as e:
-                st.error(f"Erro na importação: {e}")
-
-    query_forn = 'SELECT nr_contrato AS "Nr. Contrato", razao_social AS "Razão Social", nome_fantasia AS "Nome Fantasia", local_atendimento AS "Local", uf AS "UF", cpf_cnpj AS "CPF/CNPJ", contato AS "Contato" FROM fornecedores ORDER BY id DESC'
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(query_forn)
+            cursor.execute("SELECT id, nr_contrato, razao_social, nome_fantasia, local_atendimento, uf, cpf_cnpj, contato FROM fornecedores ORDER BY id DESC")
             dados = cursor.fetchall()
-            df_fornecedores = pd.DataFrame(dados, columns=[desc.name for desc in cursor.description])
+            df_fornecedores = pd.DataFrame(dados, columns=["id", "Nr. Contrato", "Razão Social", "Nome Fantasia", "Local", "UF", "CPF/CNPJ", "Contato"])
 
-    st.dataframe(df_fornecedores, use_container_width=True, hide_index=True)
+    with aba_lista:
+        col_btn1, _ = st.columns([2, 3])
+        with col_btn1:
+            if st.button("➕ Cadastrar Novo Fornecedor", type="primary", use_container_width=True):
+                modal_cadastrar_fornecedor()
+
+        with st.expander("📥 Importação em Lote (Excel / CSV)", expanded=False):
+            df_modelo = pd.DataFrame({"nr_contrato": ["12345"], "razao_social": ["EXEMPLO LTDA"], "nome_fantasia": ["EXEMPLO"], "local_atendimento": ["SÃO PAULO"], "uf": ["SP"], "cpf_cnpj": ["00.000.000/0001-00"], "contato": ["(11) 99999-9999"]})
+            buffer_modelo = io.BytesIO()
+            with pd.ExcelWriter(buffer_modelo, engine='openpyxl') as writer:
+                df_modelo.to_excel(writer, index=False, sheet_name='Fornecedores')
+            
+            st.download_button("📄 Baixar Modelo (.xlsx)", data=buffer_modelo.getvalue(), file_name="Modelo_Fornecedores.xlsx")
+
+            arquivo_carregado = st.file_uploader("Arquivo Excel ou CSV", type=["xlsx", "csv"])
+            if arquivo_carregado is not None:
+                try:
+                    df_import = pd.read_csv(arquivo_carregado, dtype=str) if arquivo_carregado.name.endswith('.csv') else pd.read_excel(arquivo_carregado, dtype=str)
+                    df_import = df_import.fillna("")
+                    st.dataframe(df_import.head(5), use_container_width=True)
+
+                    if st.button("🚀 Confirmar Importação"):
+                        sucessos = 0
+                        with get_connection() as conn:
+                            with conn.cursor() as cursor:
+                                for _, row in df_import.iterrows():
+                                    if str(row.get("razao_social", "")).strip():
+                                        cursor.execute("INSERT INTO fornecedores (nr_contrato, razao_social, nome_fantasia, local_atendimento, uf, cpf_cnpj, contato) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                                                       (row.get("nr_contrato", ""), row.get("razao_social", ""), row.get("nome_fantasia", ""), row.get("local_atendimento", ""), row.get("uf", ""), row.get("cpf_cnpj", ""), row.get("contato", "")))
+                                        sucessos += 1
+                                conn.commit()
+                        st.success(f"✅ {sucessos} fornecedores importados!")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Erro na importação: {e}")
+
+        st.dataframe(df_fornecedores.drop(columns=["id"]), use_container_width=True, hide_index=True)
+
+    with aba_editar:
+        st.subheader("Editar Fornecedor Cadastrado")
+        if df_fornecedores.empty:
+            st.info("Nenhum fornecedor disponível para edição.")
+        else:
+            opcoes_forn = {f"{r['Razão Social']} ({r['CPF/CNPJ']})": r['id'] for _, r in df_fornecedores.iterrows()}
+            forn_sel_label = st.selectbox("Selecione o Fornecedor para Editar", list(opcoes_forn.keys()))
+            forn_id = opcoes_forn[forn_sel_label]
+
+            dados_forn = df_fornecedores[df_fornecedores['id'] == forn_id].iloc[0]
+
+            with st.form("form_editar_fornecedor"):
+                f1, f2 = st.columns(2)
+                edit_nr_contrato = f1.text_input("Nr. Contrato", value=dados_forn['Nr. Contrato']).strip()
+                edit_cpf_cnpj = f2.text_input("CPF/CNPJ*", value=dados_forn['CPF/CNPJ']).strip()
+
+                edit_razao = st.text_input("Razão Social*", value=dados_forn['Razão Social']).strip().upper()
+                edit_fantasia = st.text_input("Nome Fantasia", value=dados_forn['Nome Fantasia']).strip().upper()
+
+                l1, l2 = st.columns([3, 1])
+                edit_local = l1.text_input("Local Atendimento*", value=dados_forn['Local']).strip().upper()
+                edit_uf = l2.text_input("UF*", value=dados_forn['UF']).strip().upper()
+
+                edit_contato = st.text_input("Contato / Telefone", value=dados_forn['Contato']).strip()
+
+                btn_salvar_edicao = st.form_submit_button("💾 Salvar Alterações", type="primary", use_container_width=True)
+
+                if btn_salvar_edicao:
+                    if not edit_razao or not edit_local or not edit_uf:
+                        st.error("Preencha os campos obrigatórios (*).")
+                    else:
+                        try:
+                            with get_connection() as conn:
+                                with conn.cursor() as cursor:
+                                    cursor.execute("""
+                                        UPDATE fornecedores SET 
+                                            nr_contrato = %s, razao_social = %s, nome_fantasia = %s, 
+                                            local_atendimento = %s, uf = %s, cpf_cnpj = %s, contato = %s
+                                        WHERE id = %s
+                                    """, (edit_nr_contrato, edit_razao, edit_fantasia, edit_local, edit_uf, edit_cpf_cnpj, edit_contato, forn_id))
+                                    conn.commit()
+                            st.success("Fornecedor atualizado com sucesso!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao atualizar fornecedor: {e}")
 
 # 8. EXCLUIR CARGAS
 elif menu_selecionado == "Excluir Cargas":
