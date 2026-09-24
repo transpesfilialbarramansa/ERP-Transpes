@@ -53,66 +53,6 @@ SVG_ICONS = {
 }
 
 # ==========================================
-# FUNÇÃO PARA RENDERIZAR COMPONENTE HTML CUSTOMIZADO
-# ==========================================
-def renderizar_card_html():
-    card_html = """
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <script src="https://cdn.tailwindcss.com"></script>
-    </head>
-    <body class="bg-transparent p-2">
-      <!-- Card Principal com Efeito de Profundidade e Vidro (Glassmorphism) -->
-      <div class="max-w-md mx-auto my-4 relative group">
-        
-        <!-- Camada de Brilho/Sombra Traseira Dinâmica (Glow Effect) -->
-        <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl blur-lg opacity-25 group-hover:opacity-50 transition duration-500"></div>
-
-        <!-- Container Principal -->
-        <div class="relative bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-2xl p-6 shadow-2xl transition-all duration-300 transform group-hover:-translate-y-1">
-          
-          <!-- Cabeçalho com Ícone e Título -->
-          <div class="flex items-center space-x-4 mb-4">
-            <div class="p-3 bg-gradient-to-tr from-blue-500 to-indigo-500 rounded-xl text-white shadow-md shadow-blue-500/30">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-xl font-bold text-slate-800 dark:text-white tracking-tight">
-                Análise Profunda
-              </h3>
-              <p class="text-sm text-slate-500 dark:text-slate-400">
-                Camadas & Dimensão Visual
-              </p>
-            </div>
-          </div>
-
-          <!-- Conteúdo do Card -->
-          <p class="text-slate-600 dark:text-slate-300 leading-relaxed mb-6">
-            Adicionar profundidade vai além de sombras simples: envolve o uso estratégico de hierarquia de iluminação, sobreposição de elementos, transparência e microinterações reativas.
-          </p>
-
-          <!-- Rodapé e Ação Profunda -->
-          <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">
-              Status: Ativo
-            </span>
-            
-            <button class="px-5 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-medium text-sm rounded-xl shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 active:scale-95 transition-all duration-200">
-              Explorar Detalhes
-            </button>
-          </div>
-
-        </div>
-      </div>
-    </body>
-    </html>
-    """
-    components.html(card_html, height=310, scrolling=False)
-
-# ==========================================
 # 1. CONFIGURAÇÃO DA PÁGINA (Sempre o primeiro comando)
 # ==========================================
 st.set_page_config(
@@ -800,9 +740,6 @@ with st.sidebar:
 # 1. VISÃO GERAL
 if menu_selecionado == "Visão Geral":
     st.markdown(f"<h1>{SVG_ICONS['visao_geral']} Visão Geral e Relatórios</h1>", unsafe_allow_html=True)
-
-    # Renderização do Card HTML customizado com Tailwind CSS
-    renderizar_card_html()
 
     query = """
         SELECT 
