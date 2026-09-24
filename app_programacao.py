@@ -44,25 +44,36 @@ st.set_page_config(
 )
 
 # ==========================================
-# APLICAÇÃO DE ESTILO E LAYOUT (CSS CUSTOMIZADO)
+# APLICAÇÃO DE ESTILO E LAYOUT ULTRACOMPACTO (CSS CUSTOMIZADO)
 # ==========================================
 st.markdown("""
     <style>
-    /* Fundo da aplicação */
+    /* Fundo geral e densidade de tela */
     .stApp {
         background-color: #F4F6F9;
     }
 
-    /* Estilização da Sidebar */
+    /* Redução de padding das seções principais do Streamlit */
+    .block-container {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+        max-width: 100% !important;
+    }
+
+    /* Estilização e largura da Sidebar */
     [data-testid="stSidebar"] {
         background-color: #0B2136 !important;
+        min-width: 220px !important;
+        max-width: 220px !important;
     }
 
     [data-testid="stSidebar"] * {
         color: #E2E8F0 !important;
     }
 
-    /* Estilo dos Botões de Menu da Sidebar */
+    /* Botões do Menu Lateral Compactos */
     [data-testid="stSidebar"] .stButton > button {
         background-color: transparent !important;
         color: #CBD5E1 !important;
@@ -70,12 +81,14 @@ st.markdown("""
         text-align: left !important;
         justify-content: flex-start !important;
         font-weight: 500 !important;
-        border-radius: 6px !important;
-        padding: 10px 15px !important;
+        font-size: 0.82rem !important;
+        border-radius: 4px !important;
+        padding: 5px 10px !important;
+        margin-bottom: -4px !important;
         width: 100% !important;
     }
 
-    /* Botão Selecionado (Destaque Amarelo Gold) */
+    /* Botão Selecionado */
     [data-testid="stSidebar"] .stButton > button[kind="primary"],
     [data-testid="stSidebar"] .stButton > button:focus {
         background-color: #D99B26 !important;
@@ -83,25 +96,77 @@ st.markdown("""
         font-weight: bold !important;
     }
 
-    /* Hover nos botões da sidebar */
+    /* Hover Sidebar */
     [data-testid="stSidebar"] .stButton > button:hover {
         background-color: #1A365D !important;
         color: #FFFFFF !important;
     }
 
-    /* Título das Páginas */
+    /* Títulos compactos */
     h1 {
         color: #0F172A !important;
         font-weight: 700 !important;
-        font-size: 1.6rem !important;
+        font-size: 1.25rem !important;
+        margin-bottom: 0.5rem !important;
+        padding-bottom: 0px !important;
     }
 
-    /* Container de Alertas/Mensagens e Cards */
-    .stAlert, div[data-testid="stExpander"], div[data-testid="metric-container"] {
+    h2, h3 {
+        color: #0F172A !important;
+        font-weight: 600 !important;
+        font-size: 0.95rem !important;
+        margin-top: 0.4rem !important;
+        margin-bottom: 0.3rem !important;
+    }
+
+    /* Inputs e Rótulos ultracompactos */
+    div[data-baseweb="input"], div[data-baseweb="select"] {
+        min-height: 32px !important;
+    }
+
+    input, select, textarea {
+        font-size: 0.8rem !important;
+        padding: 4px 8px !important;
+    }
+
+    label {
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        margin-bottom: 2px !important;
+    }
+
+    /* Métricas Compactas */
+    div[data-testid="metric-container"] {
         background-color: #FFFFFF !important;
-        border-radius: 10px !important;
+        border-radius: 6px !important;
+        padding: 6px 12px !important;
         border: 1px solid #E2E8F0 !important;
-        box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.04) !important;
+        box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.03) !important;
+    }
+
+    div[data-testid="metric-container"] label {
+        font-size: 0.72rem !important;
+    }
+
+    div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+    }
+
+    /* Tabelas densas e compactas */
+    div[data-testid="stDataFrame"] {
+        font-size: 0.75rem !important;
+    }
+
+    /* Botões Form / Ação reduzidos */
+    .stButton > button {
+        font-size: 0.82rem !important;
+        padding: 4px 10px !important;
+    }
+
+    /* Divisores compactos */
+    hr {
+        margin: 0.6rem 0 !important;
     }
 
     header[data-testid="stHeader"] {
@@ -116,11 +181,8 @@ st.markdown("""
 
 def get_connection():
     db_url = st.secrets["DB_URL"]
-    
-    # Substitui o prefixo de compatibilidade se necessário
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
-        
     return psycopg.connect(db_url)
 
 def hash_senha(senha):
@@ -137,7 +199,6 @@ FORNECEDORES_INICIAIS = [
 def init_db():
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # 1. Tabela de Usuários
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS usuarios (
                     id SERIAL PRIMARY KEY,
@@ -167,7 +228,6 @@ def init_db():
                         (hash_senha(pwd), usr)
                     )
 
-            # 2. Tabela Principal de Cargas
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS cargas (
                     id SERIAL PRIMARY KEY,
@@ -177,7 +237,6 @@ def init_db():
                 )
             """)
 
-            # 3. Adiciona as colunas novas caso ainda não existam no banco
             novas_colunas_cargas = [
                 ("numero_set", "TEXT"),
                 ("origens_json", "TEXT"),
@@ -209,7 +268,6 @@ def init_db():
             for col_nome, col_tipo in novas_colunas_cargas:
                 cursor.execute(f"ALTER TABLE cargas ADD COLUMN IF NOT EXISTS {col_nome} {col_tipo};")
 
-            # 4. Tabela Carga Expedição
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_expedicao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -225,7 +283,6 @@ def init_db():
                 )
             """)
 
-            # 5. Tabela Carga Operacional
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_operacional (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -238,7 +295,6 @@ def init_db():
                 )
             """)
 
-            # 6. Tabela Carga Administração
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS carga_administracao (
                     carga_id INTEGER PRIMARY KEY REFERENCES cargas(id) ON DELETE CASCADE,
@@ -250,7 +306,6 @@ def init_db():
                 )
             """)
 
-            # 7. Tabela Fornecedores
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS fornecedores (
                     id SERIAL PRIMARY KEY,
@@ -338,10 +393,8 @@ def limpar_formato_json_lista(valor, separador=", "):
 
 def gerar_excel_geral(df_dados):
     output = io.BytesIO()
-
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
         df_dados.to_excel(writer, index=False, sheet_name="Detalhamento de Cargas")
-
         workbook = writer.book
         worksheet = writer.sheets["Detalhamento de Cargas"]
         worksheet.views.sheetView[0].showGridLines = True
@@ -350,8 +403,8 @@ def gerar_excel_geral(df_dados):
         from openpyxl.utils import get_column_letter
 
         fill_cabecalho = PatternFill(start_color="0F2A4A", end_color="0F2A4A", fill_type="solid")
-        font_cabecalho = Font(name="Calibri", size=11, bold=True, color="FFFFFF")
-        font_corpo = Font(name="Calibri", size=10)
+        font_cabecalho = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+        font_corpo = Font(name="Calibri", size=9)
 
         align_center = Alignment(horizontal="center", vertical="center")
         align_left = Alignment(horizontal="left", vertical="center")
@@ -360,17 +413,8 @@ def gerar_excel_geral(df_dados):
         borda_fina = Side(border_style="thin", color="D9D9D9")
         borda_caixa = Border(left=borda_fina, right=borda_fina, top=borda_fina, bottom=borda_fina)
 
-        cols_moeda = [
-            "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga",
-            "Custo Total (R$)", "Margem (R$)"
-        ]
-
-        cols_centro = [
-            "Nº TP", "Nº SET", "Data Programada", "Status", "CPF Motorista",
-            "Tipo Motorista", "Placa Cavalo", "Placa Carreta", "CT-e", "Viagem", 
-            "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", "Plataforma", 
-            "Vínculo", "Data Agendamento Descarga", "Data Pagamento Saldo"
-        ]
+        cols_moeda = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
+        cols_centro = ["Nº TP", "Nº SET", "Data Programada", "Status", "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta", "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", "Plataforma", "Vínculo", "Data Agendamento Descarga", "Data Pagamento Saldo"]
 
         for col_num, col_name in enumerate(df_dados.columns, start=1):
             cell = worksheet.cell(row=1, column=col_num)
@@ -383,7 +427,6 @@ def gerar_excel_geral(df_dados):
                 cell = worksheet.cell(row=row_num, column=col_num)
                 cell.font = font_corpo
                 cell.border = borda_caixa
-
                 if col_name in cols_moeda:
                     cell.alignment = align_right
                     cell.number_format = 'R$ #,##0.00'
@@ -402,63 +445,24 @@ def gerar_excel_geral(df_dados):
                 val_str = str(cell.value or '')
                 if len(val_str) > max_len:
                     max_len = len(val_str)
-            worksheet.column_dimensions[col_letter].width = max(max_len + 4, 12)
+            worksheet.column_dimensions[col_letter].width = max(max_len + 3, 10)
 
     output.seek(0)
     return output.getvalue()
 
 def gerar_pdf_geral(df):
     buffer = io.BytesIO()
-    
-    doc = SimpleDocTemplate(
-        buffer, 
-        pagesize=landscape(A4), 
-        rightMargin=15, 
-        leftMargin=15, 
-        topMargin=20, 
-        bottomMargin=20
-    )
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(A4), rightMargin=15, leftMargin=15, topMargin=15, bottomMargin=15)
     elements = []
     styles = getSampleStyleSheet()
     
-    style_title = ParagraphStyle(
-        'TitleStyle',
-        parent=styles['Heading1'],
-        fontName='Helvetica-Bold',
-        fontSize=12,
-        leading=14,
-        alignment=1,
-        textColor=colors.HexColor("#0f2a4a"),
-        spaceAfter=10
-    )
-    
-    style_cell = ParagraphStyle(
-        'Cell',
-        parent=styles['Normal'],
-        fontName='Helvetica',
-        fontSize=6,
-        leading=7,
-        alignment=0
-    )
-    
-    style_header = ParagraphStyle(
-        'Header',
-        parent=styles['Normal'],
-        fontName='Helvetica-Bold',
-        fontSize=6.5,
-        leading=8,
-        textColor=colors.white,
-        alignment=1
-    )
+    style_title = ParagraphStyle('TitleStyle', parent=styles['Heading1'], fontName='Helvetica-Bold', fontSize=11, leading=13, alignment=1, textColor=colors.HexColor("#0f2a4a"), spaceAfter=8)
+    style_cell = ParagraphStyle('Cell', parent=styles['Normal'], fontName='Helvetica', fontSize=5.5, leading=6.5, alignment=0)
+    style_header = ParagraphStyle('Header', parent=styles['Normal'], fontName='Helvetica-Bold', fontSize=6, leading=7, textColor=colors.white, alignment=1)
 
     elements.append(Paragraph("Relatório Geral de Cargas - Transpes", style_title))
 
-    cols_pdf = [
-        "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
-        "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", 
-        "Margem (R$)", "Margem (%)"
-    ]
-    
+    cols_pdf = ["Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", "Margem (R$)", "Margem (%)"]
     df_pdf = df.copy()
     
     for c in ["Receita Total (R$)", "Custo Total (R$)", "Margem (R$)"]:
@@ -468,9 +472,7 @@ def gerar_pdf_geral(df):
     if "Margem (%)" in df_pdf.columns:
         df_pdf["Margem (%)"] = df_pdf["Margem (%)"].apply(lambda x: f"{x:.1f}%" if isinstance(x, (int, float)) else str(x))
 
-    table_data = []
-    headers = [Paragraph(col, style_header) for col in cols_pdf]
-    table_data.append(headers)
+    table_data = [[Paragraph(col, style_header) for col in cols_pdf]]
 
     for _, row in df_pdf.iterrows():
         linha = []
@@ -480,7 +482,6 @@ def gerar_pdf_geral(df):
         table_data.append(linha)
 
     col_widths = [45, 55, 55, 60, 95, 150, 150, 65, 65, 65, 45]
-
     pdf_table = Table(table_data, colWidths=col_widths, repeatRows=1)
     pdf_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0f2a4a")),
@@ -488,14 +489,13 @@ def gerar_pdf_geral(df):
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.HexColor("#cccccc")),
-        ('TOPPADDING', (0, 0), (-1, -1), 3),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 3),
+        ('TOPPADDING', (0, 0), (-1, -1), 2),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor("#f8f9fa")]),
     ]))
 
     elements.append(pdf_table)
     doc.build(elements)
-    
     return buffer.getvalue()
 
 # ==========================================
@@ -504,7 +504,6 @@ def gerar_pdf_geral(df):
 @st.dialog("💼 Dados Comerciais Registrados!")
 def exibir_popup_comercial(num_carga):
     st.success(f"A carga **{num_carga}** foi cadastrada pelo Comercial com sucesso!")
-    st.write("Os dados foram salvos e liberados para a equipe de Programação.")
     if st.button("OK / Nova Carga", type="primary", use_container_width=True):
         st.session_state["exibir_modal_comercial"] = False
         st.session_state["com_form_version"] = st.session_state.get("com_form_version", 0) + 1
@@ -513,7 +512,6 @@ def exibir_popup_comercial(num_carga):
 @st.dialog("📌 Programação Concluída!")
 def exibir_popup_programacao(num_tp):
     st.success(f"A carga TP **{num_tp}** foi programada com sucesso!")
-    st.write("Status atualizado para **PROGRAMADA**. Enviado para a Expedição.")
     if st.button("OK / Próxima Programação", type="primary", use_container_width=True):
         st.session_state["exibir_modal_programacao"] = False
         st.session_state["prog_form_version"] = st.session_state.get("prog_form_version", 0) + 1
@@ -521,15 +519,15 @@ def exibir_popup_programacao(num_tp):
 
 @st.dialog("📦 Carga Expedida!")
 def exibir_popup_expedicao(num_tp):
-    st.success(f"A carga TP **{num_tp}** foi expedida com sucesso e está **EM TRÂNSITO**!")
+    st.success(f"A carga TP **{num_tp}** foi expedida e está **EM TRÂNSITO**!")
     if st.button("OK / Próxima Carga", type="primary", use_container_width=True):
         st.session_state["exibir_modal_expedicao"] = False
         st.session_state["exp_form_version"] = st.session_state.get("exp_form_version", 0) + 1
         st.rerun()
 
-@st.dialog("⚙️ Agendamento de Descarga Confirmado!")
+@st.dialog("⚙️ Agendamento Confirmado!")
 def exibir_popup_operacional(num_tp):
-    st.success(f"A carga TP **{num_tp}** teve os dados operacionais salvos e status alterado para **ENTREGUE**!")
+    st.success(f"A carga TP **{num_tp}** teve os dados operacionais salvos!")
     if st.button("OK / Próxima Carga", type="primary", use_container_width=True):
         st.session_state["exibir_modal_operacional"] = False
         st.session_state["op_form_version"] = st.session_state.get("op_form_version", 0) + 1
@@ -537,13 +535,13 @@ def exibir_popup_operacional(num_tp):
 
 @st.dialog("💼 Processo Finalizado!")
 def exibir_popup_administracao(num_tp):
-    st.success(f"A carga TP **{num_tp}** teve o acerto concluído e o status alterado para **FINALIZADA**!")
+    st.success(f"A carga TP **{num_tp}** teve o acerto concluído!")
     if st.button("OK / Concluir", type="primary", use_container_width=True):
         st.session_state["exibir_modal_administracao"] = False
         st.session_state["adm_form_version"] = st.session_state.get("adm_form_version", 0) + 1
         st.rerun()
 
-@st.dialog("➕ Cadastrar Novo Fornecedor")
+@st.dialog("➕ Novo Fornecedor")
 def modal_cadastrar_fornecedor():
     with st.form("form_modal_fornecedor"):
         f1, f2 = st.columns(2)
@@ -554,7 +552,7 @@ def modal_cadastrar_fornecedor():
         nome_fantasia = st.text_input("Nome Fantasia").strip().upper()
 
         l1, l2 = st.columns([3, 1])
-        local_atendimento = l1.text_input("Local de Atendimento*").strip().upper()
+        local_atendimento = l1.text_input("Local Atendimento*").strip().upper()
         uf = l2.text_input("UF*").strip().upper()
 
         contato = st.text_input("Contato / Telefone").strip()
@@ -563,7 +561,7 @@ def modal_cadastrar_fornecedor():
 
     if btn_salvar_forn:
         if not razao_social or not local_atendimento or not uf:
-            st.error("Preencha os campos obrigatórios (Razão Social, Local de Atendimento e UF).")
+            st.error("Preencha os campos obrigatórios.")
         else:
             try:
                 with get_connection() as conn:
@@ -589,21 +587,21 @@ if not st.session_state["logado"]:
     bg_style = f"background-image: url('data:image/jpeg;base64,{bg_base64}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;" if bg_base64 else "background-color: #0E2F56;"
 
     logo_base64 = get_base64_image("logo_transpes.png")
-    logo_html = f'<img src="data:image/png;base64,{logo_base64}" style="max-width: 180px; margin-bottom: 10px;">' if logo_base64 else '<div class="login-title" style="color: #0E2F56; font-size: 26px; font-weight: bold;">ERP Transpes</div>'
+    logo_html = f'<img src="data:image/png;base64,{logo_base64}" style="max-width: 150px; margin-bottom: 8px;">' if logo_base64 else '<div style="color: #0E2F56; font-size: 22px; font-weight: bold;">ERP Transpes</div>'
 
     st.markdown(
         f"""
         <style>
         [data-testid="stSidebar"], [data-testid="stHeader"] {{ display: none; }}
         .stApp {{ {bg_style} }}
-        [data-testid="stMainBlockContainer"] {{ max-width: 420px !important; padding-top: 5rem !important; margin: auto !important; }}
-        .login-card {{ background: rgba(255, 255, 255, 0.95); padding: 25px 20px 18px 20px; border-radius: 14px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4); text-align: center; margin-bottom: 20px; }}
+        [data-testid="stMainBlockContainer"] {{ max-width: 380px !important; padding-top: 4rem !important; margin: auto !important; }}
+        .login-card {{ background: rgba(255, 255, 255, 0.95); padding: 20px 18px; border-radius: 12px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3); text-align: center; margin-bottom: 15px; }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-    st.markdown(f'<div class="login-card">{logo_html}<div style="color: #444; font-size: 13px;">Entre com suas credenciais</div></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="login-card">{logo_html}<div style="color: #555; font-size: 12px;">Acesse o sistema</div></div>', unsafe_allow_html=True)
 
     with st.form("form_login"):
         usuario_input = st.text_input("Usuário", placeholder="Digite seu usuário")
@@ -637,10 +635,8 @@ if "menu" not in st.session_state:
     st.session_state["menu"] = "Visão Geral"
 
 menu_selecionado = st.session_state["menu"]
-
 perfil = st.session_state.get("usuario_perfil", "ADMIN")
 
-# Define opções disponíveis com base no perfil do usuário
 opcoes_perfil = ["Visão Geral"]
 if perfil == "ADMIN":
     opcoes_perfil.extend(["Comercial", "Programação", "Expedição", "Operacional", "Administração", "Fornecedores", "Excluir Cargas", "Usuários"])
@@ -655,70 +651,48 @@ elif perfil == "OPERACIONAL":
 elif perfil == "ADMINISTRATIVO":
     opcoes_perfil.extend(["Administração", "Fornecedores"])
 
+logo_base64_sidebar = get_base64_image("logo_transpes.png")
+
 with st.sidebar:
-    # 1. Logo / Cabeçalho da Sidebar
-    st.markdown("""
-        <div style="text-align: center; padding: 10px 0px 20px 0px;">
-            <h2 style="color: #FFFFFF; margin: 0; font-weight: 800; letter-spacing: 1px;">TRANSPES</h2>
-            <p style="color: #94A3B8; font-size: 0.75rem; margin: 0;">SISTEMA DE GESTÃO</p>
-        </div>
-    """, unsafe_allow_html=True)
+    # 1. Logo + Cabeçalho na Sidebar
+    if logo_base64_sidebar:
+        st.markdown(f"""
+            <div style="text-align: center; padding: 5px 0px 10px 0px;">
+                <img src="data:image/png;base64,{logo_base64_sidebar}" style="max-width: 120px; height: auto; margin-bottom: 5px;">
+                <h3 style="color: #FFFFFF; margin: 0; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
+                <p style="color: #94A3B8; font-size: 0.65rem; margin: 0;">SISTEMA DE GESTÃO</p>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div style="text-align: center; padding: 5px 0px 10px 0px;">
+                <h3 style="color: #FFFFFF; margin: 0; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
+                <p style="color: #94A3B8; font-size: 0.65rem; margin: 0;">SISTEMA DE GESTÃO</p>
+            </div>
+        """, unsafe_allow_html=True)
 
-    # 2. Navegação dos Menus (Com verificação de permissões do perfil)
-    if "Visão Geral" in opcoes_perfil:
-        if st.button("📊 Visão Geral", type="primary" if menu_selecionado == "Visão Geral" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Visão Geral"
+    # 2. Navegação
+    menus_icones = {
+        "Visão Geral": "📊 Visão Geral",
+        "Comercial": "💲 Comercial",
+        "Programação": "📅 Programação",
+        "Expedição": "📦 Expedição",
+        "Operacional": "⚙️ Operacional",
+        "Administração": "💼 Administração",
+        "Fornecedores": "🚚 Fornecedores",
+        "Excluir Cargas": "🗑️ Excluir Cargas",
+        "Usuários": "👥 Usuários"
+    }
+
+    for item in opcoes_perfil:
+        if st.button(menus_icones.get(item, item), type="primary" if menu_selecionado == item else "secondary", use_container_width=True):
+            st.session_state["menu"] = item
             st.rerun()
-
-    if "Comercial" in opcoes_perfil:
-        if st.button("💲 Comercial", type="primary" if menu_selecionado == "Comercial" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Comercial"
-            st.rerun()
-
-    if "Programação" in opcoes_perfil:
-        if st.button("📅 Programação", type="primary" if menu_selecionado == "Programação" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Programação"
-            st.rerun()
-
-    if "Expedição" in opcoes_perfil:
-        if st.button("📦 Expedição", type="primary" if menu_selecionado == "Expedição" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Expedição"
-            st.rerun()
-
-    if "Operacional" in opcoes_perfil:
-        if st.button("⚙️ Operacional", type="primary" if menu_selecionado == "Operacional" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Operacional"
-            st.rerun()
-
-    if "Administração" in opcoes_perfil:
-        if st.button("💼 Administração", type="primary" if menu_selecionado == "Administração" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Administração"
-            st.rerun()
-
-    if "Fornecedores" in opcoes_perfil:
-        if st.button("🚚 Fornecedores", type="primary" if menu_selecionado == "Fornecedores" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Fornecedores"
-            st.rerun()
-
-    if "Excluir Cargas" in opcoes_perfil:
-        if st.button("🗑️ Excluir Cargas", type="primary" if menu_selecionado == "Excluir Cargas" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Excluir Cargas"
-            st.rerun()
-
-    if "Usuários" in opcoes_perfil:
-        if st.button("👥 Usuários", type="primary" if menu_selecionado == "Usuários" else "secondary", use_container_width=True):
-            st.session_state["menu"] = "Usuários"
-            st.rerun()
-
-    st.markdown("<br><br>", unsafe_allow_html=True)
 
     # 3. Rodapé do Usuário Logado
+    st.markdown("<br>", unsafe_allow_html=True)
     st.markdown("---")
-    col_usr1, col_usr2 = st.columns([1, 3])
-    with col_usr1:
-        st.markdown("👤")
-    with col_usr2:
-        st.markdown(f"**{st.session_state.get('usuario_nome', 'Administrador')}**\n<small style='color: #94A3B8;'>{st.session_state.get('usuario_perfil', 'ADMIN')}</small>", unsafe_allow_html=True)
+    st.markdown(f"<small style='color: #CBD5E1;'>👤 <b>{st.session_state.get('usuario_nome', 'Admin')}</b> ({st.session_state.get('usuario_perfil', 'ADMIN')})</small>", unsafe_allow_html=True)
 
     if st.button("🚪 Sair", use_container_width=True):
         st.session_state.clear()
@@ -781,7 +755,7 @@ if menu_selecionado == "Visão Geral":
             df = pd.DataFrame(dados, columns=colunas)
 
     if df.empty:
-        st.info("Nenhuma carga cadastrada até o momento.")
+        st.info("Nenhuma carga cadastrada no momento.")
     else:
         def formatar_real(valor):
             return f"R$ {valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
@@ -825,40 +799,22 @@ if menu_selecionado == "Visão Geral":
 
         st.markdown("---")
 
-        st.subheader("📥 Exportar Relatório")
-        col_exp1, col_exp2 = st.columns([1, 1])
-        with col_exp1:
-            st.download_button(
-                "📗 Exportar para Excel (.xlsx)", 
-                data=gerar_excel_geral(df[cols_final]), 
-                file_name="Relatorio_Geral_Transpes.xlsx", 
-                use_container_width=True,
-                key="btn_export_excel_visao_geral"
-            )
-        with col_exp2:
-            st.download_button(
-                "📄 Exportar para PDF (.pdf)", 
-                data=gerar_pdf_geral(df), 
-                file_name="Relatorio_Geral_Transpes.pdf", 
-                use_container_width=True,
-                key="btn_export_pdf_visao_geral"
-            )
-
-        st.markdown("---")
-        st.subheader("📋 Detalhamento das Cargas")
+        c_exp1, c_exp2, _ = st.columns([1, 1, 3])
+        with c_exp1:
+            st.download_button("📗 Exportar Excel", data=gerar_excel_geral(df[cols_final]), file_name="Relatorio_Geral_Transpes.xlsx", use_container_width=True, key="btn_export_excel")
+        with c_exp2:
+            st.download_button("📄 Exportar PDF", data=gerar_pdf_geral(df), file_name="Relatorio_Geral_Transpes.pdf", use_container_width=True, key="btn_export_pdf")
 
         df_exib = df.copy()
-        cols_fin = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
-        for c in cols_fin:
+        for c in ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]:
             df_exib[c] = df_exib[c].apply(formatar_real)
-        
         df_exib["Margem (%)"] = df_exib["Margem (%)"].apply(lambda v: f"{round(v)}%")
 
         st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
 
 # 2. COMERCIAL
 elif menu_selecionado == "Comercial":
-    st.title("💼 Comercial - Novo Frete / Carga")
+    st.title("💼 Comercial - Novo Frete")
 
     if "com_form_version" not in st.session_state:
         st.session_state["com_form_version"] = 0
@@ -867,49 +823,48 @@ elif menu_selecionado == "Comercial":
     if st.session_state.get("exibir_modal_comercial", False):
         exibir_popup_comercial(st.session_state.get("carga_comercial_num", ""))
 
-    c_q1, c_q2, c_q3 = st.columns(3)
-    qtd_origens = c_q1.number_input("Qtd. Clientes / Origens*", 1, 10, 1, key=f"com_q_orig_{v_com}")
-    qtd_destinos = c_q2.number_input("Qtd. Clientes / Destinos*", 1, 10, 1, key=f"com_q_dest_{v_com}")
-    qtd_nfs = c_q3.number_input("Qtd. Notas Fiscais (Opcional)", 0, 10, 0, key=f"com_q_nfs_{v_com}")
+    c_q1, c_q2, c_q3, _ = st.columns([1, 1, 1, 2])
+    qtd_origens = c_q1.number_input("Qtd. Origens*", 1, 10, 1, key=f"com_q_orig_{v_com}")
+    qtd_destinos = c_q2.number_input("Qtd. Destinos*", 1, 10, 1, key=f"com_q_dest_{v_com}")
+    qtd_nfs = c_q3.number_input("Qtd. NFs", 0, 10, 0, key=f"com_q_nfs_{v_com}")
 
     with st.form(f"form_comercial_{v_com}"):
-        st.subheader("1. Identificação Geral")
         numero_set = st.text_input("Número do SET*", placeholder="Ex: SET-2026-001").strip().upper()
 
-        st.subheader("2. Locais de Origem e Clientes")
+        st.subheader("Origens")
         lista_origens = []
         for i in range(int(qtd_origens)):
             co1, co2, co3 = st.columns([2, 2, 1])
             cli = co1.text_input(f"Cliente Origem {i+1}*", key=f"com_cli_orig_{i}_{v_com}").upper()
-            cid = co2.text_input(f"Cidade Origem {i+1}*", key=f"com_cid_orig_{i}_{v_com}").upper()
-            uf = co3.text_input(f"UF Origem {i+1}*", key=f"com_uf_orig_{i}_{v_com}").upper()
+            cid = co2.text_input(f"Cidade {i+1}*", key=f"com_cid_orig_{i}_{v_com}").upper()
+            uf = co3.text_input(f"UF {i+1}*", key=f"com_uf_orig_{i}_{v_com}").upper()
             lista_origens.append({"cliente": cli, "cidade": cid, "estado": uf})
 
-        st.subheader("3. Locais de Destino e Clientes")
+        st.subheader("Destinos")
         lista_destinos = []
         for j in range(int(qtd_destinos)):
             cd1, cd2, cd3 = st.columns([2, 2, 1])
             cli = cd1.text_input(f"Cliente Destino {j+1}*", key=f"com_cli_dest_{j}_{v_com}").upper()
-            cid = cd2.text_input(f"Cidade Destino {j+1}*", key=f"com_cid_dest_{j}_{v_com}").upper()
-            uf = cd3.text_input(f"UF Destino {j+1}*", key=f"com_uf_dest_{j}_{v_com}").upper()
+            cid = cd2.text_input(f"Cidade {j+1}*", key=f"com_cid_dest_{j}_{v_com}").upper()
+            uf = cd3.text_input(f"UF {j+1}*", key=f"com_uf_dest_{j}_{v_com}").upper()
             lista_destinos.append({"cliente": cli, "cidade": cid, "estado": uf})
 
-        st.subheader("4. Notas Fiscais (Opcional)")
         lista_nfs_com = []
         if qtd_nfs > 0:
+            st.subheader("Notas Fiscais")
             cols_nf = st.columns(min(int(qtd_nfs), 4))
             for k in range(int(qtd_nfs)):
-                val_nf = cols_nf[k % 4].text_input(f"Nota Fiscal {k+1}", key=f"com_nf_{k}_{v_com}").upper()
+                val_nf = cols_nf[k % 4].text_input(f"NF {k+1}", key=f"com_nf_{k}_{v_com}").upper()
                 if val_nf.strip():
                     lista_nfs_com.append(val_nf.strip())
 
-        st.subheader("5. Valores Recebidos do Cliente")
+        st.subheader("Valores do Cliente")
         v1, v2, v3 = st.columns(3)
-        receita_frete = v1.number_input("Valor do Frete (R$)*", min_value=0.0, value=0.0, step=100.0)
-        receita_pedagio = v2.number_input("Valor do Pedágio (R$)", min_value=0.0, value=0.0, step=50.0)
-        receita_taxa_descarga = v3.number_input("Taxa de Descarga (R$)", min_value=0.0, value=0.0, step=50.0)
+        receita_frete = v1.number_input("Frete (R$)*", min_value=0.0, value=0.0, step=100.0)
+        receita_pedagio = v2.number_input("Pedágio (R$)", min_value=0.0, value=0.0, step=50.0)
+        receita_taxa_descarga = v3.number_input("Taxa Descarga (R$)", min_value=0.0, value=0.0, step=50.0)
 
-        salvar_com = st.form_submit_button("💾 Salvar Lançamento Comercial", type="primary", use_container_width=True)
+        salvar_com = st.form_submit_button("💾 Salvar Comercial", type="primary", use_container_width=True)
 
     if salvar_com:
         valid_orig = all(o["cliente"] and o["cidade"] and o["estado"] for o in lista_origens)
@@ -917,18 +872,12 @@ elif menu_selecionado == "Comercial":
 
         if not numero_set:
             st.error("O campo SET é obrigatório.")
-        elif not valid_orig:
-            st.error("Preencha todos os dados de Cliente, Cidade e UF para as origens.")
-        elif not valid_dest:
-            st.error("Preencha todos os dados de Cliente, Cidade e UF para os destinos.")
+        elif not valid_orig or not valid_dest:
+            st.error("Preencha todos os campos de origens e destinos.")
         elif receita_frete <= 0:
-            st.error("O Valor do Frete é obrigatório e deve ser maior que zero.")
+            st.error("O Valor do Frete deve ser maior que zero.")
         else:
             num_carga_novo = gerar_numero_carga_novo()
-            json_orig = json.dumps(lista_origens)
-            json_dest = json.dumps(lista_destinos)
-            json_nfs = json.dumps(lista_nfs_com) if lista_nfs_com else ""
-
             try:
                 with get_connection() as conn:
                     with conn.cursor() as cursor:
@@ -939,7 +888,8 @@ elif menu_selecionado == "Comercial":
                                 status, nome_motorista
                             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_PROGRAMACAO', '-')
                         """, (
-                           num_carga_novo, numero_set, json_orig, json_dest, json_nfs,
+                           num_carga_novo, numero_set, json.dumps(lista_origens), json.dumps(lista_destinos),
+                           json.dumps(lista_nfs_com) if lista_nfs_com else "",
                            receita_frete, receita_pedagio, receita_taxa_descarga
                        ))
                         conn.commit()
@@ -948,7 +898,7 @@ elif menu_selecionado == "Comercial":
                 st.session_state["carga_comercial_num"] = num_carga_novo
                 st.rerun()
             except Exception as e:
-                st.error(f"Erro ao salvar dados comerciais: {e}")
+                st.error(f"Erro ao salvar: {e}")
 
 # 3. PROGRAMAÇÃO
 elif menu_selecionado == "Programação":
@@ -961,68 +911,51 @@ elif menu_selecionado == "Programação":
     if st.session_state.get("exibir_modal_programacao", False):
         exibir_popup_programacao(st.session_state.get("tp_programado_num", ""))
 
-    query_prog = """
-        SELECT id, numero_carga, numero_set, origens_json, destinos_json, notas_fiscais_comercial
-        FROM cargas 
-        WHERE status = 'PENDENTE_PROGRAMACAO'
-    """
+    query_prog = "SELECT id, numero_carga, numero_set, origens_json, destinos_json, notas_fiscais_comercial FROM cargas WHERE status = 'PENDENTE_PROGRAMACAO'"
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query_prog)
             dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            cargas_prog_df = pd.DataFrame(dados, columns=colunas)
+            cargas_prog_df = pd.DataFrame(dados, columns=[desc.name for desc in cursor.description])
 
     if cargas_prog_df.empty:
-        st.info("Nenhuma carga pendente de programação no momento.")
+        st.info("Nenhuma carga pendente de programação.")
     else:
-        opcoes_cargas = {}
-        for _, row in cargas_prog_df.iterrows():
-            orig_str = formatar_origens_destinos(row['origens_json'], apenas_locais=True)
-            dest_str = formatar_origens_destinos(row['destinos_json'], apenas_locais=True)
-            nfs_list = processar_json_lista(row['notas_fiscais_comercial'])
-            nf_str = ", ".join(nfs_list) if nfs_list else "LIVRE"
-
-            label = f"SET: {row['numero_set']} - ORIGEM: {orig_str} - DESTINO: {dest_str} - NF: {nf_str}"
-            opcoes_cargas[label] = row['id']
-
-        selecionada = st.selectbox("Selecione a Carga Comercial*", list(opcoes_cargas.keys()), key=f"prog_sel_{v_prog}")
-        carga_id = opcoes_cargas[selecionada]
+        opcoes_cargas = {f"SET: {r['numero_set']} - ORIGEM: {formatar_origens_destinos(r['origens_json'], True)} - DESTINO: {formatar_origens_destinos(r['destinos_json'], True)}": r['id'] for _, r in cargas_prog_df.iterrows()}
+        carga_id = opcoes_cargas[st.selectbox("Selecione a Carga*", list(opcoes_cargas.keys()), key=f"prog_sel_{v_prog}")]
 
         with st.form(f"form_programacao_{v_prog}"):
-            with st.container(border=True):
-                col1, col2 = st.columns(2)
+            c1, c2, c3, c4 = st.columns(4)
+            numero_tp = c1.text_input("Número TP*", placeholder="TP-1234").strip().upper()
+            nome_motorista = c2.text_input("Motorista*").upper()
+            cpf_motorista = c3.text_input("CPF Motorista")
+            telefone_motorista = c4.text_input("Telefone Motorista")
 
-                with col1:
-                    numero_tp = st.text_input("Número de TP*", placeholder="Ex: TP-998877").strip().upper()
-                    nome_motorista = st.text_input("Motorista*").upper()
-                    telefone_motorista = st.text_input("Telefone")
-                    tipo_veiculo = st.selectbox("Tipo de Veículo*", ["TRUCK", "CARRETA 13m", "CARRETA 15m", "BITREM", "RODOTREM"])
-                    placa_cavalo = st.text_input("Placa Cavalo*").upper()
-                    valor_rpa = st.number_input("RPA (R$)*", min_value=0.0, value=0.0, step=100.0)
-                    previsao_descarga = st.date_input("Data Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
-                    plataforma = st.selectbox("Plataforma*", ["APP", "Card"])
-                    obs_prog = st.text_area("Observação").upper()
+            c5, c6, c7, c8 = st.columns(4)
+            tipo_motorista = c5.selectbox("Tipo Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"])
+            tipo_veiculo = c6.selectbox("Tipo Veículo*", ["TRUCK", "CARRETA 13m", "CARRETA 15m", "BITREM", "RODOTREM"])
+            eixos = c7.number_input("Eixos*", 2, 9, 6)
+            valor_rpa = c8.number_input("RPA (R$)*", min_value=0.0, value=0.0, step=100.0)
 
-                with col2:
-                    tipo_motorista = st.selectbox("Tipo de Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"])
-                    cpf_motorista = st.text_input("CPF")
-                    eixos = st.number_input("Eixos*", min_value=2, max_value=9, value=6)
-                    placa_carreta = st.text_input("Placa Carreta*").upper()
-                    data_coleta = st.date_input("Data Coleta*", datetime.date.today(), format="DD/MM/YYYY")
-                    tipo_pedagio = st.text_input("Tipo de Pedágio", placeholder="Ex: Sem Parar, Veloe, ConectCar...").strip().upper()
-                    vinculo = st.selectbox("Vínculo*", ["CPF", "CNPJ"])
+            c9, c10, c11, c12 = st.columns(4)
+            placa_cavalo = c9.text_input("Placa Cavalo*").upper()
+            placa_carreta = c10.text_input("Placa Carreta*").upper()
+            data_coleta = c11.date_input("Data Coleta*", datetime.date.today(), format="DD/MM/YYYY")
+            previsao_descarga = c12.date_input("Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
+
+            c13, c14, c15 = st.columns(3)
+            tipo_pedagio = c13.text_input("Tipo Pedágio").strip().upper()
+            plataforma = c14.selectbox("Plataforma*", ["APP", "Card"])
+            vinculo = c15.selectbox("Vínculo*", ["CPF", "CNPJ"])
+
+            obs_prog = st.text_area("Observação").upper()
 
             salvar_prog = st.form_submit_button("💾 Salvar Programação", type="primary", use_container_width=True)
 
         if salvar_prog:
-            if not numero_tp:
-                st.error("O número de TP é obrigatório.")
-            elif not nome_motorista or not placa_cavalo or not placa_carreta:
-                st.error("Preencha os campos obrigatórios (Motorista, Placa Cavalo e Placa Carreta).")
+            if not numero_tp or not nome_motorista or not placa_cavalo or not placa_carreta:
+                st.error("Preencha os campos obrigatórios (*).")
             else:
-                cpf_fmt = formatar_cpf(cpf_motorista)
-                tel_fmt = formatar_telefone(telefone_motorista)
                 try:
                     with get_connection() as conn:
                         with conn.cursor() as cursor:
@@ -1036,7 +969,7 @@ elif menu_selecionado == "Programação":
                                     observacoes_programacao = %s, status = 'PROGRAMADA'
                                 WHERE id = %s
                             """, (
-                                numero_tp, nome_motorista, cpf_fmt, tel_fmt, tipo_motorista,
+                                numero_tp, nome_motorista, formatar_cpf(cpf_motorista), formatar_telefone(telefone_motorista), tipo_motorista,
                                 tipo_veiculo, eixos, placa_cavalo, placa_carreta, valor_rpa,
                                 data_coleta.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
                                 tipo_pedagio, plataforma, vinculo, obs_prog, carga_id
@@ -1047,7 +980,7 @@ elif menu_selecionado == "Programação":
                     st.session_state["tp_programado_num"] = numero_tp
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Erro ao salvar programação: {e}")
+                    st.error(f"Erro ao salvar: {e}")
 
 # 4. EXPEDIÇÃO
 elif menu_selecionado == "Expedição":
@@ -1060,55 +993,31 @@ elif menu_selecionado == "Expedição":
     if st.session_state.get("exibir_modal_expedicao", False):
         exibir_popup_expedicao(st.session_state.get("exp_tp_num", ""))
 
-    query_exp = """
-        SELECT id, numero_set, numero_tp, nome_motorista, origens_json, destinos_json, notas_fiscais_comercial, valor_rpa
-        FROM cargas 
-        WHERE status = 'PROGRAMADA'
-    """
+    query_exp = "SELECT id, numero_set, numero_tp, nome_motorista, origens_json, destinos_json, notas_fiscais_comercial, valor_rpa FROM cargas WHERE status = 'PROGRAMADA'"
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query_exp)
             dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            cargas_exp_df = pd.DataFrame(dados, columns=colunas)
+            cargas_exp_df = pd.DataFrame(dados, columns=[desc.name for desc in cursor.description])
 
     if cargas_exp_df.empty:
         st.info("Nenhuma carga aguardando expedição.")
     else:
-        opcoes_cargas = {}
-        rpa_map = {}
-        nf_com_map = {}
-        tp_map = {}
-        for _, row in cargas_exp_df.iterrows():
-            orig_str = formatar_origens_destinos(row['origens_json'], apenas_locais=True)
-            dest_str = formatar_origens_destinos(row['destinos_json'], apenas_locais=True)
-            nfs_list = processar_json_lista(row['notas_fiscais_comercial'])
-            nf_str = ", ".join(nfs_list) if nfs_list else "LIVRE"
-
-            label = f"SET: {row['numero_set']} - TP: {row['numero_tp']} - MOTORISTA: {row['nome_motorista']} - ORIGEM: {orig_str} - DESTINO: {dest_str} - NF: {nf_str}"
-            cid = row['id']
-            opcoes_cargas[label] = cid
-            rpa_map[cid] = row['valor_rpa'] or 0.0
-            nf_com_map[cid] = nfs_list
-            tp_map[cid] = row['numero_tp']
-
-        selecionada = st.selectbox("Selecione a Carga Programada*", list(opcoes_cargas.keys()), key=f"exp_sel_{v_exp}")
-        carga_id = opcoes_cargas[selecionada]
-
-        v_rpa = rpa_map[carga_id]
-        adiantamento_val = v_rpa * 0.70
-        nfs_comercial_existentes = nf_com_map[carga_id]
+        opcoes_cargas = {f"SET: {r['numero_set']} - TP: {r['numero_tp']} - MOTORISTA: {r['nome_motorista']}": r['id'] for _, r in cargas_exp_df.iterrows()}
+        carga_id = opcoes_cargas[st.selectbox("Selecione a Carga Programada*", list(opcoes_cargas.keys()), key=f"exp_sel_{v_exp}")]
+        
+        row_sel = cargas_exp_df[cargas_exp_df['id'] == carga_id].iloc[0]
+        v_rpa = row_sel['valor_rpa'] or 0.0
 
         e_c1, e_c2, e_c3, e_c4 = st.columns(4)
         qtd_ctes = e_c1.number_input("Qtd. CT-es*", 1, 10, 1, key=f"exp_q_cte_{v_exp}")
         qtd_viagens = e_c2.number_input("Qtd. Viagens", 1, 10, 1, key=f"exp_q_v_{v_exp}")
         qtd_mdfes = e_c3.number_input("Qtd. MDF-es*", 1, 10, 1, key=f"exp_q_mdfe_{v_exp}")
-        qtd_nfs_exp = e_c4.number_input("Qtd. NFs (caso livre)", 0, 10, 0 if nfs_comercial_existentes else 1, key=f"exp_q_nf_{v_exp}")
+        qtd_nfs_exp = e_c4.number_input("Qtd. NFs livres", 0, 10, 0, key=f"exp_q_nf_{v_exp}")
 
         with st.form(f"form_expedicao_{v_exp}"):
-            st.text_input("Adiantamento (70% do RPA - Consulta)", value=f"R$ {adiantamento_val:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
+            st.text_input("Adiantamento (70% RPA)", value=f"R$ {v_rpa * 0.70:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
 
-            st.subheader("1. CT-e e Viagem")
             lista_ctes = []
             cols_cte = st.columns(min(int(qtd_ctes), 4))
             for i in range(int(qtd_ctes)):
@@ -1121,49 +1030,33 @@ elif menu_selecionado == "Expedição":
                 v_v = cols_v[j % 4].text_input(f"Viagem {j+1}", key=f"exp_viag_{j}_{v_exp}").upper()
                 if v_v.strip(): lista_viagens.append(v_v.strip())
 
-            st.subheader("2. MDF-e e Contrato")
-            c_m1, c_m2 = st.columns(2)
+            f1, f2, f3 = st.columns(3)
             lista_mdfes = []
-            cols_mdfe = c_m1.columns(min(int(qtd_mdfes), 2))
+            cols_mdfe = f1.columns(min(int(qtd_mdfes), 2))
             for k in range(int(qtd_mdfes)):
                 v_m = cols_mdfe[k % 2].text_input(f"MDF-e {k+1}*", key=f"exp_mdfe_{k}_{v_exp}").upper()
                 if v_m.strip(): lista_mdfes.append(v_m.strip())
 
-            numero_contrato = c_m2.text_input("Número do Contrato*", placeholder="Ex: CTR-12345").strip().upper()
+            numero_contrato = f2.text_input("Número do Contrato*", placeholder="CTR-12345").strip().upper()
+            data_saida_filial = f3.date_input("Data Saída Filial*", datetime.date.today(), format="DD/MM/YYYY")
 
-            st.subheader("3. Custos e Notas Fiscais")
-            p1, p2 = st.columns(2)
-            valor_pedagio_pago = p1.number_input("Valor Pedágio Pago ao Motorista (R$)", min_value=0.0, value=0.0, step=50.0)
-            data_saida_filial = p2.date_input("Data Saída Filial*", datetime.date.today(), format="DD/MM/YYYY")
+            valor_pedagio_pago = st.number_input("Pedágio Pago Motorista (R$)", min_value=0.0, value=0.0, step=50.0)
 
             lista_nfs_exp = []
-            if nfs_comercial_existentes:
-                st.text_input("Notas Fiscais (Preenchidas pelo Comercial - Somente Consulta)", value=", ".join(nfs_comercial_existentes), disabled=True)
-            else:
-                st.markdown("**Preenchimento de Notas Fiscais (Liberado pois Comercial deixou em branco):**")
-                if qtd_nfs_exp > 0:
-                    cols_nf = st.columns(min(int(qtd_nfs_exp), 4))
-                    for n in range(int(qtd_nfs_exp)):
-                        v_nf = cols_nf[n % 4].text_input(f"Nota Fiscal {n+1}", key=f"exp_nf_{n}_{v_exp}").upper()
-                        if v_nf.strip(): lista_nfs_exp.append(v_nf.strip())
+            if qtd_nfs_exp > 0:
+                cols_nf = st.columns(min(int(qtd_nfs_exp), 4))
+                for n in range(int(qtd_nfs_exp)):
+                    v_nf = cols_nf[n % 4].text_input(f"NF {n+1}", key=f"exp_nf_{n}_{v_exp}").upper()
+                    if v_nf.strip(): lista_nfs_exp.append(v_nf.strip())
 
             obs_exp = st.text_area("Observação").upper()
 
-            salvar_exp = st.form_submit_button("🚚 Confirmar Expedição / Saída", type="primary", use_container_width=True)
+            salvar_exp = st.form_submit_button("🚚 Confirmar Saída / Expedição", type="primary", use_container_width=True)
 
         if salvar_exp:
-            if len(lista_ctes) < int(qtd_ctes):
-                st.error("Preencha todos os campos obrigatórios de CT-e.")
-            elif len(lista_mdfes) < int(qtd_mdfes):
-                st.error("Preencha todos os campos obrigatórios de MDF-e.")
-            elif not numero_contrato:
-                st.error("O número do contrato é obrigatório.")
+            if len(lista_ctes) < int(qtd_ctes) or len(lista_mdfes) < int(qtd_mdfes) or not numero_contrato:
+                st.error("Preencha todos os campos obrigatórios (*).")
             else:
-                json_ctes = json.dumps(lista_ctes)
-                json_viagens = json.dumps(lista_viagens) if lista_viagens else ""
-                json_mdfes = json.dumps(lista_mdfes)
-                json_nfs_exp = json.dumps(lista_nfs_exp) if lista_nfs_exp else ""
-
                 try:
                     with get_connection() as conn:
                         with conn.cursor() as cursor:
@@ -1173,21 +1066,22 @@ elif menu_selecionado == "Expedição":
                                     valor_pedagio_pago, notas_fiscais_expedicao, data_saida_filial, observacoes_expedicao
                                 ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                             """, (
-                                carga_id, json_ctes, json_viagens, json_mdfes, numero_contrato,
-                                valor_pedagio_pago, json_nfs_exp, data_saida_filial.strftime("%d/%m/%Y"), obs_exp
+                                carga_id, json.dumps(lista_ctes), json.dumps(lista_viagens) if lista_viagens else "",
+                                json.dumps(lista_mdfes), numero_contrato, valor_pedagio_pago,
+                                json.dumps(lista_nfs_exp) if lista_nfs_exp else "", data_saida_filial.strftime("%d/%m/%Y"), obs_exp
                             ))
                             cursor.execute("UPDATE cargas SET status = 'EM TRÂNSITO' WHERE id = %s", (carga_id,))
                             conn.commit()
 
                     st.session_state["exibir_modal_expedicao"] = True
-                    st.session_state["exp_tp_num"] = tp_map[carga_id]
+                    st.session_state["exp_tp_num"] = row_sel['numero_tp']
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Erro ao salvar expedição: {e}")
+                    st.error(f"Erro ao salvar: {e}")
 
 # 5. OPERACIONAL
 elif menu_selecionado == "Operacional":
-    st.title("⚙️ Operacional - Gestão de Descarga")
+    st.title("⚙️ Operacional - Descarga")
 
     if "op_form_version" not in st.session_state:
         st.session_state["op_form_version"] = 0
@@ -1197,9 +1091,7 @@ elif menu_selecionado == "Operacional":
         exibir_popup_operacional(st.session_state.get("op_tp_num", ""))
 
     query_op = """
-        SELECT 
-            c.id, c.numero_tp, c.nome_motorista, c.origens_json, c.destinos_json,
-            c.previsao_descarga, e.data_saida_filial
+        SELECT c.id, c.numero_tp, c.nome_motorista, c.origens_json, c.destinos_json, c.previsao_descarga, e.data_saida_filial
         FROM cargas c
         INNER JOIN carga_expedicao e ON c.id = e.carga_id
         WHERE c.status = 'EM TRÂNSITO'
@@ -1208,70 +1100,42 @@ elif menu_selecionado == "Operacional":
         with conn.cursor() as cursor:
             cursor.execute(query_op)
             dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            cargas_op_df = pd.DataFrame(dados, columns=colunas)
+            cargas_op_df = pd.DataFrame(dados, columns=[desc.name for desc in cursor.description])
 
     if cargas_op_df.empty:
-        st.info("Nenhuma carga em trânsito aguardando operacional.")
+        st.info("Nenhuma carga em trânsito no momento.")
     else:
-        opcoes_cargas = {}
-        dados_consulta = {}
-        tp_map = {}
-        for _, row in cargas_op_df.iterrows():
-            orig_str = formatar_origens_destinos(row['origens_json'], apenas_locais=True)
-            dest_str = formatar_origens_destinos(row['destinos_json'], apenas_locais=True)
-
-            label = f"TP: {row['numero_tp']} - MOTORISTA: {row['nome_motorista']} - ORIGEM: {orig_str} - DESTINO: {dest_str} - SAÍDA: {row['data_saida_filial']} - PREV. DESCARGA: {row['previsao_descarga']}"
-            cid = row['id']
-            opcoes_cargas[label] = cid
-            dados_consulta[cid] = row
-            tp_map[cid] = row['numero_tp']
-
-        selecionada = st.selectbox("Selecione a Carga em Trânsito*", list(opcoes_cargas.keys()), key=f"op_sel_{v_op}")
-        carga_id = opcoes_cargas[selecionada]
-        row_sel = dados_consulta[carga_id]
+        opcoes_cargas = {f"TP: {r['numero_tp']} - MOTORISTA: {r['nome_motorista']}": r['id'] for _, r in cargas_op_df.iterrows()}
+        carga_id = opcoes_cargas[st.selectbox("Selecione a Carga em Trânsito*", list(opcoes_cargas.keys()), key=f"op_sel_{v_op}")]
+        row_sel = cargas_op_df[cargas_op_df['id'] == carga_id].iloc[0]
 
         with get_connection() as conn:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT razao_social, nome_fantasia FROM fornecedores ORDER BY razao_social")
-                forn_dados = cursor.fetchall()
-                forn_cols = [desc.name for desc in cursor.description]
-                forn_df = pd.DataFrame(forn_dados, columns=forn_cols)
+                forn_df = pd.DataFrame(cursor.fetchall(), columns=[desc.name for desc in cursor.description])
         
         lista_fornecedores = [f"{r['razao_social']} ({r['nome_fantasia']})" if r['nome_fantasia'] else r['razao_social'] for _, r in forn_df.iterrows()]
 
-        st.markdown("### 📋 Informações em Consulta (Somente Leitura)")
-        inf1, inf2 = st.columns(2)
-        cli_orig_full = formatar_origens_destinos(row_sel['origens_json'])
-        cli_dest_full = formatar_origens_destinos(row_sel['destinos_json'])
-        inf1.text_input("Cliente e Origem", value=cli_orig_full, disabled=True)
-        inf2.text_input("Cliente e Destino", value=cli_dest_full, disabled=True)
+        inf1, inf2, inf3 = st.columns(3)
+        inf1.text_input("Origem/Destino", value=f"{formatar_origens_destinos(row_sel['origens_json'], True)} -> {formatar_origens_destinos(row_sel['destinos_json'], True)}", disabled=True)
+        inf2.text_input("Saída Filial", value=row_sel['data_saida_filial'], disabled=True)
+        inf3.text_input("Prev. Descarga", value=row_sel['previsao_descarga'], disabled=True)
 
-        inf3, inf4 = st.columns(2)
-        inf3.text_input("Data Saída Filial", value=row_sel['data_saida_filial'], disabled=True)
-        inf4.text_input("Data Previsão Descarga", value=row_sel['previsao_descarga'], disabled=True)
-
-        st.markdown("---")
         with st.form(f"form_operacional_{v_op}"):
-            st.subheader("Preenchimento Operacional")
             f1, f2 = st.columns(2)
-            if lista_fornecedores:
-                fornecedor_sel = f1.selectbox("Fornecedor de Descarga*", lista_fornecedores)
-            else:
-                fornecedor_sel = f1.text_input("Fornecedor de Descarga*").upper()
-
+            fornecedor_sel = f1.selectbox("Fornecedor Descarga*", lista_fornecedores) if lista_fornecedores else f1.text_input("Fornecedor Descarga*").upper()
             custo_descarga = f2.number_input("Custo Descarga (R$)*", min_value=0.0, value=0.0, step=50.0)
 
             p1, p2, p3 = st.columns(3)
             data_agendamento = p1.date_input("Data Agendamento*", datetime.date.today(), format="DD/MM/YYYY")
-            forma_pagamento = p2.selectbox("Forma de Pagamento*", ["PIX", "BOLETO", "DEPÓSITO BANCÁRIO"])
+            forma_pagamento = p2.selectbox("Forma Pagamento*", ["PIX", "BOLETO", "DEPÓSITO BANCÁRIO"])
             prazo_dias = p3.number_input("Prazo (dias)*", min_value=0, value=30, step=5)
 
-            salvar_op = st.form_submit_button("✅ Concluir Registro Operacional", type="primary", use_container_width=True)
+            salvar_op = st.form_submit_button("✅ Salvar Operacional", type="primary", use_container_width=True)
 
         if salvar_op:
             if not fornecedor_sel:
-                st.error("Selecione um Fornecedor de Descarga.")
+                st.error("Selecione um fornecedor.")
             else:
                 try:
                     with get_connection() as conn:
@@ -1289,14 +1153,14 @@ elif menu_selecionado == "Operacional":
                             conn.commit()
 
                     st.session_state["exibir_modal_operacional"] = True
-                    st.session_state["op_tp_num"] = tp_map[carga_id]
+                    st.session_state["op_tp_num"] = row_sel['numero_tp']
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Erro ao salvar operacional: {e}")
+                    st.error(f"Erro ao salvar: {e}")
 
 # 6. ADMINISTRAÇÃO
 elif menu_selecionado == "Administração":
-    st.title("💼 Administração e Acerto Financeiro")
+    st.title("💼 Administração - Acerto Financeiro")
 
     if "adm_form_version" not in st.session_state:
         st.session_state["adm_form_version"] = 0
@@ -1305,53 +1169,34 @@ elif menu_selecionado == "Administração":
     if st.session_state.get("exibir_modal_administracao", False):
         exibir_popup_administracao(st.session_state.get("adm_tp_num", ""))
 
-    query_adm = """
-        SELECT c.id, c.numero_tp, c.nome_motorista, COALESCE(c.valor_rpa, 0.0) AS valor_rpa, e.numero_cte
-        FROM cargas c
-        LEFT JOIN carga_expedicao e ON c.id = e.carga_id
-        WHERE c.status = 'ENTREGUE'
-    """
+    query_adm = "SELECT c.id, c.numero_tp, c.nome_motorista, COALESCE(c.valor_rpa, 0.0) AS valor_rpa, e.numero_cte FROM cargas c LEFT JOIN carga_expedicao e ON c.id = e.carga_id WHERE c.status = 'ENTREGUE'"
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query_adm)
             dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            cargas_adm_df = pd.DataFrame(dados, columns=colunas)
+            cargas_adm_df = pd.DataFrame(dados, columns=[desc.name for desc in cursor.description])
 
     if cargas_adm_df.empty:
-        st.info("Nenhuma carga entregue aguardando acerto administrativo.")
+        st.info("Nenhuma carga entregue aguardando acerto.")
     else:
-        opcoes_cargas = {}
-        rpa_map = {}
-        tp_map = {}
-        for _, row in cargas_adm_df.iterrows():
-            ctes_list = processar_json_lista(row['numero_cte'])
-            cte_str = ", ".join(ctes_list) if ctes_list else "N/A"
-            label = f"TP: {row['numero_tp']} - MOTORISTA: {row['nome_motorista']} - CTe: {cte_str}"
-            cid = row['id']
-            opcoes_cargas[label] = cid
-            rpa_map[cid] = row['valor_rpa']
-            tp_map[cid] = row['numero_tp']
+        opcoes_cargas = {f"TP: {r['numero_tp']} - MOTORISTA: {r['nome_motorista']}": r['id'] for _, r in cargas_adm_df.iterrows()}
+        carga_id = opcoes_cargas[st.selectbox("Selecione a Carga Entregue*", list(opcoes_cargas.keys()), key=f"adm_sel_{v_adm}")]
+        row_sel = cargas_adm_df[cargas_adm_df['id'] == carga_id].iloc[0]
 
-        selecionada = st.selectbox("Selecione a Carga Entregue*", list(opcoes_cargas.keys()), key=f"adm_sel_{v_adm}")
-        carga_id = opcoes_cargas[selecionada]
-
-        v_rpa = rpa_map[carga_id]
+        v_rpa = row_sel['valor_rpa']
         adiantamento_calc = v_rpa * 0.70
         saldo_calc = v_rpa * 0.30
 
         with st.form(f"form_administracao_{v_adm}"):
-            a1, a2 = st.columns(2)
-            a1.text_input("Valor Adiantamento (70% RPA)", value=f"R$ {adiantamento_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
-            a2.text_input("Valor Saldo (30% RPA)", value=f"R$ {saldo_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
+            a1, a2, a3, a4 = st.columns(4)
+            a1.text_input("Adiantamento (70%)", value=f"R$ {adiantamento_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
+            a2.text_input("Saldo (30%)", value=f"R$ {saldo_calc:,.2f}".replace(",", "X").replace(".", ",").replace("X", "."), disabled=True)
+            status_pag = a3.selectbox("Status Saldo", ["PENDENTE", "PAGO", "CANCELADO"])
+            data_lib = a4.date_input("Data Liberação", datetime.date.today(), format="DD/MM/YYYY")
 
-            a3, a4 = st.columns(2)
-            comprovante = a3.checkbox("Comprovante de Entregue Recebido")
-            status_pag = a4.selectbox("Status Pagamento Saldo", ["PENDENTE", "PAGO", "CANCELADO"])
+            comprovante = st.checkbox("Comprovante de Entregue Recebido")
 
-            data_lib = st.date_input("Data Liberação Saldo", datetime.date.today(), format="DD/MM/YYYY")
-
-            salvar_adm = st.form_submit_button("💰 Finalizar Acerto e Liberar Saldo", type="primary", use_container_width=True)
+            salvar_adm = st.form_submit_button("💰 Finalizar Acerto Financeiro", type="primary", use_container_width=True)
 
         if salvar_adm:
             try:
@@ -1363,122 +1208,61 @@ elif menu_selecionado == "Administração":
                                 data_liberacao_saldo, status_pagamento_saldo
                             ) VALUES (%s, %s, %s, %s, %s, %s)
                         """, (carga_id, adiantamento_calc, saldo_calc, 1 if comprovante else 0, data_lib.strftime("%d/%m/%Y"), status_pag))
-                        
                         cursor.execute("UPDATE cargas SET status = 'FINALIZADA' WHERE id = %s", (carga_id,))
                         conn.commit()
 
                 st.session_state["exibir_modal_administracao"] = True
-                st.session_state["adm_tp_num"] = tp_map[carga_id]
+                st.session_state["adm_tp_num"] = row_sel['numero_tp']
                 st.rerun()
             except Exception as e:
-                st.error(f"Erro ao salvar administração: {e}")
+                st.error(f"Erro ao salvar: {e}")
 
 # 7. FORNECEDORES
 elif menu_selecionado == "Fornecedores":
     st.title("🚚 Gestão de Fornecedores")
 
-    # --- BOTOES E IMPORTACAO ---
-    col_btn1, col_btn2, _ = st.columns([1.5, 1.5, 2])
+    col_btn1, _ = st.columns([2, 3])
     with col_btn1:
         if st.button("➕ Cadastrar Novo Fornecedor", type="primary", use_container_width=True):
             modal_cadastrar_fornecedor()
 
-    # --- SESSÃO DE IMPORTAÇÃO EM LOTE ---
-    with st.expander("📥 Importar Fornecedores em Lote (Excel / CSV)", expanded=False):
-        st.write("Faça o upload de uma planilha contendo os fornecedores para cadastrá-los de uma só vez.")
-        
-        df_modelo = pd.DataFrame({
-            "nr_contrato": ["12345"],
-            "razao_social": ["Empresa Exemplo LTDA"],
-            "nome_fantasia": ["Exemplo Fornecedor"],
-            "local_atendimento": ["São Paulo"],
-            "uf": ["SP"],
-            "cpf_cnpj": ["00.000.000/0001-00"],
-            "contato": ["(11) 99999-9999 - João"]
-        })
-        
+    with st.expander("📥 Importação em Lote (Excel / CSV)", expanded=False):
+        df_modelo = pd.DataFrame({"nr_contrato": ["12345"], "razao_social": ["EXEMPLO LTDA"], "nome_fantasia": ["EXEMPLO"], "local_atendimento": ["SÃO PAULO"], "uf": ["SP"], "cpf_cnpj": ["00.000.000/0001-00"], "contato": ["(11) 99999-9999"]})
         buffer_modelo = io.BytesIO()
         with pd.ExcelWriter(buffer_modelo, engine='openpyxl') as writer:
             df_modelo.to_excel(writer, index=False, sheet_name='Fornecedores')
         
-        st.download_button(
-            label="📄 Baixar Planilha Modelo (.xlsx)",
-            data=buffer_modelo.getvalue(),
-            file_name="Modelo_Importacao_Fornecedores.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-        )
+        st.download_button("📄 Baixar Modelo (.xlsx)", data=buffer_modelo.getvalue(), file_name="Modelo_Fornecedores.xlsx")
 
-        arquivo_carregado = st.file_uploader("Selecione o arquivo Excel (.xlsx) ou CSV", type=["xlsx", "csv"])
-
+        arquivo_carregado = st.file_uploader("Arquivo Excel ou CSV", type=["xlsx", "csv"])
         if arquivo_carregado is not None:
             try:
-                if arquivo_carregado.name.endswith('.csv'):
-                    df_import = pd.read_csv(arquivo_carregado, dtype=str)
-                else:
-                    df_import = pd.read_excel(arquivo_carregado, dtype=str)
-
+                df_import = pd.read_csv(arquivo_carregado, dtype=str) if arquivo_carregado.name.endswith('.csv') else pd.read_excel(arquivo_carregado, dtype=str)
                 df_import = df_import.fillna("")
+                st.dataframe(df_import.head(5), use_container_width=True)
 
-                st.write("Pré-visualização dos dados:")
-                st.dataframe(df_import.head(10), use_container_width=True)
-
-                if st.button("🚀 Confirmar Importação dos Fornecedores"):
+                if st.button("🚀 Confirmar Importação"):
                     sucessos = 0
-                    erros = 0
-
-                    query_insert = """
-                        INSERT INTO fornecedores (
-                            nr_contrato, razao_social, nome_fantasia, 
-                            local_atendimento, uf, cpf_cnpj, contato
-                        )
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """
-
                     with get_connection() as conn:
                         with conn.cursor() as cursor:
                             for _, row in df_import.iterrows():
-                                try:
-                                    nr_contrato = str(row.get("nr_contrato", "")).strip()
-                                    razao_social = str(row.get("razao_social", "")).strip()
-                                    nome_fantasia = str(row.get("nome_fantasia", "")).strip()
-                                    local_atendimento = str(row.get("local_atendimento", "")).strip()
-                                    uf = str(row.get("uf", "")).strip()
-                                    cpf_cnpj = str(row.get("cpf_cnpj", "")).strip()
-                                    contato = str(row.get("contato", "")).strip()
-
-                                    if razao_social or nome_fantasia:
-                                        cursor.execute(query_insert, (
-                                            nr_contrato, razao_social, nome_fantasia, 
-                                            local_atendimento, uf, cpf_cnpj, contato
-                                        ))
-                                        sucessos += 1
-                                except Exception as e:
-                                    erros += 1
-
-                    st.success(f"✅ Importação concluída! {sucessos} fornecedores cadastrados com sucesso.")
-                    if erros > 0:
-                        st.warning(f"⚠️ {erros} linhas falharam na importação.")
+                                if str(row.get("razao_social", "")).strip():
+                                    cursor.execute("INSERT INTO fornecedores (nr_contrato, razao_social, nome_fantasia, local_atendimento, uf, cpf_cnpj, contato) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                                                   (row.get("nr_contrato", ""), row.get("razao_social", ""), row.get("nome_fantasia", ""), row.get("local_atendimento", ""), row.get("uf", ""), row.get("cpf_cnpj", ""), row.get("contato", "")))
+                                    sucessos += 1
+                            conn.commit()
+                    st.success(f"✅ {sucessos} fornecedores importados!")
                     st.rerun()
-
             except Exception as e:
-                st.error(f"Erro ao ler o arquivo: {e}")
+                st.error(f"Erro na importação: {e}")
 
-    st.markdown("---")
-
-    # --- LISTAGEM DOS FORNECEDORES ---
-    query_forn = """
-        SELECT nr_contrato AS "Nr. Contrato", razao_social AS "Razão Social", nome_fantasia AS "Nome Fantasia",
-               local_atendimento AS "Local de Atendimento", uf AS "UF", cpf_cnpj AS "CPF/CNPJ", contato AS "Contato"
-        FROM fornecedores ORDER BY id DESC
-    """
+    query_forn = "SELECT nr_contrato AS 'Nr. Contrato', razao_social AS 'Razão Social', nome_fantasia AS 'Nome Fantasia', local_atendimento AS 'Local', uf AS 'UF', cpf_cnpj AS 'CPF/CNPJ', contato AS 'Contato' FROM fornecedores ORDER BY id DESC"
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute(query_forn)
             dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            df_fornecedores = pd.DataFrame(dados, columns=colunas)
+            df_fornecedores = pd.DataFrame(dados, columns=[desc.name for desc in cursor.description])
 
-    st.metric("Total de Fornecedores Cadastrados", len(df_fornecedores))
     st.dataframe(df_fornecedores, use_container_width=True, hide_index=True)
 
 # 8. EXCLUIR CARGAS
@@ -1488,16 +1272,13 @@ elif menu_selecionado == "Excluir Cargas":
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT id, numero_carga, COALESCE(numero_tp, '-') AS tp, COALESCE(nome_motorista, '-') AS mot, status FROM cargas")
-            dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            cargas_df = pd.DataFrame(dados, columns=colunas)
+            cargas_df = pd.DataFrame(cursor.fetchall(), columns=[desc.name for desc in cursor.description])
     
     if cargas_df.empty:
         st.info("Nenhuma carga cadastrada.")
     else:
-        opcoes_cargas = {f"Carga: {row['numero_carga']} | TP: {row['tp']} | Motorista: {row['mot']} | Status: {row['status']}": row['id'] for _, row in cargas_df.iterrows()}
-        selecionada = st.selectbox("Selecione a Carga a ser excluída*", list(opcoes_cargas.keys()))
-        carga_id = opcoes_cargas[selecionada]
+        opcoes_cargas = {f"Carga: {r['numero_carga']} | TP: {r['tp']} | Motorista: {r['mot']} | Status: {r['status']}": r['id'] for _, r in cargas_df.iterrows()}
+        carga_id = opcoes_cargas[st.selectbox("Selecione a Carga*", list(opcoes_cargas.keys()))]
 
         if st.button("❌ Excluir Definitivamente", type="primary"):
             with get_connection() as conn:
@@ -1507,7 +1288,7 @@ elif menu_selecionado == "Excluir Cargas":
                     cursor.execute("DELETE FROM carga_expedicao WHERE carga_id = %s", (carga_id,))
                     cursor.execute("DELETE FROM cargas WHERE id = %s", (carga_id,))
                     conn.commit()
-            st.success("Carga excluída com sucesso!")
+            st.success("Carga excluída!")
             st.rerun()
 
 # 9. USUÁRIOS
@@ -1517,39 +1298,31 @@ elif menu_selecionado == "Usuários":
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT id, usuario, nome, perfil FROM usuarios")
-            dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            users_df = pd.DataFrame(dados, columns=colunas)
+            users_df = pd.DataFrame(cursor.fetchall(), columns=[desc.name for desc in cursor.description])
             
-    st.dataframe(users_df, use_container_width=True)
+    st.dataframe(users_df, use_container_width=True, hide_index=True)
 
-    st.subheader("➕ Adicionar Novo Usuário")
+    st.subheader("➕ Novo Usuário")
     with st.form("form_novo_usuario"):
-        u1, u2 = st.columns(2)
+        u1, u2, u3, u4 = st.columns(4)
         novo_usr = u1.text_input("Usuário*").strip().lower()
-        novo_nome = u2.text_input("Nome Completo*").strip().upper()
+        novo_nome = u2.text_input("Nome*").strip().upper()
+        nova_senha = u3.text_input("Senha*", type="password")
+        novo_perfil = u4.selectbox("Perfil*", ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
 
-        p1, p2 = st.columns(2)
-        nova_senha = p1.text_input("Senha*", type="password")
-        novo_perfil = p2.selectbox("Perfil*", ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
-
-        salvar_usr = st.form_submit_button("💾 Salvar Usuário", use_container_width=True, type="primary")
+        salvar_usr = st.form_submit_button("💾 Salvar Usuário", type="primary", use_container_width=True)
 
         if salvar_usr:
             if not (novo_usr and novo_nome and nova_senha and novo_perfil):
-                st.error("Preencha todos os campos obrigatórios.")
+                st.error("Preencha todos os campos.")
             else:
                 try:
                     with get_connection() as conn:
                         with conn.cursor() as cursor:
-                            cursor.execute(
-                                "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
-                                (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil)
-                            )
+                            cursor.execute("INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
+                                           (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil))
                             conn.commit()
-                    st.success(f"Usuário {novo_usr} cadastrado com sucesso!")
+                    st.success("Usuário criado com sucesso!")
                     st.rerun()
-                except psycopg.errors.UniqueViolation:
-                    st.error("Nome de usuário já cadastrado.")
                 except Exception as e:
-                    st.error(f"Erro ao salvar usuário: {e}")
+                    st.error(f"Erro ao salvar: {e}")
