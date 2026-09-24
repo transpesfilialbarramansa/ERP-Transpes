@@ -439,7 +439,7 @@ def gerar_pdf_geral(df):
 def exibir_popup_comercial(num_carga):
     st.success(f"A carga **{num_carga}** foi cadastrada pelo Comercial com sucesso!")
     st.write("Os dados foram salvos e liberados para a equipe de Programação.")
-    if st.button("OK / Próximo Registro", type="primary", use_container_width=True):
+    if st.button("OK / Nova Carga", type="primary", use_container_width=True):
         st.session_state["exibir_modal_comercial"] = False
         st.session_state["com_form_version"] = st.session_state.get("com_form_version", 0) + 1
         st.rerun()
@@ -874,37 +874,28 @@ elif menu_selecionado == "Programação":
         carga_id = opcoes_cargas[selecionada]
 
         with st.form(f"form_programacao_{v_prog}"):
-            st.subheader("1. Identificação do Transporte")
-            c1, _, _ = st.columns([1, 1, 1])
-            numero_tp = c1.text_input("Número de TP*", placeholder="Ex: TP-998877").strip().upper()
+            with st.container(border=True):
+                col1, col2 = st.columns(2)
 
-            st.subheader("2. Motorista e Veículo")
-            m1, m2, m3, m4 = st.columns(4)
-            nome_motorista = m1.text_input("Motorista*").upper()
-            cpf_motorista = m2.text_input("CPF")
-            telefone_motorista = m3.text_input("Telefone")
-            tipo_motorista = m4.selectbox("Tipo de Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"])
+                with col1:
+                    numero_tp = st.text_input("Número de TP*", placeholder="Ex: TP-998877").strip().upper()
+                    nome_motorista = st.text_input("Motorista*").upper()
+                    telefone_motorista = st.text_input("Telefone")
+                    tipo_veiculo = st.selectbox("Tipo de Veículo*", ["TRUCK", "CARRETA 13m", "CARRETA 15m", "BITREM", "RODOTREM"])
+                    placa_cavalo = st.text_input("Placa Cavalo*").upper()
+                    valor_rpa = st.number_input("RPA (R$)*", min_value=0.0, value=0.0, step=100.0)
+                    previsao_descarga = st.date_input("Data Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
+                    plataforma = st.selectbox("Plataforma*", ["APP", "Card"])
+                    obs_prog = st.text_area("Observação").upper()
 
-            v1, v2, v3, v4 = st.columns(4)
-            tipo_veiculo = v1.selectbox("Tipo de Veículo*", ["TRUCK", "CARRETA 13m", "CARRETA 15m", "BITREM", "RODOTREM"])
-            eixos = v2.number_input("Eixos*", min_value=2, max_value=9, value=6)
-            placa_cavalo = v3.text_input("Placa Cavalo*").upper()
-            placa_carreta = v4.text_input("Placa Carreta*").upper()
-
-            st.subheader("3. RPA, Datas e Observações")
-            d1, d2, d3 = st.columns(3)
-            valor_rpa = d1.number_input("RPA (R$)*", min_value=0.0, value=0.0, step=100.0)
-            data_coleta = d2.date_input("Data Coleta*", datetime.date.today(), format="DD/MM/YYYY")
-            previsao_descarga = d3.date_input("Data Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
-
-            st.subheader("Dados do Pedágio e Operação")
-            col_p1, col_p2, col_p3 = st.columns(3)
-
-            tipo_pedagio = col_p1.text_input("Tipo de Pedágio", placeholder="Ex: Sem Parar, Veloe, ConectCar...").strip().upper()
-            plataforma = col_p2.selectbox("Plataforma*", ["APP", "Card"])
-            vinculo = col_p3.selectbox("Vínculo*", ["CPF", "CNPJ"])
-
-            obs_prog = st.text_area("Observação").upper()
+                with col2:
+                    tipo_motorista = st.selectbox("Tipo de Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"])
+                    cpf_motorista = st.text_input("CPF")
+                    eixos = st.number_input("Eixos*", min_value=2, max_value=9, value=6)
+                    placa_carreta = st.text_input("Placa Carreta*").upper()
+                    data_coleta = st.date_input("Data Coleta*", datetime.date.today(), format="DD/MM/YYYY")
+                    tipo_pedagio = st.text_input("Tipo de Pedágio", placeholder="Ex: Sem Parar, Veloe, ConectCar...").strip().upper()
+                    vinculo = st.selectbox("Vínculo*", ["CPF", "CNPJ"])
 
             salvar_prog = st.form_submit_button("💾 Salvar Programação", type="primary", use_container_width=True)
 
