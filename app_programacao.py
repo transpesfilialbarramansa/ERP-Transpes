@@ -396,12 +396,33 @@ def get_base64_image(image_path):
         return None
 
 def gerar_numero_carga_novo():
+    ano = datetime.datetime.now().year
+    prefixo = f"TRP-{ano}-"
+    
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            cursor.execute("SELECT COUNT(*) FROM cargas")
-            qtd = cursor.fetchone()[0] + 1
-    ano = datetime.datetime.now().year
-    return f"TRP-{ano}-{qtd:03d}"
+            # Busca todos os códigos do ano atual para extrair o maior número sequencial
+            cursor.execute("""
+                SELECT numero_carga 
+                FROM cargas 
+                WHERE numero_carga LIKE %s
+            """, (f"{prefixo}%",))
+            
+            cargas = cursor.fetchall()
+            
+            max_seq = 0
+            for row in cargas:
+                codigo = row[0]
+                # Extrai apenas os dígitos finais (ex: de 'TRP-2026-027' pega 27)
+                partes = codigo.split('-')
+                if len(partes) == 3 and partes[2].isdigit():
+                    seq = int(partes[2])
+                    if seq > max_seq:
+                        max_seq = seq
+            
+            proximo_seq = max_seq + 1
+            
+    return f"{prefixo}{proximo_seq:03d}"
 
 def processar_json_lista(json_str):
     if not json_str:
