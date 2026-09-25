@@ -74,8 +74,8 @@ SVG_ICONS = {
     "fornecedores": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>',
     "excluir": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
     "usuarios": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
-    "user": '<svg style="vertical-align: middle; margin-right: 10px;" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
-    "logout": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>'
+    "user": '<svg style="vertical-align: middle; margin-right: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+    "logout": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>'
 }
 
 # ==========================================
@@ -108,70 +108,50 @@ st.markdown("""
 
     /* --- ESTILIZAÇÃO DA SIDEBAR --- */
     [data-testid="stSidebar"] {
-        background-color: #0A192F !important; /* Azul escuro idêntico ao da imagem */
-        min-width: 240px !important;
-        max-width: 240px !important;
+        background-color: #0B2136 !important;
+        min-width: 230px !important;
+        max-width: 230px !important;
     }
 
     [data-testid="stSidebar"] * {
         color: #E2E8F0 !important;
     }
 
-    /* Reduz padding e ajusta alinhamento do conteúdo da Sidebar */
+    /* Reduz o padding padrão do Streamlit no topo da Sidebar */
     [data-testid="stSidebarUserContent"] {
         padding-top: 1.5rem !important;
-        padding-left: 0.8rem !important;
-        padding-right: 0.8rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
 
-    /* Botões do Menu Lateral Alinhados à Esquerda */
+    /* Botões do Menu Lateral Modernos */
     [data-testid="stSidebar"] .stButton > button {
         background-color: transparent !important;
-        color: #CBD5E1 !important;
+        color: #94A3B8 !important;
         border: none !important;
         text-align: left !important;
         justify-content: flex-start !important;
         font-weight: 500 !important;
-        font-size: 0.9rem !important;
-        border-radius: 8px !important;
-        padding: 10px 12px !important;
+        font-size: 0.85rem !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
         margin-bottom: 4px !important;
         width: 100% !important;
-        display: flex !important;
-        align-items: center !important;
         transition: all 0.2s ease-in-out !important;
     }
 
-    /* Hover nos Botões do Menu */
+    /* Hover nos Botões */
     [data-testid="stSidebar"] .stButton > button:hover {
         background-color: rgba(255, 255, 255, 0.08) !important;
         color: #FFFFFF !important;
     }
 
-    /* Botão Selecionado (Ativo - Amarelo/Dourado) */
+    /* Botão Selecionado (Ativo) */
     [data-testid="stSidebar"] .stButton > button[kind="primary"] {
         background-color: #D99B26 !important;
-        color: #0A192F !important;
+        color: #0B2136 !important;
         font-weight: 700 !important;
-        border-radius: 10px !important;
-    }
-
-    /* Estilo Especial para o Botão "Sair" (Borda Contornada) */
-    [data-testid="stSidebar"] div[element-id="btn_logout"] > button,
-    [data-testid="stSidebar"] .stButton:last-child > button {
-        background-color: transparent !important;
-        border: 1px solid #475569 !important;
-        color: #FFFFFF !important;
-        text-align: center !important;
-        justify-content: center !important;
-        border-radius: 8px !important;
-        margin-top: 10px !important;
-    }
-
-    [data-testid="stSidebar"] div[element-id="btn_logout"] > button:hover,
-    [data-testid="stSidebar"] .stButton:last-child > button:hover {
-        border-color: #CBD5E1 !important;
-        background-color: rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
     }
 
     /* Títulos compactos */
@@ -766,33 +746,17 @@ with st.sidebar:
             st.session_state["menu"] = item
             st.rerun()
 
-    # Divisor inferior
+    # Rodapé do Usuário
     st.markdown("""
-        <div style="margin-top: 30px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);"></div>
+        <div style="margin-top: 25px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
     """, unsafe_allow_html=True)
     
-    # Bloco com o Ícone Amarelo do Usuário + Nome + Perfil
     st.markdown(
-        f"""
-        <div style="display: flex; align-items: center; margin-bottom: 12px; padding-left: 4px;">
-            <div style="margin-right: 12px;">
-                {SVG_ICONS['user']}
-            </div>
-            <div>
-                <div style="font-size: 0.88rem; font-weight: 700; color: #FFFFFF;">
-                    {st.session_state.get('usuario_nome', 'Administrador do Sistema')}
-                </div>
-                <div style="font-size: 0.72rem; color: #94A3B8; font-weight: 600; margin-top: 2px;">
-                    {st.session_state.get('usuario_perfil', 'ADMIN')}
-                </div>
-            </div>
-        </div>
-        """, 
+        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>{SVG_ICONS['user']} <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
         unsafe_allow_html=True
     )
 
-    # Botão Sair estilizado com o ícone de saída
-    if st.button("🚪 Sair", use_container_width=True, key="btn_logout"):
+    if st.button("Sair", use_container_width=True):
         st.session_state.clear()
         st.rerun()
 
