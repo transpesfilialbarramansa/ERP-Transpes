@@ -8,7 +8,6 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 import re
-import html
 import openpyxl
 import urllib.parse
 import smtplib
@@ -107,185 +106,52 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* --- SIDEBAR IGUAL AO MODELO DE REFERÊNCIA --- */
+    /* --- ESTILIZAÇÃO DA SIDEBAR --- */
     [data-testid="stSidebar"] {
         background-color: #0B2136 !important;
         min-width: 230px !important;
         max-width: 230px !important;
-        width: 230px !important;
     }
 
-    [data-testid="stSidebar"] > div:first-child {
-        background-color: #0B2136 !important;
+    [data-testid="stSidebar"] * {
+        color: #E2E8F0 !important;
     }
 
+    /* Reduz o padding padrão do Streamlit no topo da Sidebar */
     [data-testid="stSidebarUserContent"] {
-        padding: 0.75rem 0.75rem 0 !important;
+        padding-top: 1.5rem !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
 
-    /* Menu lateral: pequeno, alinhado à esquerda e sem cabeçalho/logo */
-    .erp-sidebar-menu {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
-        margin: 0;
-        padding: 0;
+    /* Botões do Menu Lateral Modernos */
+    [data-testid="stSidebar"] .stButton > button {
+        background-color: transparent !important;
+        color: #94A3B8 !important;
+        border: none !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        font-weight: 500 !important;
+        font-size: 0.85rem !important;
+        border-radius: 6px !important;
+        padding: 8px 12px !important;
+        margin-bottom: 4px !important;
+        width: 100% !important;
+        transition: all 0.2s ease-in-out !important;
     }
 
-    .erp-sidebar-item {
-        width: 100%;
-        min-height: 35px;
-        box-sizing: border-box;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 7px 10px;
-        border-radius: 6px;
-        text-decoration: none !important;
-        color: #B8C4D1 !important;
-        font-family: inherit;
-        font-size: 12.5px;
-        line-height: 1.1;
-        font-weight: 500;
-        text-align: left;
-        transition: background-color 0.15s ease, color 0.15s ease;
-    }
-
-    .erp-sidebar-item:hover {
-        background-color: rgba(255, 255, 255, 0.07) !important;
+    /* Hover nos Botões */
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background-color: rgba(255, 255, 255, 0.08) !important;
         color: #FFFFFF !important;
-        text-decoration: none !important;
     }
 
-    .erp-sidebar-item.active {
+    /* Botão Selecionado (Ativo) */
+    [data-testid="stSidebar"] .stButton > button[kind="primary"] {
         background-color: #D99B26 !important;
         color: #0B2136 !important;
-        font-weight: 700;
-        box-shadow: none;
-    }
-
-    .erp-sidebar-item svg {
-        width: 15px;
-        height: 15px;
-        min-width: 15px;
-        margin: 0 !important;
-        stroke: #D99B26 !important;
-    }
-
-    .erp-sidebar-item.active svg {
-        stroke: #0B2136 !important;
-    }
-
-    /* Área do usuário fixada no rodapé, como na imagem */
-    .erp-user-footer {
-        position: fixed;
-        left: 0;
-        bottom: 49px;
-        width: 230px;
-        box-sizing: border-box;
-        padding: 10px 12px 8px;
-        border-top: 1px solid rgba(255,255,255,0.08);
-        background: #0B2136;
-        z-index: 9999;
-    }
-
-    .erp-user-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        color: #CBD5E1;
-    }
-
-    .erp-user-icon {
-        width: 27px;
-        height: 27px;
-        min-width: 27px;
-        border: 2px solid #D99B26;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-sizing: border-box;
-    }
-
-    .erp-user-icon svg {
-        width: 17px;
-        height: 17px;
-        stroke: #D99B26 !important;
-    }
-
-    .erp-user-name {
-        font-size: 12px;
-        line-height: 14px;
-        font-weight: 700;
-        color: #E2E8F0;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-
-    .erp-user-role {
-        margin-top: 1px;
-        font-size: 10px;
-        line-height: 11px;
-        color: #94A3B8;
-        font-weight: 600;
-    }
-
-    /* Botão Sair: borda igual ao modelo */
-    [data-testid="stSidebar"] .erp-logout-container {
-        position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 230px;
-        box-sizing: border-box;
-        padding: 5px 12px 8px;
-        background: #0B2136;
-        z-index: 10000;
-    }
-
-    [data-testid="stSidebar"] .erp-logout-container .stButton {
-        width: 100% !important;
-        margin: 0 !important;
-    }
-
-    [data-testid="stSidebar"] .erp-logout-container .stButton > button {
-        height: 30px !important;
-        min-height: 30px !important;
-        width: 100% !important;
-        padding: 3px 10px 3px 30px !important;
-        position: relative !important;
-        background: transparent !important;
-        border: 2px solid #718096 !important;
-        border-radius: 4px !important;
-        color: #CBD5E1 !important;
-        font-size: 11.5px !important;
-        font-weight: 600 !important;
-        text-align: center !important;
-        box-shadow: none !important;
-    }
-
-    [data-testid="stSidebar"] .erp-logout-container .stButton > button:hover {
-        background: rgba(255,255,255,0.04) !important;
-        border-color: #A0AEC0 !important;
-        color: #FFFFFF !important;
-    }
-
-    /* Ícone SVG de saída dentro do botão Streamlit */
-    [data-testid="stSidebar"] .erp-logout-container .stButton > button::before {
-        content: "";
-        position: absolute;
-        left: 50%;
-        margin-left: -47px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 14px;
-        height: 14px;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: contain;
-        background-image: url("data:image/svg+xml;base64,PHN2ZyBzdHlsZT0idmVydGljYWwtYWxpZ246IG1pZGRsZTsgbWFyZ2luLXJpZ2h0OiA2cHg7IiB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjOTRBM0I4IiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHBhdGggZD0iTTkgMjFINWEyIDIgMCAwIDEtMi0yVjVhMiAyIDAgMCAxIDItMmg0Ij48L3BhdGg+PHBvbHlsaW5lIHBvaW50cz0iMTYgMTcgMjEgMTIgMTYgNyI+PC9wb2x5bGluZT48bGluZSB4MT0iMjEiIHkxPSIxMiIgeDI9IjkiIHkyPSIxMiI+PC9saW5lPjwvc3ZnPg==");
+        font-weight: 700 !important;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
     }
 
     /* Títulos compactos */
@@ -348,90 +214,6 @@ st.markdown("""
     .stButton > button {
         font-size: 0.82rem !important;
         padding: 4px 10px !important;
-    }
-
-    /* =====================================================
-       MENU NATIVO DO STREAMLIT — SEM NOVA GUIA / SEM LOGIN NOVO
-       ===================================================== */
-    [data-testid="stSidebar"] .stButton > button {
-        background: transparent !important;
-        border: none !important;
-        color: #B8C4D1 !important;
-        text-align: left !important;
-        justify-content: flex-start !important;
-        font-size: 12.5px !important;
-        font-weight: 500 !important;
-        min-height: 35px !important;
-        height: 35px !important;
-        padding: 7px 10px !important;
-        margin: 0 0 2px 0 !important;
-        border-radius: 6px !important;
-        box-shadow: none !important;
-    }
-
-    [data-testid="stSidebar"] .stButton > button:hover {
-        background: rgba(255,255,255,0.07) !important;
-        color: #FFFFFF !important;
-    }
-
-    [data-testid="stSidebar"] .stButton > button[kind="primary"] {
-        background: #D99B26 !important;
-        color: #0B2136 !important;
-        font-weight: 700 !important;
-    }
-
-    [data-testid="stSidebar"] .stButton > button [data-testid="stIconMaterial"] {
-        font-size: 16px !important;
-    }
-
-    /* Formulário do botão Sair */
-    [data-testid="stSidebar"] [data-testid="stForm"] {
-        position: fixed !important;
-        left: 0 !important;
-        bottom: 0 !important;
-        width: 230px !important;
-        box-sizing: border-box !important;
-        padding: 5px 12px 8px !important;
-        background: #0B2136 !important;
-        border-top: 0 !important;
-        z-index: 10000 !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stForm"] button {
-        height: 30px !important;
-        min-height: 30px !important;
-        width: 100% !important;
-        padding: 3px 10px 3px 30px !important;
-        position: relative !important;
-        background: transparent !important;
-        border: 2px solid #718096 !important;
-        border-radius: 4px !important;
-        color: #CBD5E1 !important;
-        font-size: 11.5px !important;
-        font-weight: 600 !important;
-        justify-content: center !important;
-        box-shadow: none !important;
-    }
-
-    [data-testid="stSidebar"] [data-testid="stForm"] button:hover {
-        background: rgba(255,255,255,0.04) !important;
-        border-color: #A0AEC0 !important;
-        color: #FFFFFF !important;
-    }
-
-    /* Ícone de saída do botão Sair */
-    [data-testid="stSidebar"] [data-testid="stForm"] button::before {
-        content: "";
-        position: absolute;
-        left: calc(50% - 47px);
-        top: 50%;
-        transform: translateY(-50%);
-        width: 14px;
-        height: 14px;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: 14px 14px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E");
     }
 
     /* Divisores compactos */
@@ -923,6 +705,10 @@ if not st.session_state["logado"]:
 # ==========================================
 # NAVEGAÇÃO E SIDEBAR ESTILIZADA
 # ==========================================
+if "menu" not in st.session_state:
+    st.session_state["menu"] = "Visão Geral"
+
+menu_selecionado = st.session_state["menu"]
 perfil = st.session_state.get("usuario_perfil", "ADMIN")
 
 opcoes_perfil = ["Visão Geral"]
@@ -939,74 +725,61 @@ elif perfil == "OPERACIONAL":
 elif perfil == "ADMINISTRATIVO":
     opcoes_perfil.extend(["Administração", "Fornecedores"])
 
-if "menu" not in st.session_state or st.session_state["menu"] not in opcoes_perfil:
-    st.session_state["menu"] = "Visão Geral"
-
-menu_selecionado = st.session_state["menu"]
-
-# Ícones Material usados apenas no botão do Streamlit.
-# A navegação volta a ser feita pelo próprio Streamlit, preservando a sessão
-# e evitando abrir nova guia ou pedir login novamente.
-menus_icones = {
-    "Visão Geral": ":material/dashboard:",
-    "Comercial": ":material/attach_money:",
-    "Programação": ":material/calendar_month:",
-    "Expedição": ":material/inventory_2:",
-    "Operacional": ":material/settings:",
-    "Administração": ":material/business_center:",
-    "Fornecedores": ":material/local_shipping:",
-    "Excluir Cargas": ":material/delete:",
-    "Usuários": ":material/groups:"
-}
+logo_base64_sidebar = get_base64_image("transpes_nova_logo_azul.jpg")
 
 with st.sidebar:
-    # Menu nativo do Streamlit: mantém a sessão, não abre nova guia e não
-    # passa novamente pela tela de login.
+    # Cabeçalho da Sidebar (Logo com fundo integrado e fonte branca)
+    if logo_base64_sidebar:
+        st.markdown(f"""
+            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0B2136; border-radius: 6px;">
+                <img src="data:image/jpeg;base64,{logo_base64_sidebar}" style="max-width: 150px; height: auto; display: block; margin: 0 auto 6px auto; filter: brightness(1.05) contrast(1.05);">
+                <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
+            </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <h3 style="color: #FFFFFF !important; margin: 0 0 2px 0 !important; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
+                <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
+            </div>
+        """, unsafe_allow_html=True)
+
+    # Menus Selecionáveis
+    menus_icones = {
+        "Visão Geral": ("visao_geral", "Visão Geral"),
+        "Comercial": ("comercial", "Comercial"),
+        "Programação": ("programacao", "Programação"),
+        "Expedição": ("expedicao", "Expedição"),
+        "Operacional": ("operacional", "Operacional"),
+        "Administração": ("administracao", "Administração"),
+        "Fornecedores": ("fornecedores", "Fornecedores"),
+        "Excluir Cargas": ("excluir", "Excluir Cargas"),
+        "Usuários": ("usuarios", "Usuários")
+    }
+
     for item in opcoes_perfil:
+        chave_svg, rotulo = menus_icones.get(item, ("visao_geral", item))
         if st.button(
-            item,
-            type="primary" if menu_selecionado == item else "secondary",
-            icon=menus_icones.get(item),
-            use_container_width=True,
-            key=f"menu_sidebar_{item}"
+            rotulo, 
+            type="primary" if menu_selecionado == item else "secondary", 
+            use_container_width=True
         ):
             st.session_state["menu"] = item
             st.rerun()
 
-    # Rodapé do usuário.
-    nome_usuario = html.escape(str(st.session_state.get("usuario_nome", "Administrador do Sistema")))
-    perfil_usuario = html.escape(str(st.session_state.get("usuario_perfil", "ADMIN")))
-
-    user_svg = SVG_ICONS["user"]
-    user_svg = re.sub(r'\s*style="[^"]*"', '', user_svg)
-    user_svg = re.sub(r'\s*width="[^"]*"', '', user_svg)
-    user_svg = re.sub(r'\s*height="[^"]*"', '', user_svg)
-
+    # Rodapé do Usuário
+    st.markdown("""
+        <div style="margin-top: 25px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
+    """, unsafe_allow_html=True)
+    
     st.markdown(
-        f"""
-        <div class="erp-user-footer">
-            <div class="erp-user-row">
-                <div class="erp-user-icon">
-                    {user_svg}
-                </div>
-                <div style="min-width:0;">
-                    <div class="erp-user-name">{nome_usuario}</div>
-                    <div class="erp-user-role">{perfil_usuario}</div>
-                </div>
-            </div>
-        </div>
-        """,
+        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>{SVG_ICONS['user']} <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
         unsafe_allow_html=True
     )
 
-    # Form separado para o logout, permitindo estilizar o botão sem afetar o menu.
-    with st.form("logout_sidebar_form", clear_on_submit=False, border=False):
-        sair = st.form_submit_button("Sair", use_container_width=True)
-
-    if sair:
+    if st.button("Sair", use_container_width=True):
         st.session_state.clear()
         st.rerun()
-
 
 # ==========================================
 # PÁGINAS DO SISTEMA
