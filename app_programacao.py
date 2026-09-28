@@ -124,7 +124,7 @@ st.markdown("""
         padding-right: 1rem !important;
     }
 
-    /* Botões do Menu Lateral Modernos e Alinhados à Esquerda */
+    /* Botões do Menu Lateral Modernos, Alinhados à Esquerda e Ultracompactos */
     [data-testid="stSidebar"] .stButton > button {
         background-color: transparent !important;
         color: #94A3B8 !important;
@@ -134,10 +134,10 @@ st.markdown("""
         display: flex !important;
         align-items: center !important;
         font-weight: 500 !important;
-        font-size: 0.85rem !important;
+        font-size: 0.82rem !important;
         border-radius: 6px !important;
-        padding: 8px 12px !important;
-        margin-bottom: 4px !important;
+        padding: 4px 8px !important; /* Padding reduzido para aproximar os botões */
+        margin-bottom: 2px !important; /* Distância entre um botão e outro reduzida */
         width: 100% !important;
         transition: all 0.2s ease-in-out !important;
     }
