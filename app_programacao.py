@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 import streamlit.components.v1 as components
 import re
+import html
 import openpyxl
 import urllib.parse
 import smtplib
