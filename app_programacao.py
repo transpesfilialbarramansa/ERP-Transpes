@@ -88,7 +88,7 @@ st.set_page_config(
 )
 
 # ==========================================
-# APLICAÇÃO DE ESTILO E LAYOUT ULTRACOMPACTO (CSS CUSTOMIZADO)
+# APLICAÇÃO DE ESTILO E LAYOUT ULTRACOMPACTO (CSS CUSTOMIZADO & SIDEBAR FLEXBOX)
 # ==========================================
 st.markdown("""
     <style>
@@ -106,7 +106,7 @@ st.markdown("""
         max-width: 100% !important;
     }
 
-    /* --- ESTILIZAÇÃO DA SIDEBAR --- */
+    /* --- ESTILIZAÇÃO DA SIDEBAR (FLEXBOX PARA EMPURRAR O USER LOGIN PRO RODAPÉ) --- */
     [data-testid="stSidebar"] {
         background-color: #0B2136 !important;
         min-width: 230px !important;
@@ -117,11 +117,39 @@ st.markdown("""
         color: #E2E8F0 !important;
     }
 
-    /* Reduz o padding padrão do Streamlit no topo da Sidebar */
+    /* Container Principal do Menu Lateral */
     [data-testid="stSidebarUserContent"] {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        height: 100vh !important;
         padding-top: 1.5rem !important;
+        padding-bottom: 1.5rem !important;
         padding-left: 1rem !important;
         padding-right: 1rem !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Bloco do Topo (Logo, Sistema de Gestão e Abas) */
+    .sidebar-top {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+
+    /* Bloco do Rodapé (Login e Botão Sair) */
+    .sidebar-bottom {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 10px !important;
+        margin-top: auto !important; /* Empurra para o rodapé */
+        padding-top: 12px !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .usuario-login {
+        font-size: 0.78rem !important;
+        color: #CBD5E1 !important;
     }
 
     /* Botões do Menu Lateral Modernos, Alinhados à Esquerda e Ultracompactos */
@@ -136,13 +164,13 @@ st.markdown("""
         font-weight: 500 !important;
         font-size: 0.82rem !important;
         border-radius: 6px !important;
-        padding: 4px 8px !important; /* Padding reduzido para aproximar os botões */
-        margin-bottom: 2px !important; /* Distância entre um botão e outro reduzida */
+        padding: 6px 8px !important;
+        margin-bottom: 2px !important;
         width: 100% !important;
         transition: all 0.2s ease-in-out !important;
     }
 
-    /* Garante que o texto dentro do botão do Streamlit também fique alinhado à esquerda */
+    /* Garante alinhamento interno dos botões */
     [data-testid="stSidebar"] .stButton > button p,
     [data-testid="stSidebar"] .stButton > button div {
         text-align: left !important;
@@ -411,7 +439,6 @@ def gerar_numero_carga_novo():
     
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # Busca todos os códigos do ano atual para extrair o maior número sequencial
             cursor.execute("""
                 SELECT numero_carga 
                 FROM cargas 
@@ -423,7 +450,6 @@ def gerar_numero_carga_novo():
             max_seq = 0
             for row in cargas:
                 codigo = row[0]
-                # Extrai apenas os dígitos finais (ex: de 'TRP-2026-027' pega 27)
                 partes = codigo.split('-')
                 if len(partes) == 3 and partes[2].isdigit():
                     seq = int(partes[2])
@@ -713,7 +739,7 @@ if not st.session_state["logado"]:
     st.stop()
 
 # ==========================================
-# NAVEGAÇÃO E SIDEBAR ESTILIZADA
+# NAVEGAÇÃO E SIDEBAR ESTILIZADA (LAYOUT FLEXBOX)
 # ==========================================
 if "menu" not in st.session_state:
     st.session_state["menu"] = "Visão Geral"
@@ -738,17 +764,19 @@ elif perfil == "ADMINISTRATIVO":
 logo_base64_sidebar = get_base64_image("transpes_nova_logo_azul.jpg")
 
 with st.sidebar:
-    # Cabeçalho da Sidebar (Logo com fundo integrado e fonte branca)
+    # --- BLOCO DO TOPO (Logo, Título e Abas do Menu) ---
+    st.markdown('<div class="sidebar-top">', unsafe_allow_html=True)
+    
     if logo_base64_sidebar:
         st.markdown(f"""
-            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0B2136; border-radius: 6px;">
+            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0B2136; border-radius: 6px;">
                 <img src="data:image/jpeg;base64,{logo_base64_sidebar}" style="max-width: 150px; height: auto; display: block; margin: 0 auto 6px auto; filter: brightness(1.05) contrast(1.05);">
                 <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
-            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.08);">
                 <h3 style="color: #FFFFFF !important; margin: 0 0 2px 0 !important; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
                 <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
@@ -777,19 +805,21 @@ with st.sidebar:
             st.session_state["menu"] = item
             st.rerun()
 
-    # Rodapé do Usuário
-    st.markdown("""
-        <div style="margin-top: 25px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
-    """, unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True) # Fim do sidebar-top
+
+    # --- BLOCO DO RODAPÉ (Login e Botão Sair) ---
+    st.markdown('<div class="sidebar-bottom">', unsafe_allow_html=True)
     
     st.markdown(
-        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>{SVG_ICONS['user']} <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
+        f"<div class='usuario-login'>{SVG_ICONS['user']} <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
         unsafe_allow_html=True
     )
 
     if st.button("Sair", use_container_width=True):
         st.session_state.clear()
         st.rerun()
+
+    st.markdown('</div>', unsafe_allow_html=True) # Fim do sidebar-bottom
 
 # ==========================================
 # PÁGINAS DO SISTEMA
@@ -905,9 +935,6 @@ if menu_selecionado == "Visão Geral":
 
         st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
 
-        # ==========================================
-        # RECURSO DE EDIÇÃO RÁPIDA (EXCLUSIVO ADMIN)
-        # ==========================================
         if perfil == "ADMIN":
             st.markdown("---")
             with st.expander("Painel Admin: Editar Carga Registrada", expanded=False):
@@ -919,7 +946,6 @@ if menu_selecionado == "Visão Geral":
                 carga_sel_label = st.selectbox("Selecione a Carga para Editar", list(opcoes_cargas.keys()))
                 id_carga_edit = opcoes_cargas[carga_sel_label]
                 
-                # Dados atuais da carga selecionada
                 dados_carga = df[df['id_carga'] == id_carga_edit].iloc[0]
 
                 with st.form(f"form_admin_edit_carga_{id_carga_edit}"):
@@ -1207,12 +1233,10 @@ elif menu_selecionado == "Expedição":
         row_sel = cargas_exp_df[cargas_exp_df['id'] == carga_id].iloc[0]
         v_rpa = row_sel['valor_rpa'] or 0.0
 
-        # Processa e limpa as NFs lançadas pelo Comercial
         nfs_comercial_brutas = row_sel['notas_fiscais_comercial']
         nfs_comercial_lista = processar_json_lista(nfs_comercial_brutas)
         tem_nfs_comercial = len(nfs_comercial_lista) > 0 and any(str(x).strip() for x in nfs_comercial_lista)
 
-        # Se o comercial preencheu, o campo de Qtd. NFs livres não é necessário na barra superior
         if tem_nfs_comercial:
             e_c1, e_c2, e_c3 = st.columns(3)
             qtd_ctes = e_c1.number_input("Qtd. CT-es*", 1, 10, 1, key=f"exp_q_cte_{v_exp}")
@@ -1253,15 +1277,12 @@ elif menu_selecionado == "Expedição":
 
             valor_pedagio_pago = st.number_input("Pedágio Pago Motorista (R$)", min_value=0.0, value=0.0, step=50.0)
 
-            # LÓGICA DE EXIBIÇÃO / EDIÇÃO DAS NOTAS FISCAIS:
             lista_nfs_exp = []
             if tem_nfs_comercial:
-                # Exibe em modo somente leitura (desativado) as NFs vindas do comercial
                 nfs_texto_consulta = " / ".join(nfs_comercial_lista)
                 st.text_input("Notas Fiscais (Registradas pelo Comercial)", value=nfs_texto_consulta, disabled=True)
                 lista_nfs_exp = nfs_comercial_lista
             else:
-                # Libera o preenchimento para a Expedição
                 if qtd_nfs_exp > 0:
                     st.subheader("Notas Fiscais (Expedição)")
                     cols_nf = st.columns(min(int(qtd_nfs_exp), 4))
@@ -1580,7 +1601,6 @@ elif menu_selecionado == "Excluir Cargas":
 elif menu_selecionado == "Usuários":
     st.markdown(f"<h1>{SVG_ICONS['usuarios']} Gestão de Usuários</h1>", unsafe_allow_html=True)
     
-    # 1. Consulta e exibe os usuários cadastrados
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT id, usuario, nome, perfil FROM usuarios ORDER BY id ASC")
@@ -1590,10 +1610,8 @@ elif menu_selecionado == "Usuários":
 
     st.markdown("---")
     
-    # Criando abas para separar a criação e a edição de usuários
     aba_novo, aba_editar = st.tabs(["Novo Usuário", "Editar Usuário"])
 
-    # --- ABA 1: CADASTRAR NOVO USUÁRIO ---
     with aba_novo:
         st.subheader("Cadastrar Novo Usuário")
         with st.form("form_novo_usuario"):
@@ -1622,18 +1640,15 @@ elif menu_selecionado == "Usuários":
                     except Exception as e:
                         st.error(f"Erro ao salvar usuário: {e}")
 
-    # --- ABA 2: EDITAR USUÁRIO EXISTENTE ---
     with aba_editar:
         st.subheader("Editar Usuário")
         if users_df.empty:
             st.info("Nenhum usuário disponível para edição.")
         else:
-            # Mapeia os usuários para o selectbox
             opcoes_usuarios = {f"{r['usuario']} ({r['nome']} - {r['perfil']})": r['id'] for _, r in users_df.iterrows()}
             usuario_selecionado_label = st.selectbox("Selecione o Usuário para Editar", list(opcoes_usuarios.keys()))
             usr_id_editar = opcoes_usuarios[usuario_selecionado_label]
 
-            # Busca os dados atuais do usuário selecionado
             usr_dados = users_df[users_df['id'] == usr_id_editar].iloc[0]
 
             with st.form("form_editar_usuario"):
@@ -1656,13 +1671,11 @@ elif menu_selecionado == "Usuários":
                             with get_connection() as conn:
                                 with conn.cursor() as cursor:
                                     if edit_senha.strip():
-                                        # Atualiza Nome, Perfil e Senha
                                         cursor.execute(
                                             "UPDATE usuarios SET nome = %s, perfil = %s, senha = %s WHERE id = %s",
                                             (edit_nome, edit_perfil, hash_senha(edit_senha.strip()), usr_id_editar)
                                         )
                                     else:
-                                        # Atualiza apenas Nome e Perfil
                                         cursor.execute(
                                             "UPDATE usuarios SET nome = %s, perfil = %s WHERE id = %s",
                                             (edit_nome, edit_perfil, usr_id_editar)
