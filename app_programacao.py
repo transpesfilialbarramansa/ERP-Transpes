@@ -65,17 +65,17 @@ def formatar_telefone(valor: str) -> str:
 # DEF_SVGS - DEFINIÇÃO DOS ÍCONES SVG PADRONIZADOS
 # ==========================================
 SVG_ICONS = {
-    "visao_geral": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
-    "comercial": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
-    "programacao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
-    "expedicao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
-    "operacional": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
-    "administracao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>',
-    "fornecedores": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>',
-    "excluir": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
-    "usuarios": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
-    "user": '<svg style="vertical-align: middle; margin-right: 4px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
-    "logout": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94A3B8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>'
+    "visao_geral": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
+    "comercial": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
+    "programacao": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+    "expedicao": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
+    "operacional": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
+    "administracao": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>',
+    "fornecedores": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg>',
+    "excluir": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>',
+    "usuarios": '<svg style="vertical-align: middle; margin-right: 8px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>',
+    "user": '<svg style="vertical-align: middle; margin-right: 6px;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>',
+    "logout": '<svg style="vertical-align: middle; margin-right: 8px;" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>'
 }
 
 # ==========================================
@@ -111,6 +111,7 @@ st.markdown("""
         background-color: #0B2136 !important;
         min-width: 230px !important;
         max-width: 230px !important;
+        border-right: none !important;
     }
 
     [data-testid="stSidebar"] * {
@@ -119,30 +120,31 @@ st.markdown("""
 
     /* Reduz o padding padrão do Streamlit no topo da Sidebar */
     [data-testid="stSidebarUserContent"] {
-        padding-top: 1.5rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-top: 1.2rem !important;
+        padding-left: 0.8rem !important;
+        padding-right: 0.8rem !important;
     }
 
-    /* Botões do Menu Lateral Modernos */
+    /* Botões do Menu Lateral Alinhados à Esquerda e Menores */
     [data-testid="stSidebar"] .stButton > button {
         background-color: transparent !important;
-        color: #94A3B8 !important;
+        color: #CBD5E1 !important;
         border: none !important;
         text-align: left !important;
         justify-content: flex-start !important;
         font-weight: 500 !important;
-        font-size: 0.85rem !important;
+        font-size: 0.80rem !important;
         border-radius: 6px !important;
-        padding: 8px 12px !important;
-        margin-bottom: 4px !important;
+        padding: 6px 10px !important;
+        margin-bottom: 2px !important;
         width: 100% !important;
+        box-shadow: none !important;
         transition: all 0.2s ease-in-out !important;
     }
 
     /* Hover nos Botões */
     [data-testid="stSidebar"] .stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.08) !important;
+        background-color: rgba(255, 255, 255, 0.06) !important;
         color: #FFFFFF !important;
     }
 
@@ -151,7 +153,36 @@ st.markdown("""
         background-color: #D99B26 !important;
         color: #0B2136 !important;
         font-weight: 700 !important;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+        box-shadow: none !important;
+    }
+
+    /* Estilização Exclusiva para o Botão Sair (Com borda delimitada) */
+    div[element-id="btn_sair_sidebar"] .stButton > button,
+    [data-testid="stSidebar"] div.stButton:last-child > button {
+        border: 1px solid rgba(217, 155, 38, 0.5) !important;
+        background-color: transparent !important;
+        color: #E2E8F0 !important;
+        border-radius: 6px !important;
+        margin-top: 6px !important;
+    }
+
+    div[element-id="btn_sair_sidebar"] .stButton > button:hover,
+    [data-testid="stSidebar"] div.stButton:last-child > button:hover {
+        background-color: rgba(217, 155, 38, 0.15) !important;
+        border-color: #D99B26 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Card do Usuário Logado */
+    .user-info-card {
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 20px;
+        padding: 6px 12px;
+        display: flex;
+        align-items: center;
+        margin-top: 15px;
+        margin-bottom: 8px;
+        font-size: 0.76rem;
     }
 
     /* Títulos compactos */
@@ -731,16 +762,16 @@ with st.sidebar:
     # Cabeçalho da Sidebar (Logo com fundo integrado e fonte branca)
     if logo_base64_sidebar:
         st.markdown(f"""
-            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0B2136; border-radius: 6px;">
-                <img src="data:image/jpeg;base64,{logo_base64_sidebar}" style="max-width: 150px; height: auto; display: block; margin: 0 auto 6px auto; filter: brightness(1.05) contrast(1.05);">
-                <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
+            <div style="text-align: center; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <img src="data:image/jpeg;base64,{logo_base64_sidebar}" style="max-width: 140px; height: auto; display: block; margin: 0 auto 4px auto; filter: brightness(1.05) contrast(1.05);">
+                <p style="color: #94A3B8 !important; font-size: 0.62rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
         """, unsafe_allow_html=True)
     else:
         st.markdown("""
-            <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-                <h3 style="color: #FFFFFF !important; margin: 0 0 2px 0 !important; font-weight: 800; font-size: 1.1rem; letter-spacing: 1px;">TRANSPES</h3>
-                <p style="color: #94A3B8 !important; font-size: 0.65rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
+            <div style="text-align: center; padding-bottom: 8px; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+                <h3 style="color: #FFFFFF !important; margin: 0 0 2px 0 !important; font-weight: 800; font-size: 1.0rem; letter-spacing: 1px;">TRANSPES</h3>
+                <p style="color: #94A3B8 !important; font-size: 0.62rem !important; font-weight: 600 !important; letter-spacing: 1.5px !important; margin: 0 !important; text-transform: uppercase;">SISTEMA DE GESTÃO</p>
             </div>
         """, unsafe_allow_html=True)
 
@@ -759,25 +790,34 @@ with st.sidebar:
 
     for item in opcoes_perfil:
         chave_svg, rotulo = menus_icones.get(item, ("visao_geral", item))
+        texto_botao = f"{SVG_ICONS[chave_svg]} {rotulo}"
+        
+        # Injeta componentes HTML nos botões do Streamlit mantendo alinhamento perfeito
         if st.button(
             rotulo, 
             type="primary" if menu_selecionado == item else "secondary", 
-            use_container_width=True
+            use_container_width=True,
+            key=f"btn_menu_{item}"
         ):
             st.session_state["menu"] = item
             st.rerun()
 
-    # Rodapé do Usuário
-    st.markdown("""
-        <div style="margin-top: 25px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
-    """, unsafe_allow_html=True)
-    
+    # Rodapé do Usuário Arredondado Dourado
     st.markdown(
-        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>{SVG_ICONS['user']} <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
+        f"""
+        <div class="user-info-card">
+            {SVG_ICONS['user']}
+            <span style="font-size: 0.76rem; color: #E2E8F0; font-weight: 500;">
+                <b>{st.session_state.get('usuario_nome', 'Admin')}</b> 
+                <span style="color: #94A3B8; font-size: 0.70rem;">({st.session_state.get('usuario_perfil', 'ADMIN')})</span>
+            </span>
+        </div>
+        """, 
         unsafe_allow_html=True
     )
 
-    if st.button("Sair", use_container_width=True):
+    # Botão Sair com borda e ícone
+    if st.button("Sair", use_container_width=True, key="btn_sair_sidebar"):
         st.session_state.clear()
         st.rerun()
 
