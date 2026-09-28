@@ -350,6 +350,90 @@ st.markdown("""
         padding: 4px 10px !important;
     }
 
+    /* =====================================================
+       MENU NATIVO DO STREAMLIT — SEM NOVA GUIA / SEM LOGIN NOVO
+       ===================================================== */
+    [data-testid="stSidebar"] .stButton > button {
+        background: transparent !important;
+        border: none !important;
+        color: #B8C4D1 !important;
+        text-align: left !important;
+        justify-content: flex-start !important;
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        min-height: 35px !important;
+        height: 35px !important;
+        padding: 7px 10px !important;
+        margin: 0 0 2px 0 !important;
+        border-radius: 6px !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button:hover {
+        background: rgba(255,255,255,0.07) !important;
+        color: #FFFFFF !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button[kind="primary"] {
+        background: #D99B26 !important;
+        color: #0B2136 !important;
+        font-weight: 700 !important;
+    }
+
+    [data-testid="stSidebar"] .stButton > button [data-testid="stIconMaterial"] {
+        font-size: 16px !important;
+    }
+
+    /* Formulário do botão Sair */
+    [data-testid="stSidebar"] [data-testid="stForm"] {
+        position: fixed !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 230px !important;
+        box-sizing: border-box !important;
+        padding: 5px 12px 8px !important;
+        background: #0B2136 !important;
+        border-top: 0 !important;
+        z-index: 10000 !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stForm"] button {
+        height: 30px !important;
+        min-height: 30px !important;
+        width: 100% !important;
+        padding: 3px 10px 3px 30px !important;
+        position: relative !important;
+        background: transparent !important;
+        border: 2px solid #718096 !important;
+        border-radius: 4px !important;
+        color: #CBD5E1 !important;
+        font-size: 11.5px !important;
+        font-weight: 600 !important;
+        justify-content: center !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stForm"] button:hover {
+        background: rgba(255,255,255,0.04) !important;
+        border-color: #A0AEC0 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Ícone de saída do botão Sair */
+    [data-testid="stSidebar"] [data-testid="stForm"] button::before {
+        content: "";
+        position: absolute;
+        left: calc(50% - 47px);
+        top: 50%;
+        transform: translateY(-50%);
+        width: 14px;
+        height: 14px;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 14px 14px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E");
+    }
+
     /* Divisores compactos */
     hr {
         margin: 0.6rem 0 !important;
@@ -855,50 +939,39 @@ elif perfil == "OPERACIONAL":
 elif perfil == "ADMINISTRATIVO":
     opcoes_perfil.extend(["Administração", "Fornecedores"])
 
-# Mantém a página selecionada entre os recarregamentos provocados pelos links HTML.
-if "menu" not in st.session_state:
+if "menu" not in st.session_state or st.session_state["menu"] not in opcoes_perfil:
     st.session_state["menu"] = "Visão Geral"
-
-menu_param = st.query_params.get("menu")
-if menu_param in opcoes_perfil:
-    st.session_state["menu"] = menu_param
 
 menu_selecionado = st.session_state["menu"]
 
+# Ícones Material usados apenas no botão do Streamlit.
+# A navegação volta a ser feita pelo próprio Streamlit, preservando a sessão
+# e evitando abrir nova guia ou pedir login novamente.
 menus_icones = {
-    "Visão Geral": "visao_geral",
-    "Comercial": "comercial",
-    "Programação": "programacao",
-    "Expedição": "expedicao",
-    "Operacional": "operacional",
-    "Administração": "administracao",
-    "Fornecedores": "fornecedores",
-    "Excluir Cargas": "excluir",
-    "Usuários": "usuarios"
+    "Visão Geral": ":material/dashboard:",
+    "Comercial": ":material/attach_money:",
+    "Programação": ":material/calendar_month:",
+    "Expedição": ":material/inventory_2:",
+    "Operacional": ":material/settings:",
+    "Administração": ":material/business_center:",
+    "Fornecedores": ":material/local_shipping:",
+    "Excluir Cargas": ":material/delete:",
+    "Usuários": ":material/groups:"
 }
 
 with st.sidebar:
-    # O menu agora é HTML para permitir os SVGs reais, alinhamento exato e o
-    # mesmo visual da imagem de referência.
-    menu_html = '<nav class="erp-sidebar-menu">'
-
+    # Menu nativo do Streamlit: mantém a sessão, não abre nova guia e não
+    # passa novamente pela tela de login.
     for item in opcoes_perfil:
-        chave_svg = menus_icones.get(item, "visao_geral")
-        svg = SVG_ICONS[chave_svg]
-        # Remove o estilo inline original para deixar o CSS controlar tamanho/alinhamento.
-        svg = re.sub(r'\s*style="[^"]*"', '', svg)
-        svg = re.sub(r'\s*width="[^"]*"', '', svg)
-        svg = re.sub(r'\s*height="[^"]*"', '', svg)
-
-        classe = "erp-sidebar-item active" if menu_selecionado == item else "erp-sidebar-item"
-        href = "?menu=" + urllib.parse.quote(item, safe="")
-        menu_html += (
-            f'<a class="{classe}" href="{href}" aria-current="{"page" if menu_selecionado == item else "false"}">'
-            f'{svg}<span>{html.escape(item)}</span></a>'
-        )
-
-    menu_html += "</nav>"
-    st.markdown(menu_html, unsafe_allow_html=True)
+        if st.button(
+            item,
+            type="primary" if menu_selecionado == item else "secondary",
+            icon=menus_icones.get(item),
+            use_container_width=True,
+            key=f"menu_sidebar_{item}"
+        ):
+            st.session_state["menu"] = item
+            st.rerun()
 
     # Rodapé do usuário.
     nome_usuario = html.escape(str(st.session_state.get("usuario_nome", "Administrador do Sistema")))
@@ -926,15 +999,14 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-    # O botão continua sendo um st.button para manter o logout real do Streamlit.
-    st.markdown('<div class="erp-logout-container">', unsafe_allow_html=True)
-    sair = st.button("Sair", use_container_width=True, key="btn_logout_sidebar")
-    st.markdown("</div>", unsafe_allow_html=True)
+    # Form separado para o logout, permitindo estilizar o botão sem afetar o menu.
+    with st.form("logout_sidebar_form", clear_on_submit=False, border=False):
+        sair = st.form_submit_button("Sair", use_container_width=True)
 
     if sair:
         st.session_state.clear()
-        st.query_params.clear()
         st.rerun()
+
 
 # ==========================================
 # PÁGINAS DO SISTEMA
