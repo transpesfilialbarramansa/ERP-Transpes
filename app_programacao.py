@@ -154,19 +154,6 @@ st.markdown("""
         box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
     }
 
-    /* Estilo específico para o botão de Logout na sidebar */
-    [data-testid="stSidebar"] div[data-testid="stButton"] button {
-        border: 1px solid rgba(255, 255, 255, 0.25) !important;
-        border-radius: 6px !important;
-        background-color: transparent !important;
-        color: #E2E8F0 !important;
-        margin-top: 6px !important;
-    }
-    [data-testid="stSidebar"] div[data-testid="stButton"] button:hover {
-        background-color: rgba(255, 255, 255, 0.1) !important;
-        border-color: #FFFFFF !important;
-    }
-
     /* Títulos compactos */
     h1 {
         color: #0F172A !important;
@@ -782,33 +769,15 @@ with st.sidebar:
 
     # Rodapé do Usuário
     st.markdown("""
-        <div style="margin-top: 20px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
+        <div style="margin-top: 25px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
     """, unsafe_allow_html=True)
     
-    # Ícone dourado, Nome em negrito e Perfil logo abaixo
-    icon_user_dourado = '<svg style="vertical-align: middle; margin-right: 8px;" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>'
-    
     st.markdown(
-        f"""
-        <div style="display: flex; align-items: center; margin-bottom: 12px; padding: 0 4px;">
-            {icon_user_dourado}
-            <div>
-                <div style="font-size: 0.85rem; font-weight: 700; color: #FFFFFF !important; line-height: 1.1;">
-                    {st.session_state.get('usuario_nome', 'Administrador do Sistema')}
-                </div>
-                <div style="font-size: 0.70rem; color: #94A3B8 !important; text-transform: uppercase; font-weight: 600; margin-top: 2px;">
-                    {st.session_state.get('usuario_perfil', 'ADMIN')}
-                </div>
-            </div>
-        </div>
-        """, 
+        f"<div style='font-size: 0.78rem; color: #CBD5E1; margin-bottom: 8px;'>{SVG_ICONS['user']} <b>{st.session_state.get('usuario_nome', 'Admin')}</b> <span style='color: #64748B;'>({st.session_state.get('usuario_perfil', 'ADMIN')})</span></div>", 
         unsafe_allow_html=True
     )
 
-    # Botão Sair com borda fina e ícone de logout integrado
-    icon_logout_svg = '<svg style="vertical-align: middle; margin-right: 6px;" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#CBD5E1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>'
-    
-    if st.button(f"Sair", use_container_width=True, key="btn_logout_footer"):
+    if st.button("Sair", use_container_width=True):
         st.session_state.clear()
         st.rerun()
 
