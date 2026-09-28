@@ -124,13 +124,15 @@ st.markdown("""
         padding-right: 1rem !important;
     }
 
-    /* Botões do Menu Lateral Modernos */
+    /* Botões do Menu Lateral Modernos e Alinhados à Esquerda */
     [data-testid="stSidebar"] .stButton > button {
         background-color: transparent !important;
         color: #94A3B8 !important;
         border: none !important;
         text-align: left !important;
         justify-content: flex-start !important;
+        display: flex !important;
+        align-items: center !important;
         font-weight: 500 !important;
         font-size: 0.85rem !important;
         border-radius: 6px !important;
@@ -138,6 +140,14 @@ st.markdown("""
         margin-bottom: 4px !important;
         width: 100% !important;
         transition: all 0.2s ease-in-out !important;
+    }
+
+    /* Garante que o texto dentro do botão do Streamlit também fique alinhado à esquerda */
+    [data-testid="stSidebar"] .stButton > button p,
+    [data-testid="stSidebar"] .stButton > button div {
+        text-align: left !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
     }
 
     /* Hover nos Botões */
