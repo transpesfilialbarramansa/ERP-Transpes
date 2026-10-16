@@ -193,7 +193,6 @@ def init_db():
                         (hash_senha(pwd), usr)
                     )
 
-            # Tabela de cargas (padrão PENDENTE_COMERCIAL para novas cargas inseridas na Programação)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS cargas (
                     id SERIAL PRIMARY KEY,
@@ -203,7 +202,6 @@ def init_db():
                 )
             """)
 
-            # Atualiza cargas antigas criadas no fluxo anterior que ficaram presas em PENDENTE_PROGRAMACAO
             cursor.execute("""
                 UPDATE cargas SET status = 'PENDENTE_COMERCIAL' WHERE status = 'PENDENTE_PROGRAMACAO'
             """)
@@ -233,7 +231,8 @@ def init_db():
                 ("observacoes_programacao", "TEXT"),
                 ("tipo_pedagio", "TEXT"),
                 ("plataforma", "TEXT"),
-                ("vinculo", "TEXT")
+                ("vinculo", "TEXT"),
+                ("troca_nota", "TEXT DEFAULT 'Não'")
             ]
 
             for col_nome, col_tipo in novas_colunas_cargas:
@@ -404,7 +403,7 @@ def gerar_excel_geral(df_dados):
         borda_caixa = Border(left=borda_fina, right=borda_fina, top=borda_fina, bottom=borda_fina)
 
         cols_moeda = ["Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", "Custo Total (R$)", "Margem (R$)"]
-        cols_centro = ["Nº TP", "Nº SET", "Data Programada", "Status", "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta", "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", "Plataforma", "Vínculo", "Data Agendamento Descarga", "Data Pagamento Saldo"]
+        cols_centro = ["Nº TP", "Nº SET", "Data Programada", "Status", "Troca de Nota", "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta", "CT-e", "Viagem", "MDF-e", "Contrato", "Nota Fiscal", "Tipo de Pedágio", "Plataforma", "Vínculo", "Data Agendamento Descarga", "Data Pagamento Saldo"]
 
         for col_num, col_name in enumerate(df_dados.columns, start=1):
             cell = worksheet.cell(row=1, column=col_num)
@@ -452,7 +451,7 @@ def gerar_pdf_geral(df):
 
     elements.append(Paragraph("Relatório Geral de Cargas - Transpes", style_title))
 
-    cols_pdf = ["Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", "Margem (R$)", "Margem (%)"]
+    cols_pdf = ["Nº TP", "Nº SET", "Data Programada", "Status", "Troca de Nota", "Motorista", "Origem", "Destino", "Receita Total (R$)", "Custo Total (R$)", "Margem (R$)", "Margem (%)"]
     df_pdf = df.copy()
     
     for c in ["Receita Total (R$)", "Custo Total (R$)", "Margem (R$)"]:
@@ -471,7 +470,7 @@ def gerar_pdf_geral(df):
             linha.append(Paragraph(val, style_cell))
         table_data.append(linha)
 
-    col_widths = [45, 55, 55, 60, 95, 150, 150, 65, 65, 65, 45]
+    col_widths = [40, 50, 50, 55, 45, 90, 140, 140, 60, 60, 60, 40]
     pdf_table = Table(table_data, colWidths=col_widths, repeatRows=1)
     pdf_table.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#0f2a4a")),
@@ -709,6 +708,7 @@ if menu_selecionado == "Visão Geral":
             COALESCE(c.numero_set, '-') AS "Nº SET",
             COALESCE(c.data_coleta, '-') AS "Data Programada",
             c.status AS "Status",
+            COALESCE(c.troca_nota, 'Não') AS "Troca de Nota",
             COALESCE(c.nome_motorista, '-') AS "Motorista",
             COALESCE(c.cpf_motorista, '-') AS "CPF Motorista",
             COALESCE(c.tipo_motorista, '-') AS "Tipo Motorista",
@@ -772,7 +772,7 @@ if menu_selecionado == "Visão Geral":
         df["Nota Fiscal"] = df["Nota Fiscal"].apply(lambda x: limpar_formato_json_lista(x, separador=" / "))
 
         cols_final = [
-            "Nº TP", "Nº SET", "Data Programada", "Status", "Motorista", 
+            "Nº TP", "Nº SET", "Data Programada", "Status", "Troca de Nota", "Motorista", 
             "CPF Motorista", "Tipo Motorista", "Placa Cavalo", "Placa Carreta",
             "Origem", "Destino", "Cliente Origem", "Cliente Destino", 
             "Receita Total (R$)", "RPA", "Pedágio Pago", "Custo Descarga", 
@@ -851,10 +851,14 @@ if menu_selecionado == "Visão Geral":
                     edit_rpa = em6.number_input("Valor RPA (R$)", min_value=0.0, value=float(dados_carga['RPA']), step=100.0)
 
                     st.markdown("#### Documentação & Outros")
-                    ed1, ed2, ed3 = st.columns(3)
+                    ed1, ed2, ed3, ed4 = st.columns(4)
                     edit_pedagio_tipo = ed1.text_input("Tipo Pedágio", value=str(dados_carga['Tipo de Pedágio']) if dados_carga['Tipo de Pedágio'] != '-' else "").upper()
                     edit_plataforma = ed2.text_input("Plataforma", value=str(dados_carga['Plataforma']) if dados_carga['Plataforma'] != '-' else "").upper()
                     edit_vinculo = ed3.text_input("Vínculo", value=str(dados_carga['Vínculo']) if dados_carga['Vínculo'] != '-' else "").upper()
+                    
+                    tn_list = ["Não", "Sim"]
+                    idx_tn = tn_list.index(dados_carga['Troca de Nota']) if dados_carga['Troca de Nota'] in tn_list else 0
+                    edit_troca_nota = ed4.selectbox("Troca de Nota", tn_list, index=idx_tn)
 
                     btn_salvar_edicao_admin = st.form_submit_button("Salvar Alterações da Carga", type="primary", use_container_width=True)
 
@@ -879,14 +883,15 @@ if menu_selecionado == "Visão Geral":
                                             valor_rpa = %s,
                                             tipo_pedagio = %s,
                                             plataforma = %s,
-                                            vinculo = %s
+                                            vinculo = %s,
+                                            troca_nota = %s
                                         WHERE id = %s
                                     """, (
                                         edit_tp, edit_set, edit_status, edit_data_prog,
                                         edit_rec_frete, edit_rec_pedagio, edit_rec_descarga,
                                         edit_motorista, formatar_cpf(edit_cpf), edit_tipo_mot,
                                         edit_cavalo, edit_carreta, edit_rpa,
-                                        edit_pedagio_tipo, edit_plataforma, edit_vinculo,
+                                        edit_pedagio_tipo, edit_plataforma, edit_vinculo, edit_troca_nota,
                                         id_carga_edit
                                     ))
                                     conn.commit()
@@ -930,6 +935,9 @@ elif menu_selecionado == "Programação":
         plataforma = c14.selectbox("Plataforma*", ["APP", "Card"])
         vinculo = c15.selectbox("Vínculo*", ["CPF", "CNPJ"])
 
+        # NOVO CAMPO: CAIXA DE SELEÇÃO TROCA DE NOTA ACIMA DA OBSERVAÇÃO
+        troca_nota = st.selectbox("Troca de Nota*", ["Não", "Sim"])
+
         obs_prog = st.text_area("Observação").upper()
 
         salvar_prog = st.form_submit_button("Salvar Programação", type="primary", use_container_width=True)
@@ -947,18 +955,18 @@ elif menu_selecionado == "Programação":
                                 numero_carga, numero_tp, nome_motorista, cpf_motorista, telefone_motorista,
                                 tipo_motorista, tipo_veiculo, quantidade_eixos, placa_cavalo, placa_carreta,
                                 valor_rpa, data_coleta, previsao_descarga, tipo_pedagio, plataforma,
-                                vinculo, observacoes_programacao, status
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_COMERCIAL')
+                                vinculo, troca_nota, observacoes_programacao, status
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_COMERCIAL')
                         """, (
                             num_carga_novo, numero_tp, nome_motorista, formatar_cpf(cpf_motorista), formatar_telefone(telefone_motorista),
                             tipo_motorista, tipo_veiculo, eixos, placa_cavalo, placa_carreta,
                             valor_rpa, data_coleta.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
-                            tipo_pedagio, plataforma, vinculo, obs_prog
+                            tipo_pedagio, plataforma, vinculo, troca_nota, obs_prog
                         ))
                         conn.commit()
 
                 assunto = f"PROGRAMAÇÃO {numero_tp}"
-                corpo = f"Nova programação cadastrada: TP {numero_tp} - Motorista {nome_motorista} - Veículo {placa_cavalo}/{placa_carreta}."
+                corpo = f"Nova programação cadastrada: TP {numero_tp} - Motorista {nome_motorista} - Veículo {placa_cavalo}/{placa_carreta} - Troca de Nota: {troca_nota}."
                 enviar_email_notificacao(assunto, corpo)
 
                 st.session_state["exibir_modal_programacao"] = True
@@ -1526,7 +1534,7 @@ elif menu_selecionado == "Usuários":
     with aba_editar:
         st.subheader("Editar Usuário")
         if users_df.empty:
-            st.info("Nenum usuário disponível para edição.")
+            st.info("Nenhum usuário disponível para edição.")
         else:
             opcoes_usuarios = {f"{r['usuario']} ({r['nome']} - {r['perfil']})": r['id'] for _, r in users_df.iterrows()}
             usuario_selecionado_label = st.selectbox("Selecione o Usuário para Editar", list(opcoes_usuarios.keys()))
