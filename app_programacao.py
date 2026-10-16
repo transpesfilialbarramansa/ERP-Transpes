@@ -66,8 +66,8 @@ def formatar_telefone(valor: str) -> str:
 # ==========================================
 SVG_ICONS = {
     "visao_geral": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>',
-    "comercial": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
     "programacao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>',
+    "comercial": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>',
     "expedicao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>',
     "operacional": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>',
     "administracao": '<svg style="vertical-align: middle; margin-right: 6px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D99B26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>',
@@ -79,7 +79,7 @@ SVG_ICONS = {
 }
 
 # ==========================================
-# 1. CONFIGURAÇÃO DA PÁGINA (Sempre o primeiro comando)
+# 1. CONFIGURAÇÃO DA PÁGINA
 # ==========================================
 st.set_page_config(
     page_title="TRANSPES - Sistema de Gestão",
@@ -88,151 +88,63 @@ st.set_page_config(
 )
 
 # ==========================================
-# APLICAÇÃO DE ESTILO E LAYOUT ULTRACOMPACTO (CSS CUSTOMIZADO)
+# APLICAÇÃO DE ESTILO E LAYOUT ULTRACOMPACTO
 # ==========================================
 st.markdown("""
     <style>
-    /* Fundo geral e densidade de tela */
-    .stApp {
-        background-color: #F4F6F9;
-    }
-
-    /* Redução de padding das seções principais do Streamlit */
+    .stApp { background-color: #F4F6F9; }
     .block-container {
-        padding-top: 1rem !important;
-        padding-bottom: 1rem !important;
-        padding-left: 1.5rem !important;
-        padding-right: 1.5rem !important;
+        padding-top: 1rem !important; padding-bottom: 1rem !important;
+        padding-left: 1.5rem !important; padding-right: 1.5rem !important;
         max-width: 100% !important;
     }
-
-    /* --- ESTILIZAÇÃO DA SIDEBAR --- */
     [data-testid="stSidebar"] {
         background-color: #0B2136 !important;
-        min-width: 230px !important;
-        max-width: 230px !important;
+        min-width: 230px !important; max-width: 230px !important;
     }
-
-    [data-testid="stSidebar"] * {
-        color: #E2E8F0 !important;
-    }
-
-    /* Reduz o padding padrão do Streamlit no topo da Sidebar */
+    [data-testid="stSidebar"] * { color: #E2E8F0 !important; }
     [data-testid="stSidebarUserContent"] {
-        padding-top: 1.5rem !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-top: 1.5rem !important; padding-left: 1rem !important; padding-right: 1rem !important;
     }
-
-    /* Botões do Menu Lateral Modernos */
     [data-testid="stSidebar"] .stButton > button {
-        background-color: transparent !important;
-        color: #94A3B8 !important;
-        border: none !important;
-        text-align: left !important;
-        justify-content: flex-start !important;
-        font-weight: 500 !important;
-        font-size: 0.85rem !important;
-        border-radius: 6px !important;
-        padding: 8px 12px !important;
-        margin-bottom: 4px !important;
-        width: 100% !important;
-        transition: all 0.2s ease-in-out !important;
+        background-color: transparent !important; color: #94A3B8 !important;
+        border: none !important; text-align: left !important;
+        justify-content: flex-start !important; font-weight: 500 !important;
+        font-size: 0.85rem !important; border-radius: 6px !important;
+        padding: 8px 12px !important; margin-bottom: 4px !important;
+        width: 100% !important; transition: all 0.2s ease-in-out !important;
     }
-
-    /* Hover nos Botões */
     [data-testid="stSidebar"] .stButton > button:hover {
-        background-color: rgba(255, 255, 255, 0.08) !important;
-        color: #FFFFFF !important;
+        background-color: rgba(255, 255, 255, 0.08) !important; color: #FFFFFF !important;
     }
-
-    /* Botão Selecionado (Ativo) */
     [data-testid="stSidebar"] .stButton > button[kind="primary"] {
-        background-color: #D99B26 !important;
-        color: #0B2136 !important;
-        font-weight: 700 !important;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+        background-color: #D99B26 !important; color: #0B2136 !important;
+        font-weight: 700 !important; box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
     }
-
-    /* Títulos compactos */
-    h1 {
-        color: #0F172A !important;
-        font-weight: 700 !important;
-        font-size: 1.25rem !important;
-        margin-bottom: 0.5rem !important;
-        padding-bottom: 0px !important;
-    }
-
-    h2, h3 {
-        color: #0F172A !important;
-        font-weight: 600 !important;
-        font-size: 0.95rem !important;
-        margin-top: 0.4rem !important;
-        margin-bottom: 0.3rem !important;
-    }
-
-    /* Inputs e Rótulos ultracompactos */
-    div[data-baseweb="input"], div[data-baseweb="select"] {
-        min-height: 32px !important;
-    }
-
-    input, select, textarea {
-        font-size: 0.8rem !important;
-        padding: 4px 8px !important;
-    }
-
-    label {
-        font-size: 0.78rem !important;
-        font-weight: 600 !important;
-        margin-bottom: 2px !important;
-    }
-
-    /* Métricas Compactas */
+    h1 { color: #0F172A !important; font-weight: 700 !important; font-size: 1.25rem !important; margin-bottom: 0.5rem !important; }
+    h2, h3 { color: #0F172A !important; font-weight: 600 !important; font-size: 0.95rem !important; margin-top: 0.4rem !important; margin-bottom: 0.3rem !important; }
+    div[data-baseweb="input"], div[data-baseweb="select"] { min-height: 32px !important; }
+    input, select, textarea { font-size: 0.8rem !important; padding: 4px 8px !important; }
+    label { font-size: 0.78rem !important; font-weight: 600 !important; margin-bottom: 2px !important; }
     div[data-testid="metric-container"] {
-        background-color: #FFFFFF !important;
-        border-radius: 6px !important;
-        padding: 6px 12px !important;
-        border: 1px solid #E2E8F0 !important;
+        background-color: #FFFFFF !important; border-radius: 6px !important;
+        padding: 6px 12px !important; border: 1px solid #E2E8F0 !important;
         box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.03) !important;
     }
-
-    div[data-testid="metric-container"] label {
-        font-size: 0.72rem !important;
-    }
-
-    div[data-testid="metric-container"] div[data-testid="stMetricValue"] {
-        font-size: 1.1rem !important;
-        font-weight: 700 !important;
-    }
-
-    /* Tabelas densas e compactas */
-    div[data-testid="stDataFrame"] {
-        font-size: 0.75rem !important;
-    }
-
-    /* Botões Form / Ação reduzidos */
-    .stButton > button {
-        font-size: 0.82rem !important;
-        padding: 4px 10px !important;
-    }
-
-    /* Divisores compactos */
-    hr {
-        margin: 0.6rem 0 !important;
-    }
-
-    header[data-testid="stHeader"] {
-        background: transparent !important;
-    }
+    div[data-testid="metric-container"] label { font-size: 0.72rem !important; }
+    div[data-testid="metric-container"] div[data-testid="stMetricValue"] { font-size: 1.1rem !important; font-weight: 700 !important; }
+    div[data-testid="stDataFrame"] { font-size: 0.75rem !important; }
+    .stButton > button { font-size: 0.82rem !important; padding: 4px 10px !important; }
+    hr { margin: 0.6rem 0 !important; }
+    header[data-testid="stHeader"] { background: transparent !important; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# CONEXÃO E BANCO DE DADOS (SUPABASE / POSTGRESQL / NEON)
+# CONEXÃO E BANCO DE DADOS
 # ==========================================
 
 def get_connection():
-    """Abre conexão com o banco PostgreSQL utilizando a URL dos secrets"""
     db_url = st.secrets["DB_URL"]
     if db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
@@ -281,13 +193,19 @@ def init_db():
                         (hash_senha(pwd), usr)
                     )
 
+            # Tabela de cargas (padrão PENDENTE_COMERCIAL para novas cargas inseridas na Programação)
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS cargas (
                     id SERIAL PRIMARY KEY,
                     numero_carga TEXT UNIQUE NOT NULL,
-                    status TEXT DEFAULT 'PENDENTE_PROGRAMACAO',
+                    status TEXT DEFAULT 'PENDENTE_COMERCIAL',
                     data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
+            """)
+
+            # Atualiza cargas antigas criadas no fluxo anterior que ficaram presas em PENDENTE_PROGRAMACAO
+            cursor.execute("""
+                UPDATE cargas SET status = 'PENDENTE_COMERCIAL' WHERE status = 'PENDENTE_PROGRAMACAO'
             """)
 
             novas_colunas_cargas = [
@@ -386,7 +304,7 @@ def init_db():
 init_db()
 
 # ==========================================
-# FUNÇÕES AUXILIARES DE EXPORTAÇÃO E IMAGEM
+# FUNÇÕES AUXILIARES
 # ==========================================
 def get_base64_image(image_path):
     try:
@@ -401,7 +319,6 @@ def gerar_numero_carga_novo():
     
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            # Busca todos os códigos do ano atual para extrair o maior número sequencial
             cursor.execute("""
                 SELECT numero_carga 
                 FROM cargas 
@@ -413,7 +330,6 @@ def gerar_numero_carga_novo():
             max_seq = 0
             for row in cargas:
                 codigo = row[0]
-                # Extrai apenas os dígitos finais (ex: de 'TRP-2026-027' pega 27)
                 partes = codigo.split('-')
                 if len(partes) == 3 and partes[2].isdigit():
                     seq = int(partes[2])
@@ -575,20 +491,20 @@ def gerar_pdf_geral(df):
 # ==========================================
 # DIÁLOGOS / POP-UPS
 # ==========================================
-@st.dialog("Dados Comerciais Registrados!")
-def exibir_popup_comercial(num_carga):
-    st.success(f"A carga **{num_carga}** foi cadastrada pelo Comercial com sucesso!")
-    if st.button("OK / Nova Carga", type="primary", use_container_width=True):
-        st.session_state["exibir_modal_comercial"] = False
-        st.session_state["com_form_version"] = st.session_state.get("com_form_version", 0) + 1
-        st.rerun()
-
-@st.dialog("Programação Concluída!")
+@st.dialog("Programação Registrada!")
 def exibir_popup_programacao(num_tp):
     st.success(f"A carga TP **{num_tp}** foi programada com sucesso!")
-    if st.button("OK / Próxima Programação", type="primary", use_container_width=True):
+    if st.button("OK / Nova Programação", type="primary", use_container_width=True):
         st.session_state["exibir_modal_programacao"] = False
         st.session_state["prog_form_version"] = st.session_state.get("prog_form_version", 0) + 1
+        st.rerun()
+
+@st.dialog("Dados Comerciais Registrados!")
+def exibir_popup_comercial(num_tp):
+    st.success(f"Os dados comerciais da carga TP **{num_tp}** foram salvos com sucesso!")
+    if st.button("OK / Próximo Comercial", type="primary", use_container_width=True):
+        st.session_state["exibir_modal_comercial"] = False
+        st.session_state["com_form_version"] = st.session_state.get("com_form_version", 0) + 1
         st.rerun()
 
 @st.dialog("Carga Expedida!")
@@ -713,11 +629,11 @@ perfil = st.session_state.get("usuario_perfil", "ADMIN")
 
 opcoes_perfil = ["Visão Geral"]
 if perfil == "ADMIN":
-    opcoes_perfil.extend(["Comercial", "Programação", "Expedição", "Operacional", "Administração", "Fornecedores", "Excluir Cargas", "Usuários"])
-elif perfil == "COMERCIAL":
-    opcoes_perfil.append("Comercial")
+    opcoes_perfil.extend(["Programação", "Comercial", "Expedição", "Operacional", "Administração", "Fornecedores", "Excluir Cargas", "Usuários"])
 elif perfil == "PROGRAMACAO":
     opcoes_perfil.append("Programação")
+elif perfil == "COMERCIAL":
+    opcoes_perfil.append("Comercial")
 elif perfil == "EXPEDICAO":
     opcoes_perfil.append("Expedição")
 elif perfil == "OPERACIONAL":
@@ -728,7 +644,6 @@ elif perfil == "ADMINISTRATIVO":
 logo_base64_sidebar = get_base64_image("transpes_nova_logo_azul.jpg")
 
 with st.sidebar:
-    # Cabeçalho da Sidebar (Logo com fundo integrado e fonte branca)
     if logo_base64_sidebar:
         st.markdown(f"""
             <div style="text-align: center; padding-bottom: 12px; margin-bottom: 18px; border-bottom: 1px solid rgba(255,255,255,0.08); background-color: #0B2136; border-radius: 6px;">
@@ -744,11 +659,10 @@ with st.sidebar:
             </div>
         """, unsafe_allow_html=True)
 
-    # Menus Selecionáveis
     menus_icones = {
         "Visão Geral": ("visao_geral", "Visão Geral"),
-        "Comercial": ("comercial", "Comercial"),
         "Programação": ("programacao", "Programação"),
+        "Comercial": ("comercial", "Comercial"),
         "Expedição": ("expedicao", "Expedição"),
         "Operacional": ("operacional", "Operacional"),
         "Administração": ("administracao", "Administração"),
@@ -767,7 +681,6 @@ with st.sidebar:
             st.session_state["menu"] = item
             st.rerun()
 
-    # Rodapé do Usuário
     st.markdown("""
         <div style="margin-top: 25px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08);"></div>
     """, unsafe_allow_html=True)
@@ -793,8 +706,8 @@ if menu_selecionado == "Visão Geral":
         SELECT 
             c.id AS id_carga,
             COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
-            c.numero_set AS "Nº SET",
-            c.data_coleta AS "Data Programada",
+            COALESCE(c.numero_set, '-') AS "Nº SET",
+            COALESCE(c.data_coleta, '-') AS "Data Programada",
             c.status AS "Status",
             COALESCE(c.nome_motorista, '-') AS "Motorista",
             COALESCE(c.cpf_motorista, '-') AS "CPF Motorista",
@@ -895,9 +808,6 @@ if menu_selecionado == "Visão Geral":
 
         st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
 
-        # ==========================================
-        # RECURSO DE EDIÇÃO RÁPIDA (EXCLUSIVO ADMIN)
-        # ==========================================
         if perfil == "ADMIN":
             st.markdown("---")
             with st.expander("Painel Admin: Editar Carga Registrada", expanded=False):
@@ -908,20 +818,17 @@ if menu_selecionado == "Visão Geral":
                 
                 carga_sel_label = st.selectbox("Selecione a Carga para Editar", list(opcoes_cargas.keys()))
                 id_carga_edit = opcoes_cargas[carga_sel_label]
-                
-                # Dados atuais da carga selecionada
                 dados_carga = df[df['id_carga'] == id_carga_edit].iloc[0]
 
                 with st.form(f"form_admin_edit_carga_{id_carga_edit}"):
-                    st.markdown("#### Dados Gerais & Comerciais")
+                    st.markdown("#### Dados Gerais & Programação")
                     ec1, ec2, ec3, ec4 = st.columns(4)
                     edit_tp = ec1.text_input("Nº TP", value=str(dados_carga['Nº TP']) if dados_carga['Nº TP'] != '-' else "").strip().upper()
-                    edit_set = ec2.text_input("Nº SET", value=str(dados_carga['Nº SET'])).strip().upper()
-                    edit_status = ec3.selectbox(
-                        "Status", 
-                        ["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"], 
-                        index=["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"].index(dados_carga['Status']) if dados_carga['Status'] in ["PENDENTE_PROGRAMACAO", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"] else 0
-                    )
+                    edit_set = ec2.text_input("Nº SET", value=str(dados_carga['Nº SET']) if dados_carga['Nº SET'] != '-' else "").strip().upper()
+                    
+                    status_list = ["PENDENTE_COMERCIAL", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]
+                    idx_st = status_list.index(dados_carga['Status']) if dados_carga['Status'] in status_list else 0
+                    edit_status = ec3.selectbox("Status", status_list, index=idx_st)
                     edit_data_prog = ec4.text_input("Data Programada", value=str(dados_carga['Data Programada']) if dados_carga['Data Programada'] != '-' else "")
 
                     ec5, ec6, ec7 = st.columns(3)
@@ -988,103 +895,9 @@ if menu_selecionado == "Visão Geral":
                         except Exception as e:
                             st.error(f"Erro ao atualizar carga: {e}")
 
-# 2. COMERCIAL
-elif menu_selecionado == "Comercial":
-    st.markdown(f"<h1>{SVG_ICONS['comercial']} Comercial - Novo Frete</h1>", unsafe_allow_html=True)
-
-    if "com_form_version" not in st.session_state:
-        st.session_state["com_form_version"] = 0
-
-    v_com = st.session_state["com_form_version"]
-    if st.session_state.get("exibir_modal_comercial", False):
-        exibir_popup_comercial(st.session_state.get("carga_comercial_num", ""))
-
-    c_q1, c_q2, c_q3, _ = st.columns([1, 1, 1, 2])
-    qtd_origens = c_q1.number_input("Qtd. Origens*", 1, 10, 1, key=f"com_q_orig_{v_com}")
-    qtd_destinos = c_q2.number_input("Qtd. Destinos*", 1, 10, 1, key=f"com_q_dest_{v_com}")
-    qtd_nfs = c_q3.number_input("Qtd. NFs", 0, 10, 0, key=f"com_q_nfs_{v_com}")
-
-    with st.form(f"form_comercial_{v_com}"):
-        numero_set = st.text_input("Número do SET*", placeholder="Ex: SET-2026-001").strip().upper()
-
-        st.subheader("Origens")
-        lista_origens = []
-        for i in range(int(qtd_origens)):
-            co1, co2, co3 = st.columns([2, 2, 1])
-            cli = co1.text_input(f"Cliente Origem {i+1}*", key=f"com_cli_orig_{i}_{v_com}").upper()
-            cid = co2.text_input(f"Cidade {i+1}*", key=f"com_cid_orig_{i}_{v_com}").upper()
-            uf = co3.text_input(f"UF {i+1}*", key=f"com_uf_orig_{i}_{v_com}").upper()
-            lista_origens.append({"cliente": cli, "cidade": cid, "estado": uf})
-
-        st.subheader("Destinos")
-        lista_destinos = []
-        for j in range(int(qtd_destinos)):
-            cd1, cd2, cd3 = st.columns([2, 2, 1])
-            cli = cd1.text_input(f"Cliente Destino {j+1}*", key=f"com_cli_dest_{j}_{v_com}").upper()
-            cid = cd2.text_input(f"Cidade {j+1}*", key=f"com_cid_dest_{j}_{v_com}").upper()
-            uf = cd3.text_input(f"UF {j+1}*", key=f"com_uf_dest_{j}_{v_com}").upper()
-            lista_destinos.append({"cliente": cli, "cidade": cid, "estado": uf})
-
-        lista_nfs_com = []
-        if qtd_nfs > 0:
-            st.subheader("Notas Fiscais")
-            cols_nf = st.columns(min(int(qtd_nfs), 4))
-            for k in range(int(qtd_nfs)):
-                val_nf = cols_nf[k % 4].text_input(f"NF {k+1}", key=f"com_nf_{k}_{v_com}").upper()
-                if val_nf.strip():
-                    lista_nfs_com.append(val_nf.strip())
-
-        st.subheader("Valores do Cliente")
-        v1, v2, v3 = st.columns(3)
-        receita_frete = v1.number_input("Frete (R$)*", min_value=0.0, value=0.0, step=100.0)
-        receita_pedagio = v2.number_input("Pedágio (R$)", min_value=0.0, value=0.0, step=50.0)
-        receita_taxa_descarga = v3.number_input("Taxa Descarga (R$)", min_value=0.0, value=0.0, step=50.0)
-
-        salvar_com = st.form_submit_button("Salvar Comercial", type="primary", use_container_width=True)
-
-    if salvar_com:
-        valid_orig = all(o["cliente"] and o["cidade"] and o["estado"] for o in lista_origens)
-        valid_dest = all(d["cliente"] and d["cidade"] and d["estado"] for d in lista_destinos)
-
-        if not numero_set:
-            st.error("O campo SET é obrigatório.")
-        elif not valid_orig or not valid_dest:
-            st.error("Preencha todos os campos de origens e destinos.")
-        elif receita_frete <= 0:
-            st.error("O Valor do Frete deve ser maior que zero.")
-        else:
-            num_carga_novo = gerar_numero_carga_novo()
-            try:
-                with get_connection() as conn:
-                    with conn.cursor() as cursor:
-                        cursor.execute("""
-                            INSERT INTO cargas (
-                                numero_carga, numero_set, origens_json, destinos_json, notas_fiscais_comercial,
-                                receita_frete, receita_pedagio, receita_taxa_descarga,
-                                status, nome_motorista
-                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_PROGRAMACAO', '-')
-                        """, (
-                           num_carga_novo, numero_set, json.dumps(lista_origens), json.dumps(lista_destinos),
-                           json.dumps(lista_nfs_com) if lista_nfs_com else "",
-                           receita_frete, receita_pedagio, receita_taxa_descarga
-                       ))
-                        conn.commit()
-
-                origens_txt = formatar_origens_destinos(json.dumps(lista_origens))
-                destinos_txt = formatar_origens_destinos(json.dumps(lista_destinos))
-                assunto = f"COMERCIAL [{origens_txt} x {destinos_txt}]"
-                corpo = f"SET {numero_set} adicionado ao portal com Origem {origens_txt} e Destino {destinos_txt}"
-                enviar_email_notificacao(assunto, corpo)
-
-                st.session_state["exibir_modal_comercial"] = True
-                st.session_state["carga_comercial_num"] = num_carga_novo
-                st.rerun()
-            except Exception as e:
-                st.error(f"Erro ao salvar: {e}")
-
-# 3. PROGRAMAÇÃO
+# 2. PROGRAMAÇÃO (1ª ETAPA DO PROCESSO)
 elif menu_selecionado == "Programação":
-    st.markdown(f"<h1>{SVG_ICONS['programacao']} Programação de Cargas</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1>{SVG_ICONS['programacao']} Programação de Cargas (Início do Processo)</h1>", unsafe_allow_html=True)
 
     if "prog_form_version" not in st.session_state:
         st.session_state["prog_form_version"] = 0
@@ -1093,82 +906,188 @@ elif menu_selecionado == "Programação":
     if st.session_state.get("exibir_modal_programacao", False):
         exibir_popup_programacao(st.session_state.get("tp_programado_num", ""))
 
-    query_prog = "SELECT id, numero_carga, numero_set, origens_json, destinos_json, notas_fiscais_comercial FROM cargas WHERE status = 'PENDENTE_PROGRAMACAO'"
+    with st.form(f"form_programacao_{v_prog}"):
+        c1, c2, c3, c4 = st.columns(4)
+        numero_tp = c1.text_input("Número TP*", placeholder="TP-1234").strip().upper()
+        nome_motorista = c2.text_input("Motorista*").upper()
+        cpf_motorista = c3.text_input("CPF Motorista")
+        telefone_motorista = c4.text_input("Telefone Motorista")
+
+        c5, c6, c7, c8 = st.columns(4)
+        tipo_motorista = c5.selectbox("Tipo Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"])
+        tipo_veiculo = c6.selectbox("Tipo Veículo*", ["TRUCK", "CARRETA 13m", "CARRETA 15m", "BITREM", "RODOTREM"])
+        eixos = c7.number_input("Eixos*", 2, 9, 6)
+        valor_rpa = c8.number_input("RPA (R$)*", min_value=0.0, value=0.0, step=100.0)
+
+        c9, c10, c11, c12 = st.columns(4)
+        placa_cavalo = c9.text_input("Placa Cavalo*").upper()
+        placa_carreta = c10.text_input("Placa Carreta*").upper()
+        data_coleta = c11.date_input("Data Coleta*", datetime.date.today(), format="DD/MM/YYYY")
+        previsao_descarga = c12.date_input("Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
+
+        c13, c14, c15 = st.columns(3)
+        tipo_pedagio = c13.text_input("Tipo Pedágio").strip().upper()
+        plataforma = c14.selectbox("Plataforma*", ["APP", "Card"])
+        vinculo = c15.selectbox("Vínculo*", ["CPF", "CNPJ"])
+
+        obs_prog = st.text_area("Observação").upper()
+
+        salvar_prog = st.form_submit_button("Salvar Programação", type="primary", use_container_width=True)
+
+    if salvar_prog:
+        if not numero_tp or not nome_motorista or not placa_cavalo or not placa_carreta:
+            st.error("Preencha os campos obrigatórios (*).")
+        else:
+            num_carga_novo = gerar_numero_carga_novo()
+            try:
+                with get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("""
+                            INSERT INTO cargas (
+                                numero_carga, numero_tp, nome_motorista, cpf_motorista, telefone_motorista,
+                                tipo_motorista, tipo_veiculo, quantidade_eixos, placa_cavalo, placa_carreta,
+                                valor_rpa, data_coleta, previsao_descarga, tipo_pedagio, plataforma,
+                                vinculo, observacoes_programacao, status
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, 'PENDENTE_COMERCIAL')
+                        """, (
+                            num_carga_novo, numero_tp, nome_motorista, formatar_cpf(cpf_motorista), formatar_telefone(telefone_motorista),
+                            tipo_motorista, tipo_veiculo, eixos, placa_cavalo, placa_carreta,
+                            valor_rpa, data_coleta.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
+                            tipo_pedagio, plataforma, vinculo, obs_prog
+                        ))
+                        conn.commit()
+
+                assunto = f"PROGRAMAÇÃO {numero_tp}"
+                corpo = f"Nova programação cadastrada: TP {numero_tp} - Motorista {nome_motorista} - Veículo {placa_cavalo}/{placa_carreta}."
+                enviar_email_notificacao(assunto, corpo)
+
+                st.session_state["exibir_modal_programacao"] = True
+                st.session_state["tp_programado_num"] = numero_tp
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erro ao salvar programação: {e}")
+
+# 3. COMERCIAL (2ª ETAPA DO PROCESSO)
+elif menu_selecionado == "Comercial":
+    st.markdown(f"<h1>{SVG_ICONS['comercial']} Comercial - Dados do Frete</h1>", unsafe_allow_html=True)
+
+    if "com_form_version" not in st.session_state:
+        st.session_state["com_form_version"] = 0
+
+    v_com = st.session_state["com_form_version"]
+    if st.session_state.get("exibir_modal_comercial", False):
+        exibir_popup_comercial(st.session_state.get("carga_comercial_num", ""))
+
+    query_com = """
+        SELECT id, numero_tp, nome_motorista, placa_cavalo, placa_carreta 
+        FROM cargas 
+        WHERE status = 'PENDENTE_COMERCIAL'
+        ORDER BY id ASC
+    """
     with get_connection() as conn:
         with conn.cursor() as cursor:
-            cursor.execute(query_prog)
-            dados = cursor.fetchall()
-            cargas_prog_df = pd.DataFrame(dados, columns=[desc.name for desc in cursor.description])
+            cursor.execute(query_com)
+            dados_com = cursor.fetchall()
+            cargas_com_df = pd.DataFrame(dados_com, columns=[desc.name for desc in cursor.description])
 
-    if cargas_prog_df.empty:
-        st.info("Nenhuma carga pendente de programação.")
+    if cargas_com_df.empty:
+        st.info("Nenhuma carga pendente de preenchimento comercial no momento.")
     else:
-        opcoes_cargas = {f"SET: {r['numero_set']} - ORIGEM: {formatar_origens_destinos(r['origens_json'], True)} - DESTINO: {formatar_origens_destinos(r['destinos_json'], True)}": r['id'] for _, r in cargas_prog_df.iterrows()}
-        carga_id = opcoes_cargas[st.selectbox("Selecione a Carga*", list(opcoes_cargas.keys()), key=f"prog_sel_{v_prog}")]
-        row_sel = cargas_prog_df[cargas_prog_df['id'] == carga_id].iloc[0]
+        opcoes_cargas_com = {
+            f"TP: {r['numero_tp']} | Motorista: {r['nome_motorista']} | Cavalo: {r['placa_cavalo']} | Carreta: {r['placa_carreta']}": r['id'] 
+            for _, r in cargas_com_df.iterrows()
+        }
+        
+        carga_id_sel = opcoes_cargas_com[st.selectbox("Selecione a Carga Programada*", list(opcoes_cargas_com.keys()), key=f"com_sel_{v_com}")]
+        row_sel_com = cargas_com_df[cargas_com_df['id'] == carga_id_sel].iloc[0]
 
-        with st.form(f"form_programacao_{v_prog}"):
-            c1, c2, c3, c4 = st.columns(4)
-            numero_tp = c1.text_input("Número TP*", placeholder="TP-1234").strip().upper()
-            nome_motorista = c2.text_input("Motorista*").upper()
-            cpf_motorista = c3.text_input("CPF Motorista")
-            telefone_motorista = c4.text_input("Telefone Motorista")
+        c_q1, c_q2, c_q3, _ = st.columns([1, 1, 1, 2])
+        qtd_origens = c_q1.number_input("Qtd. Origens*", 1, 10, 1, key=f"com_q_orig_{v_com}")
+        qtd_destinos = c_q2.number_input("Qtd. Destinos*", 1, 10, 1, key=f"com_q_dest_{v_com}")
+        qtd_nfs = c_q3.number_input("Qtd. NFs", 0, 10, 0, key=f"com_q_nfs_{v_com}")
 
-            c5, c6, c7, c8 = st.columns(4)
-            tipo_motorista = c5.selectbox("Tipo Motorista*", ["TERCEIRO", "FROTA", "AGREGADO"])
-            tipo_veiculo = c6.selectbox("Tipo Veículo*", ["TRUCK", "CARRETA 13m", "CARRETA 15m", "BITREM", "RODOTREM"])
-            eixos = c7.number_input("Eixos*", 2, 9, 6)
-            valor_rpa = c8.number_input("RPA (R$)*", min_value=0.0, value=0.0, step=100.0)
+        with st.form(f"form_comercial_{v_com}"):
+            numero_set = st.text_input("Número do SET*", placeholder="Ex: SET-2026-001").strip().upper()
 
-            c9, c10, c11, c12 = st.columns(4)
-            placa_cavalo = c9.text_input("Placa Cavalo*").upper()
-            placa_carreta = c10.text_input("Placa Carreta*").upper()
-            data_coleta = c11.date_input("Data Coleta*", datetime.date.today(), format="DD/MM/YYYY")
-            previsao_descarga = c12.date_input("Previsão Entrega*", datetime.date.today() + datetime.timedelta(days=2), format="DD/MM/YYYY")
+            st.subheader("Origens")
+            lista_origens = []
+            for i in range(int(qtd_origens)):
+                co1, co2, co3 = st.columns([2, 2, 1])
+                cli = co1.text_input(f"Cliente Origem {i+1}*", key=f"com_cli_orig_{i}_{v_com}").upper()
+                cid = co2.text_input(f"Cidade {i+1}*", key=f"com_cid_orig_{i}_{v_com}").upper()
+                uf = co3.text_input(f"UF {i+1}*", key=f"com_uf_orig_{i}_{v_com}").upper()
+                lista_origens.append({"cliente": cli, "cidade": cid, "estado": uf})
 
-            c13, c14, c15 = st.columns(3)
-            tipo_pedagio = c13.text_input("Tipo Pedágio").strip().upper()
-            plataforma = c14.selectbox("Plataforma*", ["APP", "Card"])
-            vinculo = c15.selectbox("Vínculo*", ["CPF", "CNPJ"])
+            st.subheader("Destinos")
+            lista_destinos = []
+            for j in range(int(qtd_destinos)):
+                cd1, cd2, cd3 = st.columns([2, 2, 1])
+                cli = cd1.text_input(f"Cliente Destino {j+1}*", key=f"com_cli_dest_{j}_{v_com}").upper()
+                cid = cd2.text_input(f"Cidade {j+1}*", key=f"com_cid_dest_{j}_{v_com}").upper()
+                uf = cd3.text_input(f"UF {j+1}*", key=f"com_uf_dest_{j}_{v_com}").upper()
+                lista_destinos.append({"cliente": cli, "cidade": cid, "estado": uf})
 
-            obs_prog = st.text_area("Observação").upper()
+            lista_nfs_com = []
+            if qtd_nfs > 0:
+                st.subheader("Notas Fiscais")
+                cols_nf = st.columns(min(int(qtd_nfs), 4))
+                for k in range(int(qtd_nfs)):
+                    val_nf = cols_nf[k % 4].text_input(f"NF {k+1}", key=f"com_nf_{k}_{v_com}").upper()
+                    if val_nf.strip():
+                        lista_nfs_com.append(val_nf.strip())
 
-            salvar_prog = st.form_submit_button("Salvar Programação", type="primary", use_container_width=True)
+            st.subheader("Valores do Cliente")
+            v1, v2, v3 = st.columns(3)
+            receita_frete = v1.number_input("Frete (R$)*", min_value=0.0, value=0.0, step=100.0)
+            receita_pedagio = v2.number_input("Pedágio (R$)", min_value=0.0, value=0.0, step=50.0)
+            receita_taxa_descarga = v3.number_input("Taxa Descarga (R$)", min_value=0.0, value=0.0, step=50.0)
 
-        if salvar_prog:
-            if not numero_tp or not nome_motorista or not placa_cavalo or not placa_carreta:
-                st.error("Preencha os campos obrigatórios (*).")
+            salvar_com = st.form_submit_button("Salvar Comercial", type="primary", use_container_width=True)
+
+        if salvar_com:
+            valid_orig = all(o["cliente"] and o["cidade"] and o["estado"] for o in lista_origens)
+            valid_dest = all(d["cliente"] and d["cidade"] and d["estado"] for d in lista_destinos)
+
+            if not numero_set:
+                st.error("O campo SET é obrigatório.")
+            elif not valid_orig or not valid_dest:
+                st.error("Preencha todos os campos de origens e destinos.")
+            elif receita_frete <= 0:
+                st.error("O Valor do Frete deve ser maior que zero.")
             else:
                 try:
                     with get_connection() as conn:
                         with conn.cursor() as cursor:
                             cursor.execute("""
                                 UPDATE cargas SET
-                                    numero_tp = %s, nome_motorista = %s, cpf_motorista = %s,
-                                    telefone_motorista = %s, tipo_motorista = %s, tipo_veiculo = %s,
-                                    quantidade_eixos = %s, placa_cavalo = %s, placa_carreta = %s,
-                                    valor_rpa = %s, data_coleta = %s, previsao_descarga = %s,
-                                    tipo_pedagio = %s, plataforma = %s, vinculo = %s, 
-                                    observacoes_programacao = %s, status = 'PROGRAMADA'
+                                    numero_set = %s,
+                                    origens_json = %s,
+                                    destinos_json = %s,
+                                    notas_fiscais_comercial = %s,
+                                    receita_frete = %s,
+                                    receita_pedagio = %s,
+                                    receita_taxa_descarga = %s,
+                                    status = 'PROGRAMADA'
                                 WHERE id = %s
                             """, (
-                                numero_tp, nome_motorista, formatar_cpf(cpf_motorista), formatar_telefone(telefone_motorista), tipo_motorista,
-                                tipo_veiculo, eixos, placa_cavalo, placa_carreta, valor_rpa,
-                                data_coleta.strftime("%d/%m/%Y"), previsao_descarga.strftime("%d/%m/%Y"),
-                                tipo_pedagio, plataforma, vinculo, obs_prog, carga_id
+                                numero_set, json.dumps(lista_origens), json.dumps(lista_destinos),
+                                json.dumps(lista_nfs_com) if lista_nfs_com else "",
+                                receita_frete, receita_pedagio, receita_taxa_descarga,
+                                carga_id_sel
                             ))
                             conn.commit()
 
-                    numero_set = row_sel['numero_set']
-                    assunto = f"PROGRAMAÇÃO {numero_tp}"
-                    corpo = f"SET {numero_set} programado no portal com o TP {numero_tp} para o Motorista {nome_motorista} e Veículo {placa_cavalo}/{placa_carreta}."
+                    origens_txt = formatar_origens_destinos(json.dumps(lista_origens))
+                    destinos_txt = formatar_origens_destinos(json.dumps(lista_destinos))
+                    assunto = f"COMERCIAL [{origens_txt} x {destinos_txt}]"
+                    corpo = f"SET {numero_set} atualizado pelo Comercial para o TP {row_sel_com['numero_tp']}."
                     enviar_email_notificacao(assunto, corpo)
 
-                    st.session_state["exibir_modal_programacao"] = True
-                    st.session_state["tp_programado_num"] = numero_tp
+                    st.session_state["exibir_modal_comercial"] = True
+                    st.session_state["carga_comercial_num"] = row_sel_com['numero_tp']
                     st.rerun()
                 except Exception as e:
-                    st.error(f"Erro ao salvar: {e}")
+                    st.error(f"Erro ao salvar comercial: {e}")
 
 # 4. EXPEDIÇÃO
 elif menu_selecionado == "Expedição":
@@ -1197,12 +1116,10 @@ elif menu_selecionado == "Expedição":
         row_sel = cargas_exp_df[cargas_exp_df['id'] == carga_id].iloc[0]
         v_rpa = row_sel['valor_rpa'] or 0.0
 
-        # Processa e limpa as NFs lançadas pelo Comercial
         nfs_comercial_brutas = row_sel['notas_fiscais_comercial']
         nfs_comercial_lista = processar_json_lista(nfs_comercial_brutas)
         tem_nfs_comercial = len(nfs_comercial_lista) > 0 and any(str(x).strip() for x in nfs_comercial_lista)
 
-        # Se o comercial preencheu, o campo de Qtd. NFs livres não é necessário na barra superior
         if tem_nfs_comercial:
             e_c1, e_c2, e_c3 = st.columns(3)
             qtd_ctes = e_c1.number_input("Qtd. CT-es*", 1, 10, 1, key=f"exp_q_cte_{v_exp}")
@@ -1243,15 +1160,12 @@ elif menu_selecionado == "Expedição":
 
             valor_pedagio_pago = st.number_input("Pedágio Pago Motorista (R$)", min_value=0.0, value=0.0, step=50.0)
 
-            # LÓGICA DE EXIBIÇÃO / EDIÇÃO DAS NOTAS FISCAIS:
             lista_nfs_exp = []
             if tem_nfs_comercial:
-                # Exibe em modo somente leitura (desativado) as NFs vindas do comercial
                 nfs_texto_consulta = " / ".join(nfs_comercial_lista)
                 st.text_input("Notas Fiscais (Registradas pelo Comercial)", value=nfs_texto_consulta, disabled=True)
                 lista_nfs_exp = nfs_comercial_lista
             else:
-                # Libera o preenchimento para a Expedição
                 if qtd_nfs_exp > 0:
                     st.subheader("Notas Fiscais (Expedição)")
                     cols_nf = st.columns(min(int(qtd_nfs_exp), 4))
@@ -1570,7 +1484,6 @@ elif menu_selecionado == "Excluir Cargas":
 elif menu_selecionado == "Usuários":
     st.markdown(f"<h1>{SVG_ICONS['usuarios']} Gestão de Usuários</h1>", unsafe_allow_html=True)
     
-    # 1. Consulta e exibe os usuários cadastrados
     with get_connection() as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT id, usuario, nome, perfil FROM usuarios ORDER BY id ASC")
@@ -1580,10 +1493,8 @@ elif menu_selecionado == "Usuários":
 
     st.markdown("---")
     
-    # Criando abas para separar a criação e a edição de usuários
     aba_novo, aba_editar = st.tabs(["Novo Usuário", "Editar Usuário"])
 
-    # --- ABA 1: CADASTRAR NOVO USUÁRIO ---
     with aba_novo:
         st.subheader("Cadastrar Novo Usuário")
         with st.form("form_novo_usuario"):
@@ -1591,7 +1502,7 @@ elif menu_selecionado == "Usuários":
             novo_usr = u1.text_input("Usuário*").strip().lower()
             novo_nome = u2.text_input("Nome*").strip().upper()
             nova_senha = u3.text_input("Senha*", type="password")
-            novo_perfil = u4.selectbox("Perfil*", ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
+            novo_perfil = u4.selectbox("Perfil*", ["ADMIN", "PROGRAMACAO", "COMERCIAL", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
 
             salvar_usr = st.form_submit_button("Salvar Usuário", type="primary", use_container_width=True)
 
@@ -1612,25 +1523,22 @@ elif menu_selecionado == "Usuários":
                     except Exception as e:
                         st.error(f"Erro ao salvar usuário: {e}")
 
-    # --- ABA 2: EDITAR USUÁRIO EXISTENTE ---
     with aba_editar:
         st.subheader("Editar Usuário")
         if users_df.empty:
-            st.info("Nenhum usuário disponível para edição.")
+            st.info("Nenum usuário disponível para edição.")
         else:
-            # Mapeia os usuários para o selectbox
             opcoes_usuarios = {f"{r['usuario']} ({r['nome']} - {r['perfil']})": r['id'] for _, r in users_df.iterrows()}
             usuario_selecionado_label = st.selectbox("Selecione o Usuário para Editar", list(opcoes_usuarios.keys()))
             usr_id_editar = opcoes_usuarios[usuario_selecionado_label]
 
-            # Busca os dados atuais do usuário selecionado
             usr_dados = users_df[users_df['id'] == usr_id_editar].iloc[0]
 
             with st.form("form_editar_usuario"):
                 e1, e2 = st.columns(2)
                 edit_nome = e1.text_input("Nome*", value=usr_dados['nome']).strip().upper()
                 
-                perfis_disponiveis = ["ADMIN", "COMERCIAL", "PROGRAMACAO", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"]
+                perfis_disponiveis = ["ADMIN", "PROGRAMACAO", "COMERCIAL", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"]
                 idx_perfil = perfis_disponiveis.index(usr_dados['perfil']) if usr_dados['perfil'] in perfis_disponiveis else 0
                 edit_perfil = e2.selectbox("Perfil*", perfis_disponiveis, index=idx_perfil)
 
@@ -1646,13 +1554,11 @@ elif menu_selecionado == "Usuários":
                             with get_connection() as conn:
                                 with conn.cursor() as cursor:
                                     if edit_senha.strip():
-                                        # Atualiza Nome, Perfil e Senha
                                         cursor.execute(
                                             "UPDATE usuarios SET nome = %s, perfil = %s, senha = %s WHERE id = %s",
                                             (edit_nome, edit_perfil, hash_senha(edit_senha.strip()), usr_id_editar)
                                         )
                                     else:
-                                        # Atualiza apenas Nome e Perfil
                                         cursor.execute(
                                             "UPDATE usuarios SET nome = %s, perfil = %s WHERE id = %s",
                                             (edit_nome, edit_perfil, usr_id_editar)
