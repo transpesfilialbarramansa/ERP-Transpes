@@ -576,26 +576,80 @@ if not st.session_state["logado"]:
     bg_style = f"background-image: url('data:image/jpeg;base64,{bg_base64}'); background-size: cover; background-position: center; background-repeat: no-repeat; background-attachment: fixed;" if bg_base64 else "background-color: #0E2F56;"
 
     logo_base64 = get_base64_image("logo_transpes.png")
-    logo_html = f'<img src="data:image/png;base64,{logo_base64}" style="max-width: 150px; margin-bottom: 8px;">' if logo_base64 else '<div style="color: #0E2F56; font-size: 22px; font-weight: bold;">ERP Transpes</div>'
+    logo_html = f'<img src="data:image/png;base64,{logo_base64}" style="max-width: 180px; height: auto; display: block; margin: 0 auto 10px auto;">' if logo_base64 else '<div style="color: #0E2F56; font-size: 22px; font-weight: bold;">ERP Transpes</div>'
 
     st.markdown(
         f"""
         <style>
         [data-testid="stSidebar"], [data-testid="stHeader"] {{ display: none; }}
         .stApp {{ {bg_style} }}
-        [data-testid="stMainBlockContainer"] {{ max-width: 380px !important; padding-top: 4rem !important; margin: auto !important; }}
-        .login-card {{ background: rgba(255, 255, 255, 0.95); padding: 20px 18px; border-radius: 12px; box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3); text-align: center; margin-bottom: 15px; }}
+        
+        /* Centralização e largura do container de login */
+        [data-testid="stMainBlockContainer"] {{ 
+            max-width: 400px !important; 
+            padding-top: 5rem !important; 
+            margin: auto !important; 
+        }}
+        
+        /* Formatação do Card Branco Unificado */
+        [data-testid="stForm"] {{
+            background: rgba(255, 255, 255, 0.96) !important;
+            padding: 28px 24px 20px 24px !important;
+            border-radius: 14px !important;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        }}
+        
+        /* Estilização dos rótulos de Usuário e Senha para alto contraste */
+        [data-testid="stForm"] label {{
+            color: #0B2136 !important;
+            font-weight: 700 !important;
+            font-size: 0.88rem !important;
+            margin-bottom: 4px !important;
+        }}
+        
+        /* Campos de entrada com borda leve e fundo claro */
+        [data-testid="stForm"] input {{
+            background-color: #F8FAFC !important;
+            border: 1px solid #CBD5E1 !important;
+            border-radius: 6px !important;
+            color: #0F172A !important;
+        }}
+        
+        /* Botão de Entrar destacado */
+        [data-testid="stForm"] .stButton > button {{
+            background-color: #0B2136 !important;
+            color: #FFFFFF !important;
+            font-weight: 700 !important;
+            font-size: 0.95rem !important;
+            border-radius: 6px !important;
+            padding: 8px 16px !important;
+            margin-top: 10px !important;
+            border: none !important;
+        }}
+        [data-testid="stForm"] .stButton > button:hover {{
+            background-color: #0E2F56 !important;
+        }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-    st.markdown(f'<div class="login-card">{logo_html}<div style="color: #555; font-size: 12px;">Acesse o sistema</div></div>', unsafe_allow_html=True)
-
     with st.form("form_login"):
+        # Logo e subtítulo posicionados DENTRO do card do formulário
+        st.markdown(
+            f"""
+            <div style="text-align: center; margin-bottom: 15px;">
+                {logo_html}
+                <div style="color: #64748B; font-size: 13px; font-weight: 500;">Acesse o sistema com suas credenciais</div>
+            </div>
+            """, 
+            unsafe_allow_html=True
+        )
+        
         usuario_input = st.text_input("Usuário", placeholder="Digite seu usuário")
         senha_input = st.text_input("Senha", type="password", placeholder="Digite sua senha")
-        btn_login = st.form_submit_button("Entrar", use_container_width=True, type="primary")
+        btn_login = st.form_submit_button("Entrar", use_container_width=True)
 
     if btn_login:
         with get_connection() as conn:
