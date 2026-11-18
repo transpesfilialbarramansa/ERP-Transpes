@@ -872,176 +872,199 @@ if menu_selecionado == "Visão Geral":
 
                     if st.button("Confirmar Importação das Cargas", type="primary", key="btn_confirmar_import_cargas"):
                         sucessos_cargas = 0
-                        with get_connection() as conn:
-                            with conn.cursor() as cursor:
-                                for _, r in df_import_cargas.iterrows():
-                                    tp_val = str(r.get("numero_tp", "")).strip().upper()
-                                    set_val = str(r.get("numero_set", "")).strip().upper()
-                                    mot_val = str(r.get("nome_motorista", "")).strip().upper()
-                                    
-                                    # Ignora linhas totalmente em branco
-                                    if not tp_val and not set_val and not mot_val:
-                                        continue
+                        ano_atual = datetime.datetime.now().year
+                        prefixo_carga = f"TRP-{ano_atual}-"
 
-                                    num_carga_gerado = gerar_numero_carga_novo()
-                                    status_val = str(r.get("status", "FINALIZADA")).strip().upper()
-                                    if status_val not in ["PENDENTE_COMERCIAL", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
-                                        status_val = "FINALIZADA"
+                        try:
+                            with get_connection() as conn:
+                                with conn.cursor() as cursor:
+                                    # 1. Busca o maior sequencial já existente no banco UMA ÚNICA VEZ antes do loop
+                                    cursor.execute(
+                                        "SELECT numero_carga FROM cargas WHERE numero_carga LIKE %s",
+                                        (f"{prefixo_carga}%",)
+                                    )
+                                    cargas_existentes = cursor.fetchall()
+                                    max_seq = 0
+                                    for row_c in cargas_existentes:
+                                        partes = row_c[0].split('-')
+                                        if len(partes) == 3 and partes[2].isdigit():
+                                            seq = int(partes[2])
+                                            if seq > max_seq:
+                                                max_seq = seq
 
-                                    troca_nota_val = str(r.get("troca_nota", "Não")).strip().capitalize()
-                                    if troca_nota_val not in ["Sim", "Não"]:
-                                        troca_nota_val = "Não"
+                                    proximo_seq = max_seq + 1
 
-                                    # Monta JSON de Origem e Destino
-                                    origens_list = []
-                                    if str(r.get("cliente_origem", "")).strip() or str(r.get("cidade_origem", "")).strip():
-                                        origens_list.append({
-                                            "cliente": str(r.get("cliente_origem", "")).strip().upper(),
-                                            "cidade": str(r.get("cidade_origem", "")).strip().upper(),
-                                            "estado": str(r.get("uf_origem", "")).strip().upper()
-                                        })
+                                    # 2. Percorre a planilha incrementando o sequencial em memória
+                                    for _, r in df_import_cargas.iterrows():
+                                        tp_val = str(r.get("numero_tp", "")).strip().upper()
+                                        set_val = str(r.get("numero_set", "")).strip().upper()
+                                        mot_val = str(r.get("nome_motorista", "")).strip().upper()
+                                        
+                                        # Ignora linhas totalmente em branco
+                                        if not tp_val and not set_val and not mot_val:
+                                            continue
 
-                                    destinos_list = []
-                                    if str(r.get("cliente_destino", "")).strip() or str(r.get("cidade_destino", "")).strip():
-                                        destinos_list.append({
-                                            "cliente": str(r.get("cliente_destino", "")).strip().upper(),
-                                            "cidade": str(r.get("cidade_destino", "")).strip().upper(),
-                                            "estado": str(r.get("uf_destino", "")).strip().upper()
-                                        })
+                                        num_carga_gerado = f"{prefixo_carga}{proximo_seq:03d}"
+                                        proximo_seq += 1  # Incrementa para a próxima linha
 
-                                    # Monta listas JSON de NFs, CT-es, Viagens e MDF-es
-                                    nfs_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("notas_fiscais", ""))) if x.strip()]
-                                    ctes_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_cte", ""))) if x.strip()]
-                                    viagens_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_viagem", ""))) if x.strip()]
-                                    mdfes_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_mdfe", ""))) if x.strip()]
+                                        status_val = str(r.get("status", "FINALIZADA")).strip().upper()
+                                        if status_val not in ["PENDENTE_COMERCIAL", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
+                                            status_val = "FINALIZADA"
 
-                                    rec_frete = parse_float_seguro(r.get("receita_frete"))
-                                    rec_pedagio = parse_float_seguro(r.get("receita_pedagio"))
-                                    rec_descarga = parse_float_seguro(r.get("receita_taxa_descarga"))
-                                    val_rpa = parse_float_seguro(r.get("valor_rpa"))
-                                    qtd_eixos = parse_int_seguro(r.get("quantidade_eixos"), default=6)
+                                        troca_nota_val = str(r.get("troca_nota", "Não")).strip().capitalize()
+                                        if troca_nota_val not in ["Sim", "Não"]:
+                                            troca_nota_val = "Não"
 
-                                    # 1. Insere na tabela principal (cargas)
-                                    cursor.execute("""
-                                        INSERT INTO cargas (
-                                            numero_carga, numero_tp, numero_set, status, troca_nota,
-                                            data_coleta, previsao_descarga, nome_motorista, cpf_motorista,
-                                            telefone_motorista, tipo_motorista, tipo_veiculo, quantidade_eixos,
-                                            placa_cavalo, placa_carreta, origens_json, destinos_json,
-                                            notas_fiscais_comercial, receita_frete, receita_pedagio,
-                                            receita_taxa_descarga, valor_rpa, tipo_pedagio, plataforma,
-                                            vinculo, observacoes_programacao
-                                        ) VALUES (
-                                            %s, %s, %s, %s, %s,
-                                            %s, %s, %s, %s,
-                                            %s, %s, %s, %s,
-                                            %s, %s, %s, %s,
-                                            %s, %s, %s,
-                                            %s, %s, %s, %s,
-                                            %s, %s
-                                        ) RETURNING id
-                                    """, (
-                                        num_carga_gerado,
-                                        tp_val if tp_val else num_carga_gerado,
-                                        set_val,
-                                        status_val,
-                                        troca_nota_val,
-                                        str(r.get("data_coleta", "")).strip(),
-                                        str(r.get("previsao_descarga", "")).strip(),
-                                        mot_val if mot_val else "-",
-                                        formatar_cpf(r.get("cpf_motorista", "")),
-                                        formatar_telefone(r.get("telefone_motorista", "")),
-                                        str(r.get("tipo_motorista", "TERCEIRO")).strip().upper(),
-                                        str(r.get("tipo_veiculo", "")).strip().upper(),
-                                        qtd_eixos,
-                                        str(r.get("placa_cavalo", "")).strip().upper(),
-                                        str(r.get("placa_carreta", "")).strip().upper(),
-                                        json.dumps(origens_list) if origens_list else "",
-                                        json.dumps(destinos_list) if destinos_list else "",
-                                        json.dumps(nfs_raw) if nfs_raw else "",
-                                        rec_frete,
-                                        rec_pedagio,
-                                        rec_descarga,
-                                        val_rpa,
-                                        str(r.get("tipo_pedagio", "")).strip().upper(),
-                                        str(r.get("plataforma", "")).strip().upper(),
-                                        str(r.get("vinculo", "")).strip().upper(),
-                                        str(r.get("observacoes", "")).strip().upper()
-                                    ))
-                                    novo_id_carga = cursor.fetchone()[0]
+                                        # Monta JSON de Origem e Destino
+                                        origens_list = []
+                                        if str(r.get("cliente_origem", "")).strip() or str(r.get("cidade_origem", "")).strip():
+                                            origens_list.append({
+                                                "cliente": str(r.get("cliente_origem", "")).strip().upper(),
+                                                "cidade": str(r.get("cidade_origem", "")).strip().upper(),
+                                                "estado": str(r.get("uf_origem", "")).strip().upper()
+                                            })
 
-                                    # 2. Insere dados de Expedição (se houver)
-                                    pedagio_pago = parse_float_seguro(r.get("valor_pedagio_pago"))
-                                    contrato_val = str(r.get("numero_contrato", "")).strip().upper()
-                                    saida_filial = str(r.get("data_saida_filial", "")).strip() or str(r.get("data_coleta", "")).strip() or datetime.date.today().strftime("%d/%m/%Y")
+                                        destinos_list = []
+                                        if str(r.get("cliente_destino", "")).strip() or str(r.get("cidade_destino", "")).strip():
+                                            destinos_list.append({
+                                                "cliente": str(r.get("cliente_destino", "")).strip().upper(),
+                                                "cidade": str(r.get("cidade_destino", "")).strip().upper(),
+                                                "estado": str(r.get("uf_destino", "")).strip().upper()
+                                            })
 
-                                    if ctes_raw or mdfes_raw or contrato_val or pedagio_pago > 0 or status_val in ["EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
+                                        # Monta listas JSON de NFs, CT-es, Viagens e MDF-es
+                                        nfs_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("notas_fiscais", ""))) if x.strip()]
+                                        ctes_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_cte", ""))) if x.strip()]
+                                        viagens_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_viagem", ""))) if x.strip()]
+                                        mdfes_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_mdfe", ""))) if x.strip()]
+
+                                        rec_frete = parse_float_seguro(r.get("receita_frete"))
+                                        rec_pedagio = parse_float_seguro(r.get("receita_pedagio"))
+                                        rec_descarga = parse_float_seguro(r.get("receita_taxa_descarga"))
+                                        val_rpa = parse_float_seguro(r.get("valor_rpa"))
+                                        qtd_eixos = parse_int_seguro(r.get("quantidade_eixos"), default=6)
+
+                                        # Insere na tabela principal (cargas)
                                         cursor.execute("""
-                                            INSERT INTO carga_expedicao (
-                                                carga_id, numero_cte, numero_viagem, numero_mdfe,
-                                                numero_contrato, valor_pedagio_pago, notas_fiscais_expedicao,
-                                                data_saida_filial, observacoes_expedicao
-                                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                            INSERT INTO cargas (
+                                                numero_carga, numero_tp, numero_set, status, troca_nota,
+                                                data_coleta, previsao_descarga, nome_motorista, cpf_motorista,
+                                                telefone_motorista, tipo_motorista, tipo_veiculo, quantidade_eixos,
+                                                placa_cavalo, placa_carreta, origens_json, destinos_json,
+                                                notas_fiscais_comercial, receita_frete, receita_pedagio,
+                                                receita_taxa_descarga, valor_rpa, tipo_pedagio, plataforma,
+                                                vinculo, observacoes_programacao
+                                            ) VALUES (
+                                                %s, %s, %s, %s, %s,
+                                                %s, %s, %s, %s,
+                                                %s, %s, %s, %s,
+                                                %s, %s, %s, %s,
+                                                %s, %s, %s,
+                                                %s, %s, %s, %s,
+                                                %s, %s
+                                            ) RETURNING id
                                         """, (
-                                            novo_id_carga,
-                                            json.dumps(ctes_raw) if ctes_raw else "",
-                                            json.dumps(viagens_raw) if viagens_raw else "",
-                                            json.dumps(mdfes_raw) if mdfes_raw else "",
-                                            contrato_val,
-                                            pedagio_pago,
+                                            num_carga_gerado,
+                                            tp_val if tp_val else num_carga_gerado,
+                                            set_val,
+                                            status_val,
+                                            troca_nota_val,
+                                            str(r.get("data_coleta", "")).strip(),
+                                            str(r.get("previsao_descarga", "")).strip(),
+                                            mot_val if mot_val else "-",
+                                            formatar_cpf(r.get("cpf_motorista", "")),
+                                            formatar_telefone(r.get("telefone_motorista", "")),
+                                            str(r.get("tipo_motorista", "TERCEIRO")).strip().upper(),
+                                            str(r.get("tipo_veiculo", "")).strip().upper(),
+                                            qtd_eixos,
+                                            str(r.get("placa_cavalo", "")).strip().upper(),
+                                            str(r.get("placa_carreta", "")).strip().upper(),
+                                            json.dumps(origens_list) if origens_list else "",
+                                            json.dumps(destinos_list) if destinos_list else "",
                                             json.dumps(nfs_raw) if nfs_raw else "",
-                                            saida_filial,
+                                            rec_frete,
+                                            rec_pedagio,
+                                            rec_descarga,
+                                            val_rpa,
+                                            str(r.get("tipo_pedagio", "")).strip().upper(),
+                                            str(r.get("plataforma", "")).strip().upper(),
+                                            str(r.get("vinculo", "")).strip().upper(),
                                             str(r.get("observacoes", "")).strip().upper()
                                         ))
+                                        novo_id_carga = cursor.fetchone()[0]
 
-                                    # 3. Insere dados Operacionais / Descarga (se houver)
-                                    forn_desc = str(r.get("fornecedor_descarga", "")).strip().upper()
-                                    custo_desc = parse_float_seguro(r.get("custo_fornecedor_descarga"))
-                                    data_agend = str(r.get("data_agendamento_descarga", "")).strip()
+                                        # Insere dados de Expedição
+                                        pedagio_pago = parse_float_seguro(r.get("valor_pedagio_pago"))
+                                        contrato_val = str(r.get("numero_contrato", "")).strip().upper()
+                                        saida_filial = str(r.get("data_saida_filial", "")).strip() or str(r.get("data_coleta", "")).strip() or datetime.date.today().strftime("%d/%m/%Y")
 
-                                    if forn_desc or custo_desc > 0 or status_val in ["ENTREGUE", "FINALIZADA"]:
-                                        cursor.execute("""
-                                            INSERT INTO carga_operacional (
-                                                carga_id, fornecedor_descarga, custo_fornecedor_descarga,
-                                                data_agendamento_descarga, forma_pagamento, prazo_pagamento_dias
-                                            ) VALUES (%s, %s, %s, %s, %s, %s)
-                                        """, (
-                                            novo_id_carga,
-                                            forn_desc if forn_desc else "-",
-                                            custo_desc,
-                                            data_agend,
-                                            str(r.get("forma_pagamento_descarga", "PIX")).strip().upper(),
-                                            parse_int_seguro(r.get("prazo_pagamento_dias"), default=30)
-                                        ))
+                                        if ctes_raw or mdfes_raw or contrato_val or pedagio_pago > 0 or status_val in ["EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
+                                            cursor.execute("""
+                                                INSERT INTO carga_expedicao (
+                                                    carga_id, numero_cte, numero_viagem, numero_mdfe,
+                                                    numero_contrato, valor_pedagio_pago, notas_fiscais_expedicao,
+                                                    data_saida_filial, observacoes_expedicao
+                                                ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                            """, (
+                                                novo_id_carga,
+                                                json.dumps(ctes_raw) if ctes_raw else "",
+                                                json.dumps(viagens_raw) if viagens_raw else "",
+                                                json.dumps(mdfes_raw) if mdfes_raw else "",
+                                                contrato_val,
+                                                pedagio_pago,
+                                                json.dumps(nfs_raw) if nfs_raw else "",
+                                                saida_filial,
+                                                str(r.get("observacoes", "")).strip().upper()
+                                            ))
 
-                                    # 4. Insere dados Administrativos / Acerto (se houver)
-                                    status_saldo = str(r.get("status_pagamento_saldo", "")).strip().upper()
-                                    data_lib_saldo = str(r.get("data_liberacao_saldo", "")).strip()
+                                        # Insere dados Operacionais
+                                        forn_desc = str(r.get("fornecedor_descarga", "")).strip().upper()
+                                        custo_desc = parse_float_seguro(r.get("custo_fornecedor_descarga"))
+                                        data_agend = str(r.get("data_agendamento_descarga", "")).strip()
 
-                                    if status_saldo or data_lib_saldo or status_val == "FINALIZADA":
-                                        adiant = val_rpa * 0.70
-                                        saldo = val_rpa * 0.30
-                                        cursor.execute("""
-                                            INSERT INTO carga_administracao (
-                                                carga_id, valor_adiantamento, valor_saldo,
-                                                comprovante_entregue, data_liberacao_saldo, status_pagamento_saldo
-                                            ) VALUES (%s, %s, %s, %s, %s, %s)
-                                        """, (
-                                            novo_id_carga,
-                                            adiant,
-                                            saldo,
-                                            1 if status_val == "FINALIZADA" else 0,
-                                            data_lib_saldo,
-                                            status_saldo if status_saldo in ["PENDENTE", "PAGO", "CANCELADO"] else "PAGO"
-                                        ))
+                                        if forn_desc or custo_desc > 0 or status_val in ["ENTREGUE", "FINALIZADA"]:
+                                            cursor.execute("""
+                                                INSERT INTO carga_operacional (
+                                                    carga_id, fornecedor_descarga, custo_fornecedor_descarga,
+                                                    data_agendamento_descarga, forma_pagamento, prazo_pagamento_dias
+                                                ) VALUES (%s, %s, %s, %s, %s, %s)
+                                            """, (
+                                                novo_id_carga,
+                                                forn_desc if forn_desc else "-",
+                                                custo_desc,
+                                                data_agend,
+                                                str(r.get("forma_pagamento_descarga", "PIX")).strip().upper(),
+                                                parse_int_seguro(r.get("prazo_pagamento_dias"), default=30)
+                                            ))
 
-                                    sucessos_cargas += 1
-                                conn.commit()
+                                        # Insere dados Administrativos
+                                        status_saldo = str(r.get("status_pagamento_saldo", "")).strip().upper()
+                                        data_lib_saldo = str(r.get("data_liberacao_saldo", "")).strip()
 
-                        st.success(f"{sucessos_cargas} cargas importadas com sucesso para o painel!")
-                        st.rerun()
-                except Exception as e:
-                    st.error(f"Erro ao processar planilha de cargas: {e}")
+                                        if status_saldo or data_lib_saldo or status_val == "FINALIZADA":
+                                            adiant = val_rpa * 0.70
+                                            saldo = val_rpa * 0.30
+                                            cursor.execute("""
+                                                INSERT INTO carga_administracao (
+                                                    carga_id, valor_adiantamento, valor_saldo,
+                                                    comprovante_entregue, data_liberacao_saldo, status_pagamento_saldo
+                                                ) VALUES (%s, %s, %s, %s, %s, %s)
+                                            """, (
+                                                novo_id_carga,
+                                                adiant,
+                                                saldo,
+                                                1 if status_val == "FINALIZADA" else 0,
+                                                data_lib_saldo,
+                                                status_saldo if status_saldo in ["PENDENTE", "PAGO", "CANCELADO"] else "PAGO"
+                                            ))
+
+                                        sucessos_cargas += 1
+                                    conn.commit()
+
+                            st.success(f"{sucessos_cargas} cargas importadas com sucesso para o painel!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erro ao processar planilha de cargas: {e}")
 
     query = """
         SELECT 
