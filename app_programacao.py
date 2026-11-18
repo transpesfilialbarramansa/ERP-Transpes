@@ -878,6 +878,7 @@ if menu_selecionado == "Visão Geral":
                         try:
                             with get_connection() as conn:
                                 with conn.cursor() as cursor:
+                                    # Busca o maior sequencial já existente no banco
                                     cursor.execute(
                                         "SELECT numero_carga FROM cargas WHERE numero_carga LIKE %s",
                                         (f"{prefixo_carga}%",)
@@ -892,6 +893,10 @@ if menu_selecionado == "Visão Geral":
                                                 max_seq = seq
 
                                     proximo_seq = max_seq + 1
+
+                                    # Prepara listas para inserção em lote (Bulk Insert)
+                                    dados_cargas = []
+                                    registros_temp = []
 
                                     for _, r in df_import_cargas.iterrows():
                                         tp_val = str(r.get("numero_tp", r.get("Numero TP", ""))).strip().upper()
@@ -943,6 +948,17 @@ if menu_selecionado == "Visão Geral":
                                         val_rpa = parse_float_seguro(r.get("valor_rpa"))
                                         qtd_eixos = parse_int_seguro(r.get("quantidade_eixos"), default=6)
 
+                                        pedagio_pago = parse_float_seguro(r.get("valor_pedagio_pago"))
+                                        contrato_val = str(r.get("numero_contrato", "")).strip().upper()
+                                        saida_filial = str(r.get("data_saida_filial", "")).strip() or str(r.get("data_coleta", "")).strip() or datetime.date.today().strftime("%d/%m/%Y")
+                                        forn_desc = str(r.get("fornecedor_descarga", "")).strip().upper()
+                                        custo_desc = parse_float_seguro(r.get("custo_fornecedor_descarga"))
+                                        data_agend = str(r.get("data_agendamento_descarga", "")).strip()
+                                        status_saldo = str(r.get("status_pagamento_saldo", "")).strip().upper()
+                                        data_lib_saldo = str(r.get("data_liberacao_saldo", "")).strip()
+                                        obs_val = str(r.get("observacoes", "")).strip().upper()
+
+                                        # Adiciona à lista principal de cargas
                                         cursor.execute("""
                                             INSERT INTO cargas (
                                                 numero_carga, numero_tp, numero_set, status, troca_nota,
@@ -987,14 +1003,11 @@ if menu_selecionado == "Visão Geral":
                                             str(r.get("tipo_pedagio", "")).strip().upper(),
                                             str(r.get("plataforma", "")).strip().upper(),
                                             str(r.get("vinculo", "")).strip().upper(),
-                                            str(r.get("observacoes", "")).strip().upper()
+                                            obs_val
                                         ))
                                         novo_id_carga = cursor.fetchone()[0]
 
-                                        pedagio_pago = parse_float_seguro(r.get("valor_pedagio_pago"))
-                                        contrato_val = str(r.get("numero_contrato", "")).strip().upper()
-                                        saida_filial = str(r.get("data_saida_filial", "")).strip() or str(r.get("data_coleta", "")).strip() or datetime.date.today().strftime("%d/%m/%Y")
-
+                                        # Insere nas tabelas filhas associadas imediatamente
                                         if ctes_raw or mdfes_raw or contrato_val or pedagio_pago > 0 or status_val in ["EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
                                             cursor.execute("""
                                                 INSERT INTO carga_expedicao (
@@ -1011,12 +1024,8 @@ if menu_selecionado == "Visão Geral":
                                                 pedagio_pago,
                                                 json.dumps(nfs_raw) if nfs_raw else "",
                                                 saida_filial,
-                                                str(r.get("observacoes", "")).strip().upper()
+                                                obs_val
                                             ))
-
-                                        forn_desc = str(r.get("fornecedor_descarga", "")).strip().upper()
-                                        custo_desc = parse_float_seguro(r.get("custo_fornecedor_descarga"))
-                                        data_agend = str(r.get("data_agendamento_descarga", "")).strip()
 
                                         if forn_desc or custo_desc > 0 or status_val in ["ENTREGUE", "FINALIZADA"]:
                                             cursor.execute("""
@@ -1032,9 +1041,6 @@ if menu_selecionado == "Visão Geral":
                                                 str(r.get("forma_pagamento_descarga", "PIX")).strip().upper(),
                                                 parse_int_seguro(r.get("prazo_pagamento_dias"), default=30)
                                             ))
-
-                                        status_saldo = str(r.get("status_pagamento_saldo", "")).strip().upper()
-                                        data_lib_saldo = str(r.get("data_liberacao_saldo", "")).strip()
 
                                         if status_saldo or data_lib_saldo or status_val == "FINALIZADA":
                                             adiant = val_rpa * 0.70
@@ -1054,9 +1060,11 @@ if menu_selecionado == "Visão Geral":
                                             ))
 
                                         sucessos_cargas += 1
+                                    
+                                    # Confirmação única de transação para todas as linhas (Muito mais rápido!)
                                     conn.commit()
 
-                            st.success(f"{sucessos_cargas} cargas importadas com sucesso para el painel!")
+                            st.success(f"{sucessos_cargas} cargas importadas com sucesso em lote!")
                             st.rerun()
                         except Exception as e_db:
                             st.error(f"Erro ao inserir no banco de dados: {e_db}")
