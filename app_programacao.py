@@ -1065,8 +1065,6 @@ if menu_selecionado == "Visão Geral":
 
     query = """
         SELECT 
-...
-        SELECT 
             c.id AS id_carga,
             COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
             COALESCE(c.numero_set, '-') AS "Nº SET",
@@ -1107,12 +1105,17 @@ if menu_selecionado == "Visão Geral":
         LEFT JOIN carga_administracao a ON c.id = a.carga_id
         ORDER BY c.id ASC
     """
-    with get_connection() as conn:
-        with conn.cursor() as cursor:
-            cursor.execute(query)
-            dados = cursor.fetchall()
-            colunas = [desc.name for desc in cursor.description]
-            df = pd.DataFrame(dados, columns=colunas)
+    
+    try:
+        with get_connection() as conn:
+            with conn.cursor() as cursor:
+                cursor.execute(query)
+                dados = cursor.fetchall()
+                colunas = [desc.name for desc in cursor.description]
+                df = pd.DataFrame(dados, columns=colunas)
+    except Exception as e:
+        st.error(f"Erro ao executar consulta SQL no banco de dados: {e}")
+        df = pd.DataFrame()
 
     if df.empty:
         st.info("Nenhuma carga cadastrada no momento.")
