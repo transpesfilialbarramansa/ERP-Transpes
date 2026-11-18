@@ -137,14 +137,6 @@ st.markdown("""
     .stButton > button { font-size: 0.82rem !important; padding: 4px 10px !important; }
     hr { margin: 0.6rem 0 !important; }
     header[data-testid="stHeader"] { background: transparent !important; }
-
-    /* Correção para evitar sombras residuais e rastros ao carregar abas */
-    .stTabs [data-baseweb="tab-panel"] {
-        transition: opacity 0.2s ease-in-out;
-    }
-    div[data-testid="stVerticalBlock"] > div {
-        will-change: auto;
-    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -389,6 +381,7 @@ def limpar_formato_json_lista(valor, separador=", "):
     return limpo if limpo else "-"
 
 def parse_float_seguro(val):
+    """Converte strings numéricas (ex: '1.500,50' ou '1500.50') para float com segurança."""
     if pd.isna(val) or val is None:
         return 0.0
     s = str(val).strip().replace("R$", "").strip()
@@ -412,6 +405,7 @@ def parse_int_seguro(val, default=6):
         return default
 
 def gerar_modelo_importacao_cargas():
+    """Gera uma planilha Excel padrão (.xlsx) com as colunas para importação em lote de cargas antigas."""
     df_modelo = pd.DataFrame([{
         "numero_tp": "TP-1001",
         "numero_set": "SET-2026-001",
@@ -775,6 +769,7 @@ perfil = st.session_state.get("usuario_perfil", "ADMIN")
 
 opcoes_perfil = ["Visão Geral"]
 
+# Verificação de múltiplos perfis (suporta string concatenada por vírgulas)
 tem_admin = "ADMIN" in perfil
 
 if tem_admin:
@@ -852,6 +847,9 @@ with st.sidebar:
 if menu_selecionado == "Visão Geral":
     st.markdown(f"<h1>{SVG_ICONS['visao_geral']} Visão Geral e Relatórios</h1>", unsafe_allow_html=True)
 
+    # ==========================================
+    # IMPORTAÇÃO EM LOTE DE CARGAS ANTIGAS (EXCLUSIVO ADMIN)
+    # ==========================================
     if "ADMIN" in perfil:
         with st.expander("Importação em Lote de Cargas Antigas (Excel / CSV)", expanded=False):
             st.markdown("Baixe a planilha modelo padrão, preencha os dados históricos das cargas e importe para alimentar o painel automaticamente sem precisar lançar etapa por etapa.")
@@ -885,6 +883,7 @@ if menu_selecionado == "Visão Geral":
                         try:
                             with get_connection() as conn:
                                 with conn.cursor() as cursor:
+                                    # Busca o maior sequencial já existente no banco
                                     cursor.execute(
                                         "SELECT numero_carga FROM cargas WHERE numero_carga LIKE %s",
                                         (f"{prefixo_carga}%",)
