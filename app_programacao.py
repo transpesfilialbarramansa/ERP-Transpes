@@ -380,6 +380,99 @@ def limpar_formato_json_lista(valor, separador=", "):
     limpo = str(valor).replace("[", "").replace("]", "").replace('"', '').replace("'", "").strip()
     return limpo if limpo else "-"
 
+def parse_float_seguro(val):
+    """Converte strings numéricas (ex: '1.500,50' ou '1500.50') para float com segurança."""
+    if pd.isna(val) or val is None:
+        return 0.0
+    s = str(val).strip().replace("R$", "").strip()
+    if not s or s == "-":
+        return 0.0
+    if "," in s and "." in s:
+        s = s.replace(".", "").replace(",", ".")
+    elif "," in s:
+        s = s.replace(",", ".")
+    try:
+        return float(s)
+    except Exception:
+        return 0.0
+
+def parse_int_seguro(val, default=6):
+    if pd.isna(val) or val is None or str(val).strip() in ["", "-"]:
+        return default
+    try:
+        return int(float(str(val).strip()))
+    except Exception:
+        return default
+
+def gerar_modelo_importacao_cargas():
+    """Gera uma planilha Excel padrão (.xlsx) com as colunas para importação em lote de cargas antigas."""
+    df_modelo = pd.DataFrame([{
+        "numero_tp": "TP-1001",
+        "numero_set": "SET-2026-001",
+        "status": "FINALIZADA",
+        "troca_nota": "Não",
+        "data_coleta": "10/01/2026",
+        "previsao_descarga": "12/01/2026",
+        "nome_motorista": "JOÃO DA SILVA",
+        "cpf_motorista": "123.456.789-00",
+        "telefone_motorista": "(24) 99999-9999",
+        "tipo_motorista": "TERCEIRO",
+        "tipo_veiculo": "CARRETA 15m",
+        "quantidade_eixos": 6,
+        "placa_cavalo": "ABC1D23",
+        "placa_carreta": "XYZ9W87",
+        "cliente_origem": "USINA SIDERÚRGICA",
+        "cidade_origem": "VOLTA REDONDA",
+        "uf_origem": "RJ",
+        "cliente_destino": "INDÚSTRIA METALÚRGICA",
+        "cidade_destino": "SÃO PAULO",
+        "uf_destino": "SP",
+        "receita_frete": 8500.00,
+        "receita_pedagio": 450.00,
+        "receita_taxa_descarga": 300.00,
+        "valor_rpa": 5200.00,
+        "tipo_pedagio": "TAG",
+        "plataforma": "APP",
+        "vinculo": "CPF",
+        "numero_cte": "10450",
+        "numero_viagem": "5021",
+        "numero_mdfe": "998",
+        "numero_contrato": "CTR-8899",
+        "notas_fiscais": "12345, 12346",
+        "valor_pedagio_pago": 450.00,
+        "data_saida_filial": "10/01/2026",
+        "fornecedor_descarga": "ALEMAO MUNCK",
+        "custo_fornecedor_descarga": 250.00,
+        "data_agendamento_descarga": "12/01/2026",
+        "forma_pagamento_descarga": "PIX",
+        "prazo_pagamento_dias": 15,
+        "status_pagamento_saldo": "PAGO",
+        "data_liberacao_saldo": "15/01/2026",
+        "observacoes": "CARGA HISTÓRICA IMPORTADA"
+    }])
+    
+    buffer = io.BytesIO()
+    with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
+        df_modelo.to_excel(writer, index=False, sheet_name="Modelo_Cargas")
+        worksheet = writer.sheets["Modelo_Cargas"]
+        from openpyxl.styles import Alignment, Font, PatternFill
+        from openpyxl.utils import get_column_letter
+        
+        fill_cab = PatternFill(start_color="0F2A4A", end_color="0F2A4A", fill_type="solid")
+        font_cab = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+        for col_num in range(1, len(df_modelo.columns) + 1):
+            cell = worksheet.cell(row=1, column=col_num)
+            cell.fill = fill_cab
+            cell.font = font_cab
+            cell.alignment = Alignment(horizontal="center", vertical="center")
+            
+        for col in worksheet.columns:
+            max_len = max(len(str(cell.value or "")) for cell in col)
+            worksheet.column_dimensions[get_column_letter(col[0].column)].width = max(max_len + 4, 14)
+
+    buffer.seek(0)
+    return buffer.getvalue()
+
 def gerar_excel_geral(df_dados):
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine="openpyxl") as writer:
@@ -584,14 +677,12 @@ if not st.session_state["logado"]:
         [data-testid="stSidebar"], [data-testid="stHeader"] {{ display: none; }}
         .stApp {{ {bg_style} }}
         
-        /* Centralização e largura do container de login */
         [data-testid="stMainBlockContainer"] {{ 
             max-width: 400px !important; 
             padding-top: 5rem !important; 
             margin: auto !important; 
         }}
         
-        /* Formatação do Card Branco Unificado */
         [data-testid="stForm"] {{
             background: rgba(255, 255, 255, 0.96) !important;
             padding: 28px 24px 20px 24px !important;
@@ -600,7 +691,6 @@ if not st.session_state["logado"]:
             border: 1px solid rgba(255, 255, 255, 0.2) !important;
         }}
         
-        /* Estilização dos rótulos de Usuário e Senha para alto contraste */
         [data-testid="stForm"] label {{
             color: #0B2136 !important;
             font-weight: 700 !important;
@@ -608,7 +698,6 @@ if not st.session_state["logado"]:
             margin-bottom: 4px !important;
         }}
         
-        /* Campos de entrada com borda leve e fundo claro */
         [data-testid="stForm"] input {{
             background-color: #F8FAFC !important;
             border: 1px solid #CBD5E1 !important;
@@ -616,7 +705,6 @@ if not st.session_state["logado"]:
             color: #0F172A !important;
         }}
         
-        /* Botão de Entrar destacado */
         [data-testid="stForm"] .stButton > button {{
             background-color: #0B2136 !important;
             color: #FFFFFF !important;
@@ -636,7 +724,6 @@ if not st.session_state["logado"]:
     )
 
     with st.form("form_login"):
-        # Logo e subtítulo posicionados DENTRO do card do formulário
         st.markdown(
             f"""
             <div style="text-align: center; margin-bottom: 15px;">
@@ -754,6 +841,207 @@ with st.sidebar:
 # 1. VISÃO GERAL
 if menu_selecionado == "Visão Geral":
     st.markdown(f"<h1>{SVG_ICONS['visao_geral']} Visão Geral e Relatórios</h1>", unsafe_allow_html=True)
+
+    # ==========================================
+    # IMPORTAÇÃO EM LOTE DE CARGAS ANTIGAS (EXCLUSIVO ADMIN)
+    # ==========================================
+    if perfil == "ADMIN":
+        with st.expander("Importação em Lote de Cargas Antigas (Excel / CSV)", expanded=False):
+            st.markdown("Baixe a planilha modelo padrão, preencha os dados históricos das cargas e importe para alimentar o painel automaticamente sem precisar lançar etapa por etapa.")
+            
+            st.download_button(
+                label="Baixar Modelo Padrão (.xlsx)",
+                data=gerar_modelo_importacao_cargas(),
+                file_name="Modelo_Importacao_Cargas_Transpes.xlsx",
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                key="btn_baixar_modelo_cargas"
+            )
+
+            arquivo_cargas = st.file_uploader("Selecione a planilha preenchida (.xlsx ou .csv)", type=["xlsx", "csv"], key="uploader_cargas_antigas")
+            
+            if arquivo_cargas is not None:
+                try:
+                    if arquivo_cargas.name.endswith('.csv'):
+                        df_import_cargas = pd.read_csv(arquivo_cargas, dtype=str)
+                    else:
+                        df_import_cargas = pd.read_excel(arquivo_cargas, dtype=str)
+                    
+                    df_import_cargas = df_import_cargas.fillna("")
+                    st.markdown("**Pré-visualização dos dados a importar (primeiras 5 linhas):**")
+                    st.dataframe(df_import_cargas.head(5), use_container_width=True, hide_index=True)
+
+                    if st.button("Confirmar Importação das Cargas", type="primary", key="btn_confirmar_import_cargas"):
+                        sucessos_cargas = 0
+                        with get_connection() as conn:
+                            with conn.cursor() as cursor:
+                                for _, r in df_import_cargas.iterrows():
+                                    tp_val = str(r.get("numero_tp", "")).strip().upper()
+                                    set_val = str(r.get("numero_set", "")).strip().upper()
+                                    mot_val = str(r.get("nome_motorista", "")).strip().upper()
+                                    
+                                    # Ignora linhas totalmente em branco
+                                    if not tp_val and not set_val and not mot_val:
+                                        continue
+
+                                    num_carga_gerado = gerar_numero_carga_novo()
+                                    status_val = str(r.get("status", "FINALIZADA")).strip().upper()
+                                    if status_val not in ["PENDENTE_COMERCIAL", "PROGRAMADA", "EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
+                                        status_val = "FINALIZADA"
+
+                                    troca_nota_val = str(r.get("troca_nota", "Não")).strip().capitalize()
+                                    if troca_nota_val not in ["Sim", "Não"]:
+                                        troca_nota_val = "Não"
+
+                                    # Monta JSON de Origem e Destino
+                                    origens_list = []
+                                    if str(r.get("cliente_origem", "")).strip() or str(r.get("cidade_origem", "")).strip():
+                                        origens_list.append({
+                                            "cliente": str(r.get("cliente_origem", "")).strip().upper(),
+                                            "cidade": str(r.get("cidade_origem", "")).strip().upper(),
+                                            "estado": str(r.get("uf_origem", "")).strip().upper()
+                                        })
+
+                                    destinos_list = []
+                                    if str(r.get("cliente_destino", "")).strip() or str(r.get("cidade_destino", "")).strip():
+                                        destinos_list.append({
+                                            "cliente": str(r.get("cliente_destino", "")).strip().upper(),
+                                            "cidade": str(r.get("cidade_destino", "")).strip().upper(),
+                                            "estado": str(r.get("uf_destino", "")).strip().upper()
+                                        })
+
+                                    # Monta listas JSON de NFs, CT-es, Viagens e MDF-es
+                                    nfs_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("notas_fiscais", ""))) if x.strip()]
+                                    ctes_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_cte", ""))) if x.strip()]
+                                    viagens_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_viagem", ""))) if x.strip()]
+                                    mdfes_raw = [x.strip().upper() for x in re.split(r'[,;/]', str(r.get("numero_mdfe", ""))) if x.strip()]
+
+                                    rec_frete = parse_float_seguro(r.get("receita_frete"))
+                                    rec_pedagio = parse_float_seguro(r.get("receita_pedagio"))
+                                    rec_descarga = parse_float_seguro(r.get("receita_taxa_descarga"))
+                                    val_rpa = parse_float_seguro(r.get("valor_rpa"))
+                                    qtd_eixos = parse_int_seguro(r.get("quantidade_eixos"), default=6)
+
+                                    # 1. Insere na tabela principal (cargas)
+                                    cursor.execute("""
+                                        INSERT INTO cargas (
+                                            numero_carga, numero_tp, numero_set, status, troca_nota,
+                                            data_coleta, previsao_descarga, nome_motorista, cpf_motorista,
+                                            telefone_motorista, tipo_motorista, tipo_veiculo, quantidade_eixos,
+                                            placa_cavalo, placa_carreta, origens_json, destinos_json,
+                                            notas_fiscais_comercial, receita_frete, receita_pedagio,
+                                            receita_taxa_descarga, valor_rpa, tipo_pedagio, plataforma,
+                                            vinculo, observacoes_programacao
+                                        ) VALUES (
+                                            %s, %s, %s, %s, %s,
+                                            %s, %s, %s, %s,
+                                            %s, %s, %s, %s,
+                                            %s, %s, %s, %s,
+                                            %s, %s, %s,
+                                            %s, %s, %s, %s,
+                                            %s, %s
+                                        ) RETURNING id
+                                    """, (
+                                        num_carga_gerado,
+                                        tp_val if tp_val else num_carga_gerado,
+                                        set_val,
+                                        status_val,
+                                        troca_nota_val,
+                                        str(r.get("data_coleta", "")).strip(),
+                                        str(r.get("previsao_descarga", "")).strip(),
+                                        mot_val if mot_val else "-",
+                                        formatar_cpf(r.get("cpf_motorista", "")),
+                                        formatar_telefone(r.get("telefone_motorista", "")),
+                                        str(r.get("tipo_motorista", "TERCEIRO")).strip().upper(),
+                                        str(r.get("tipo_veiculo", "")).strip().upper(),
+                                        qtd_eixos,
+                                        str(r.get("placa_cavalo", "")).strip().upper(),
+                                        str(r.get("placa_carreta", "")).strip().upper(),
+                                        json.dumps(origens_list) if origens_list else "",
+                                        json.dumps(destinos_list) if destinos_list else "",
+                                        json.dumps(nfs_raw) if nfs_raw else "",
+                                        rec_frete,
+                                        rec_pedagio,
+                                        rec_descarga,
+                                        val_rpa,
+                                        str(r.get("tipo_pedagio", "")).strip().upper(),
+                                        str(r.get("plataforma", "")).strip().upper(),
+                                        str(r.get("vinculo", "")).strip().upper(),
+                                        str(r.get("observacoes", "")).strip().upper()
+                                    ))
+                                    novo_id_carga = cursor.fetchone()[0]
+
+                                    # 2. Insere dados de Expedição (se houver)
+                                    pedagio_pago = parse_float_seguro(r.get("valor_pedagio_pago"))
+                                    contrato_val = str(r.get("numero_contrato", "")).strip().upper()
+                                    saida_filial = str(r.get("data_saida_filial", "")).strip() or str(r.get("data_coleta", "")).strip() or datetime.date.today().strftime("%d/%m/%Y")
+
+                                    if ctes_raw or mdfes_raw or contrato_val or pedagio_pago > 0 or status_val in ["EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
+                                        cursor.execute("""
+                                            INSERT INTO carga_expedicao (
+                                                carga_id, numero_cte, numero_viagem, numero_mdfe,
+                                                numero_contrato, valor_pedagio_pago, notas_fiscais_expedicao,
+                                                data_saida_filial, observacoes_expedicao
+                                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                                        """, (
+                                            novo_id_carga,
+                                            json.dumps(ctes_raw) if ctes_raw else "",
+                                            json.dumps(viagens_raw) if viagens_raw else "",
+                                            json.dumps(mdfes_raw) if mdfes_raw else "",
+                                            contrato_val,
+                                            pedagio_pago,
+                                            json.dumps(nfs_raw) if nfs_raw else "",
+                                            saida_filial,
+                                            str(r.get("observacoes", "")).strip().upper()
+                                        ))
+
+                                    # 3. Insere dados Operacionais / Descarga (se houver)
+                                    forn_desc = str(r.get("fornecedor_descarga", "")).strip().upper()
+                                    custo_desc = parse_float_seguro(r.get("custo_fornecedor_descarga"))
+                                    data_agend = str(r.get("data_agendamento_descarga", "")).strip()
+
+                                    if forn_desc or custo_desc > 0 or status_val in ["ENTREGUE", "FINALIZADA"]:
+                                        cursor.execute("""
+                                            INSERT INTO carga_operacional (
+                                                carga_id, fornecedor_descarga, custo_fornecedor_descarga,
+                                                data_agendamento_descarga, forma_pagamento, prazo_pagamento_dias
+                                            ) VALUES (%s, %s, %s, %s, %s, %s)
+                                        """, (
+                                            novo_id_carga,
+                                            forn_desc if forn_desc else "-",
+                                            custo_desc,
+                                            data_agend,
+                                            str(r.get("forma_pagamento_descarga", "PIX")).strip().upper(),
+                                            parse_int_seguro(r.get("prazo_pagamento_dias"), default=30)
+                                        ))
+
+                                    # 4. Insere dados Administrativos / Acerto (se houver)
+                                    status_saldo = str(r.get("status_pagamento_saldo", "")).strip().upper()
+                                    data_lib_saldo = str(r.get("data_liberacao_saldo", "")).strip()
+
+                                    if status_saldo or data_lib_saldo or status_val == "FINALIZADA":
+                                        adiant = val_rpa * 0.70
+                                        saldo = val_rpa * 0.30
+                                        cursor.execute("""
+                                            INSERT INTO carga_administracao (
+                                                carga_id, valor_adiantamento, valor_saldo,
+                                                comprovante_entregue, data_liberacao_saldo, status_pagamento_saldo
+                                            ) VALUES (%s, %s, %s, %s, %s, %s)
+                                        """, (
+                                            novo_id_carga,
+                                            adiant,
+                                            saldo,
+                                            1 if status_val == "FINALIZADA" else 0,
+                                            data_lib_saldo,
+                                            status_saldo if status_saldo in ["PENDENTE", "PAGO", "CANCELADO"] else "PAGO"
+                                        ))
+
+                                    sucessos_cargas += 1
+                                conn.commit()
+
+                        st.success(f"{sucessos_cargas} cargas importadas com sucesso para o painel!")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Erro ao processar planilha de cargas: {e}")
 
     query = """
         SELECT 
@@ -989,7 +1277,6 @@ elif menu_selecionado == "Programação":
         plataforma = c14.selectbox("Plataforma*", ["APP", "Card"])
         vinculo = c15.selectbox("Vínculo*", ["CPF", "CNPJ"])
 
-        # NOVO CAMPO: CAIXA DE SELEÇÃO TROCA DE NOTA ACIMA DA OBSERVAÇÃO
         troca_nota = st.selectbox("Troca de Nota*", ["Não", "Sim"])
 
         obs_prog = st.text_area("Observação").upper()
