@@ -872,14 +872,12 @@ if menu_selecionado == "Visão Geral":
 
                     if st.button("Confirmar Importação das Cargas", type="primary", key="btn_confirmar_import_cargas"):
                         sucessos_cargas = 0
-                        erros_importacao = 0
                         ano_atual = datetime.datetime.now().year
                         prefixo_carga = f"TRP-{ano_atual}-"
 
                         try:
                             with get_connection() as conn:
                                 with conn.cursor() as cursor:
-                                    # Busca o maior sequencial já existente no banco
                                     cursor.execute(
                                         "SELECT numero_carga FROM cargas WHERE numero_carga LIKE %s",
                                         (f"{prefixo_carga}%",)
@@ -895,13 +893,11 @@ if menu_selecionado == "Visão Geral":
 
                                     proximo_seq = max_seq + 1
 
-                                    for idx, r in df_import_cargas.iterrows():
-                                        # Normaliza nomes de colunas caso venham com espaços ou maiúsculas
+                                    for _, r in df_import_cargas.iterrows():
                                         tp_val = str(r.get("numero_tp", r.get("Numero TP", ""))).strip().upper()
                                         set_val = str(r.get("numero_set", r.get("Numero SET", ""))).strip().upper()
                                         mot_val = str(r.get("nome_motorista", r.get("Nome Motorista", ""))).strip().upper()
                                         
-                                        # Se a linha estiver totalmente vazia, pula
                                         if not tp_val and not set_val and not mot_val:
                                             continue
 
@@ -947,7 +943,6 @@ if menu_selecionado == "Visão Geral":
                                         val_rpa = parse_float_seguro(r.get("valor_rpa"))
                                         qtd_eixos = parse_int_seguro(r.get("quantidade_eixos"), default=6)
 
-                                        # Insere na tabela cargas
                                         cursor.execute("""
                                             INSERT INTO cargas (
                                                 numero_carga, numero_tp, numero_set, status, troca_nota,
@@ -996,7 +991,6 @@ if menu_selecionado == "Visão Geral":
                                         ))
                                         novo_id_carga = cursor.fetchone()[0]
 
-                                        # Demais tabelas (Expedição, Operacional, Administração)
                                         pedagio_pago = parse_float_seguro(r.get("valor_pedagio_pago"))
                                         contrato_val = str(r.get("numero_contrato", "")).strip().upper()
                                         saida_filial = str(r.get("data_saida_filial", "")).strip() or str(r.get("data_coleta", "")).strip() or datetime.date.today().strftime("%d/%m/%Y")
@@ -1013,7 +1007,7 @@ if menu_selecionado == "Visão Geral":
                                                 json.dumps(ctes_raw) if ctes_raw else "",
                                                 json.dumps(viagens_raw) if viagens_raw else "",
                                                 json.dumps(mdfes_raw) if mdfes_raw else "",
-                               _contrato_val if 'contrato_val' in locals() else "",
+                                                contrato_val,
                                                 pedagio_pago,
                                                 json.dumps(nfs_raw) if nfs_raw else "",
                                                 saida_filial,
@@ -1062,11 +1056,16 @@ if menu_selecionado == "Visão Geral":
                                         sucessos_cargas += 1
                                     conn.commit()
 
-                            st.success(f"{sucessos_cargas} cargas importadas com sucesso para o painel!")
+                            st.success(f"{sucessos_cargas} cargas importadas com sucesso para el painel!")
                             st.rerun()
-                        except Exception as e:
-                            st.error(f"Erro detalhado ao processar planilha de cargas: {e}")
+                        except Exception as e_db:
+                            st.error(f"Erro ao inserir no banco de dados: {e_db}")
+                except Exception as e:
+                    st.error(f"Erro ao ler o arquivo enviado: {e}")
+
     query = """
+        SELECT 
+...
         SELECT 
             c.id AS id_carga,
             COALESCE(c.numero_tp, c.numero_carga) AS "Nº TP",
