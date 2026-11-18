@@ -768,18 +768,23 @@ menu_selecionado = st.session_state["menu"]
 perfil = st.session_state.get("usuario_perfil", "ADMIN")
 
 opcoes_perfil = ["Visão Geral"]
-if perfil == "ADMIN":
+
+# Verificação de múltiplos perfis (suporta string concatenada por vírgulas)
+tem_admin = "ADMIN" in perfil
+
+if tem_admin:
     opcoes_perfil.extend(["Programação", "Comercial", "Expedição", "Operacional", "Administração", "Fornecedores", "Excluir Cargas", "Usuários"])
-elif perfil == "PROGRAMACAO":
-    opcoes_perfil.append("Programação")
-elif perfil == "COMERCIAL":
-    opcoes_perfil.append("Comercial")
-elif perfil == "EXPEDICAO":
-    opcoes_perfil.append("Expedição")
-elif perfil == "OPERACIONAL":
-    opcoes_perfil.extend(["Operacional", "Fornecedores"])
-elif perfil == "ADMINISTRATIVO":
-    opcoes_perfil.extend(["Administração", "Fornecedores"])
+else:
+    if "PROGRAMACAO" in perfil:
+        opcoes_perfil.append("Programação")
+    if "COMERCIAL" in perfil:
+        opcoes_perfil.append("Comercial")
+    if "EXPEDICAO" in perfil:
+        opcoes_perfil.append("Expedição")
+    if "OPERACIONAL" in perfil:
+        opcoes_perfil.extend(["Operacional", "Fornecedores"])
+    if "ADMINISTRATIVO" in perfil:
+        opcoes_perfil.extend(["Administração", "Fornecedores"])
 
 logo_base64_sidebar = get_base64_image("transpes_nova_logo_azul.jpg")
 
@@ -845,7 +850,7 @@ if menu_selecionado == "Visão Geral":
     # ==========================================
     # IMPORTAÇÃO EM LOTE DE CARGAS ANTIGAS (EXCLUSIVO ADMIN)
     # ==========================================
-    if perfil == "ADMIN":
+    if "ADMIN" in perfil:
         with st.expander("Importação em Lote de Cargas Antigas (Excel / CSV)", expanded=False):
             st.markdown("Baixe a planilha modelo padrão, preencha os dados históricos das cargas e importe para alimentar o painel automaticamente sem precisar lançar etapa por etapa.")
             
@@ -893,10 +898,6 @@ if menu_selecionado == "Visão Geral":
                                                 max_seq = seq
 
                                     proximo_seq = max_seq + 1
-
-                                    # Prepara listas para inserção em lote (Bulk Insert)
-                                    dados_cargas = []
-                                    registros_temp = []
 
                                     for _, r in df_import_cargas.iterrows():
                                         tp_val = str(r.get("numero_tp", r.get("Numero TP", ""))).strip().upper()
@@ -958,7 +959,6 @@ if menu_selecionado == "Visão Geral":
                                         data_lib_saldo = str(r.get("data_liberacao_saldo", "")).strip()
                                         obs_val = str(r.get("observacoes", "")).strip().upper()
 
-                                        # Adiciona à lista principal de cargas
                                         cursor.execute("""
                                             INSERT INTO cargas (
                                                 numero_carga, numero_tp, numero_set, status, troca_nota,
@@ -1007,7 +1007,6 @@ if menu_selecionado == "Visão Geral":
                                         ))
                                         novo_id_carga = cursor.fetchone()[0]
 
-                                        # Insere nas tabelas filhas associadas imediatamente
                                         if ctes_raw or mdfes_raw or contrato_val or pedagio_pago > 0 or status_val in ["EM TRÂNSITO", "ENTREGUE", "FINALIZADA"]:
                                             cursor.execute("""
                                                 INSERT INTO carga_expedicao (
@@ -1061,7 +1060,6 @@ if menu_selecionado == "Visão Geral":
 
                                         sucessos_cargas += 1
                                     
-                                    # Confirmação única de transação para todas as linhas (Muito mais rápido!)
                                     conn.commit()
 
                             st.success(f"{sucessos_cargas} cargas importadas com sucesso em lote!")
@@ -1183,7 +1181,7 @@ if menu_selecionado == "Visão Geral":
 
         st.dataframe(df_exib[cols_final], use_container_width=True, hide_index=True)
 
-        if perfil == "ADMIN":
+        if "ADMIN" in perfil:
             st.markdown("---")
             with st.expander("Painel Admin: Editar Carga Registrada", expanded=False):
                 opcoes_cargas = {
@@ -1848,7 +1846,6 @@ elif menu_selecionado == "Excluir Cargas":
     if cargas_df.empty:
         st.info("Nenhuma carga cadastrada.")
     else:
-        # Abas para separar exclusão individual de exclusão em massa
         aba_indiv, aba_massa = st.tabs(["Excluir Carga Individual", "⚠️ Excluir TODAS as Cargas"])
 
         with aba_indiv:
@@ -1876,7 +1873,6 @@ elif menu_selecionado == "Excluir Cargas":
                     try:
                         with get_connection() as conn:
                             with conn.cursor() as cursor:
-                                # Apaga as tabelas filhas primeiro por causa das chaves estrangeiras
                                 cursor.execute("DELETE FROM carga_administracao;")
                                 cursor.execute("DELETE FROM carga_operacional;")
                                 cursor.execute("DELETE FROM carga_expedicao;")
@@ -1902,27 +1898,31 @@ elif menu_selecionado == "Usuários":
     
     aba_novo, aba_editar = st.tabs(["Novo Usuário", "Editar Usuário"])
 
+    perfis_disponiveis = ["ADMIN", "PROGRAMACAO", "COMERCIAL", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"]
+
     with aba_novo:
         st.subheader("Cadastrar Novo Usuário")
         with st.form("form_novo_usuario"):
-            u1, u2, u3, u4 = st.columns(4)
+            u1, u2, u3 = st.columns(3)
             novo_usr = u1.text_input("Usuário*").strip().lower()
             novo_nome = u2.text_input("Nome*").strip().upper()
             nova_senha = u3.text_input("Senha*", type="password")
-            novo_perfil = u4.selectbox("Perfil*", ["ADMIN", "PROGRAMACAO", "COMERCIAL", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"])
+
+            novos_perfis = st.multiselect("Perfis de Acesso*", perfis_disponiveis)
 
             salvar_usr = st.form_submit_button("Salvar Usuário", type="primary", use_container_width=True)
 
             if salvar_usr:
-                if not (novo_usr and novo_nome and nova_senha and novo_perfil):
-                    st.error("Preencha todos os campos obrigatórios.")
+                if not (novo_usr and novo_nome and nova_senha and novos_perfis):
+                    st.error("Preencha todos os campos obrigatórios, incluindo ao menos um perfil.")
                 else:
                     try:
+                        perfis_str = ",".join(novos_perfis)
                         with get_connection() as conn:
                             with conn.cursor() as cursor:
                                 cursor.execute(
                                     "INSERT INTO usuarios (usuario, senha, nome, perfil) VALUES (%s, %s, %s, %s)",
-                                    (novo_usr, hash_senha(nova_senha), novo_nome, novo_perfil)
+                                    (novo_usr, hash_senha(nova_senha), novo_nome, perfis_str)
                                 )
                                 conn.commit()
                         st.success("Usuário criado com sucesso!")
@@ -1940,35 +1940,35 @@ elif menu_selecionado == "Usuários":
             usr_id_editar = opcoes_usuarios[usuario_selecionado_label]
 
             usr_dados = users_df[users_df['id'] == usr_id_editar].iloc[0]
+            perfis_atuais_cadastrados = [p.strip() for p in str(usr_dados['perfil']).split(",") if p.strip() in perfis_disponiveis]
 
             with st.form("form_editar_usuario"):
                 e1, e2 = st.columns(2)
                 edit_nome = e1.text_input("Nome*", value=usr_dados['nome']).strip().upper()
                 
-                perfis_disponiveis = ["ADMIN", "PROGRAMACAO", "COMERCIAL", "EXPEDICAO", "OPERACIONAL", "ADMINISTRATIVO"]
-                idx_perfil = perfis_disponiveis.index(usr_dados['perfil']) if usr_dados['perfil'] in perfis_disponiveis else 0
-                edit_perfil = e2.selectbox("Perfil*", perfis_disponiveis, index=idx_perfil)
+                edit_perfis = e2.multiselect("Perfis de Acesso*", perfis_disponiveis, default=perfis_atuais_cadastrados)
 
                 edit_senha = st.text_input("Nova Senha (deixe em branco para manter a atual)", type="password")
 
                 salvar_edicao = st.form_submit_button("Salvar Alterações", type="primary", use_container_width=True)
 
                 if salvar_edicao:
-                    if not edit_nome:
-                        st.error("O campo Nome não pode ficar em branco.")
+                    if not edit_nome or not edit_perfis:
+                        st.error("O campo Nome e ao menos um Perfil são obrigatórios.")
                     else:
                         try:
+                            perfis_str_edit = ",".join(edit_perfis)
                             with get_connection() as conn:
                                 with conn.cursor() as cursor:
                                     if edit_senha.strip():
                                         cursor.execute(
                                             "UPDATE usuarios SET nome = %s, perfil = %s, senha = %s WHERE id = %s",
-                                            (edit_nome, edit_perfil, hash_senha(edit_senha.strip()), usr_id_editar)
+                                            (edit_nome, perfis_str_edit, hash_senha(edit_senha.strip()), usr_id_editar)
                                         )
                                     else:
                                         cursor.execute(
                                             "UPDATE usuarios SET nome = %s, perfil = %s WHERE id = %s",
-                                            (edit_nome, edit_perfil, usr_id_editar)
+                                            (edit_nome, perfis_str_edit, usr_id_editar)
                                         )
                                     conn.commit()
                             st.success("Dados do usuário atualizados com sucesso!")
