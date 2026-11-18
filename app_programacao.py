@@ -1066,7 +1066,6 @@ if menu_selecionado == "Visão Geral":
                             st.rerun()
                         except Exception as e:
                             st.error(f"Erro detalhado ao processar planilha de cargas: {e}")
-
     query = """
         SELECT 
             c.id AS id_carga,
