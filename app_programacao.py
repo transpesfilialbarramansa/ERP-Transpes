@@ -1840,19 +1840,44 @@ elif menu_selecionado == "Excluir Cargas":
     if cargas_df.empty:
         st.info("Nenhuma carga cadastrada.")
     else:
-        opcoes_cargas = {f"Carga: {r['numero_carga']} | TP: {r['tp']} | Motorista: {r['mot']} | Status: {r['status']}": r['id'] for _, r in cargas_df.iterrows()}
-        carga_id = opcoes_cargas[st.selectbox("Selecione a Carga*", list(opcoes_cargas.keys()))]
+        # Abas para separar exclusão individual de exclusão em massa
+        aba_indiv, aba_massa = st.tabs(["Excluir Carga Individual", "⚠️ Excluir TODAS as Cargas"])
 
-        if st.button("Excluir Definitivamente", type="primary"):
-            with get_connection() as conn:
-                with conn.cursor() as cursor:
-                    cursor.execute("DELETE FROM carga_administracao WHERE carga_id = %s", (carga_id,))
-                    cursor.execute("DELETE FROM carga_operacional WHERE carga_id = %s", (carga_id,))
-                    cursor.execute("DELETE FROM carga_expedicao WHERE carga_id = %s", (carga_id,))
-                    cursor.execute("DELETE FROM cargas WHERE id = %s", (carga_id,))
-                    conn.commit()
-            st.success("Carga excluída!")
-            st.rerun()
+        with aba_indiv:
+            opcoes_cargas = {f"Carga: {r['numero_carga']} | TP: {r['tp']} | Motorista: {r['mot']} | Status: {r['status']}": r['id'] for _, r in cargas_df.iterrows()}
+            carga_id = opcoes_cargas[st.selectbox("Selecione a Carga*", list(opcoes_cargas.keys()))]
+
+            if st.button("Excluir Definitivamente", type="primary", key="btn_excluir_uma"):
+                with get_connection() as conn:
+                    with conn.cursor() as cursor:
+                        cursor.execute("DELETE FROM carga_administracao WHERE carga_id = %s", (carga_id,))
+                        cursor.execute("DELETE FROM carga_operacional WHERE carga_id = %s", (carga_id,))
+                        cursor.execute("DELETE FROM carga_expedicao WHERE carga_id = %s", (carga_id,))
+                        cursor.execute("DELETE FROM cargas WHERE id = %s", (carga_id,))
+                        conn.commit()
+                st.success("Carga excluída!")
+                st.rerun()
+
+        with aba_massa:
+            st.warning("⚠️ **Atenção:** Esta ação irá apagar **absolutamente todas** as cargas cadastradas no sistema, incluindo os dados de expedição, operacional e administração vinculados a elas. Esta ação é irreversível!")
+            
+            confirmar_checkbox = st.checkbox("Estou ciente de que quero apagar todo o histórico de cargas do sistema.")
+            
+            if confirmar_checkbox:
+                if st.button("🚨 EXCLUIR TODAS AS CARGAS DO SISTEMA", type="primary", key="btn_excluir_todas"):
+                    try:
+                        with get_connection() as conn:
+                            with conn.cursor() as cursor:
+                                # Apaga as tabelas filhas primeiro por causa das chaves estrangeiras
+                                cursor.execute("DELETE FROM carga_administracao;")
+                                cursor.execute("DELETE FROM carga_operacional;")
+                                cursor.execute("DELETE FROM carga_expedicao;")
+                                cursor.execute("DELETE FROM cargas;")
+                                conn.commit()
+                        st.success("Todas as cargas foram excluídas com sucesso!")
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Erro ao excluir todas as cargas: {e}")
 
 # 9. USUÁRIOS
 elif menu_selecionado == "Usuários":
